@@ -21,12 +21,17 @@ Deployable on Vercel free tier.
 - API keys in .env.local, never committed
 
 ## Pages
-1. `/` — index score (large), change vs last month, sparkline of index
-   history; below: fund table (name, issuer, AUM, holders, top-5 holder
-   share, chains) and total AUM chart
-2. `/fund/[slug]` — per-fund detail: AUM history, holder count,
-   concentration chart, 10 most recent large transfers (>$1M)
-3. `/methodology` — index methodology (from METHODOLOGY.md) plus a table
+1. `/` — RTA Index score (large), change vs last month, sparkline of
+   index history, factor sub-scores; below: fund table (name, issuer,
+   AUM, holders, top-5 holder share, dormancy, chains) and total AUM chart
+2. `/holders` — aggregated holder behavior: behavioral mix per product
+   (accumulating / distributing / dormant / active), dormancy share with
+   trend, average holding period, net new vs exited wallets monthly,
+   custodian-labeled holdings flagged; USDY shown as aggregate flows only
+3. `/fund/[slug]` — per-fund detail: AUM history, holder count,
+   concentration chart, behavioral mix, 10 most recent large
+   transfers (>$1M)
+4. `/methodology` — index methodology (from METHODOLOGY.md) plus a table
    of minimum investments / eligibility per product
 
 ## Index
