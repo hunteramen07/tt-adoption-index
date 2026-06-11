@@ -11,8 +11,9 @@ A reading of 50 means adoption is flat; above 50, accelerating; below
 50, contracting.
 
 ## Covered products (v1)
-BlackRock BUIDL, Ondo OUSG, Ondo USDY, Franklin Templeton BENJI,
-Superstate USTB, Hashnote USYC.
+BlackRock BUIDL, Ondo OUSG, Ondo USDY, Superstate USTB, Hashnote USYC.
+Franklin Templeton BENJI is temporarily excluded from v1: it has no
+Ethereum mainnet deployment, and multi-chain support is planned for v1.1.
 
 ## Factors and weights
 
@@ -27,7 +28,11 @@ Superstate USTB, Hashnote USYC.
 
 ## Factor definitions
 1. **AUM growth** — 3-month % change in total AUM across covered
-   products. Token supply × NAV (≈$1 for these products unless stated).
+   products. AUM = supply × per-product NAV. Distributing money-market
+   products (BUIDL, USTB) hold ~$1 NAV; accumulating products (OUSG at
+   ~$115, USDY/USYC at ~$1.13) accrue yield into the token price. NAVs
+   are hardcoded with a navAsOf date, refreshed monthly; live price
+   sources are planned for v1.1.
 2. **Holder growth** — 3-month % change in total distinct holder
    addresses across covered products.
 3. **Concentration trend** — 3-month change in the average top-5 holder
@@ -64,8 +69,8 @@ Published aggregates: behavioral mix per product, average holding
 period, dormancy share, net new vs. exited wallets per month.
 
 Coverage tiers: full per-wallet classification for institutional
-products (BUIDL, OUSG, BENJI, USTB, USYC); aggregate flow statistics
-only for USDY due to holder count and API constraints.
+products (BUIDL, OUSG, USTB, USYC); aggregate flow statistics only for
+USDY due to holder count and API constraints.
 
 These profile metrics inform the Dormancy factor but the full
 behavioral mix is not an index input in v1.0.
@@ -75,9 +80,10 @@ behavioral mix is not an index input in v1.0.
   Omnibus custodial structures may aggregate many beneficial owners,
   overstating concentration and dormancy. Publicly labeled addresses
   (exchanges, known custodians) are flagged where available.
-- NAV is approximated at $1 where issuers do not publish on-chain NAV.
-- Non-Ethereum deployments are included only where reliable data
-  exists; chain coverage is documented per product.
+- **Ethereum mainnet only:** v1 measures Ethereum mainnet adoption only.
+  Ethereum's share of total product AUM ranges from ~3% (USYC) to ~51%
+  (USDY) per rwa.xyz, so the index reflects Ethereum-chain adoption
+  specifically. Multi-chain coverage is the v1.1 priority.
 - The index measures on-chain observable adoption; off-chain records
   (transfer-agent ledgers) are out of scope.
 

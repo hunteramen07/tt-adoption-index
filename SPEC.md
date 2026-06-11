@@ -8,8 +8,10 @@ supporting data. Audience: finance people. The homepage must pass a
 Deployable on Vercel free tier.
 
 ## Tracked products (v1)
-- BlackRock BUIDL, Ondo OUSG & USDY, Franklin Templeton BENJI,
-  Superstate USTB, Hashnote USYC
+- Five active: BlackRock BUIDL, Ondo OUSG & USDY, Superstate USTB,
+  Hashnote USYC
+- Pending (v1.1): Franklin Templeton BENJI — no Ethereum mainnet
+  deployment; included once multi-chain support ships
 
 ## Stack
 - Next.js 14+ (App Router), TypeScript, Tailwind
