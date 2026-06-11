@@ -84,6 +84,12 @@ behavioral mix is not an index input in v1.0.
   Ethereum's share of total product AUM ranges from ~3% (USYC) to ~51%
   (USDY) per rwa.xyz, so the index reflects Ethereum-chain adoption
   specifically. Multi-chain coverage is the v1.1 priority.
+- **Per-token classification:** behavioral labels reflect flows of each
+  token in isolation. Holders interacting with DeFi wrappers (e.g., Flux
+  Finance's fOUSG for OUSG) may be classified as Distributing or
+  Accumulating while their economic exposure is unchanged — the flow
+  represents movement between the raw token and a wrapped position.
+  Wrapper-aware classification is a candidate for future versions.
 - The index measures on-chain observable adoption; off-chain records
   (transfer-agent ledgers) are out of scope.
 
