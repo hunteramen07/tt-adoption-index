@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "classify": "tsx --tsconfig tsconfig.json scripts/classify.ts"
+    "classify": "tsx --tsconfig tsconfig.json scripts/classify.ts",
+    "backfill": "tsx --tsconfig tsconfig.json scripts/backfill.ts",
+    "test:index": "tsx --tsconfig tsconfig.json --test src/lib/index/compute.test.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.108.1",

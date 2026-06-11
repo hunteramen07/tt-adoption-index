@@ -48,11 +48,13 @@ Ethereum mainnet deployment, and multi-chain support is planned for v1.1.
 
 ## Normalization
 Each factor maps to a 0–100 score via a defined linear range, clamped
-at the bounds (e.g., 3-month AUM growth: −20% → 0, 0% → 50, +40% → 100).
+at the bounds (e.g., 3-month AUM growth: −40% → 0, 0% → 50, +65% → 100).
 Exact ranges per factor are calibrated against backfilled historical
-data so that the trailing 12 months span most of the 0–100 range, and
-are fixed in code thereafter. Range changes require a methodology
-version bump.
+data so that the mature-phase distribution spans most of the 0–100 range,
+and are fixed in code thereafter. Range changes require a methodology
+version bump. Readings during the segment's launch phase (early 2023)
+reflect launch dynamics and clamp at scale bounds; the index is calibrated
+to the mature-phase distribution.
 
 ## Composite
 Weighted arithmetic mean of the six factor scores. Factor sub-scores
