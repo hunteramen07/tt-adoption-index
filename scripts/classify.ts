@@ -186,6 +186,16 @@ async function upsertClassifications(
     if (error) throw new Error(`Supabase upsert failed (${productSlug} batch ${i}): ${error.message}`)
     console.log(`  wrote ${i + batch.length}/${rows.length} rows`)
   }
+
+  // Remove stale rows: addresses that existed in a previous run but are no
+  // longer current holders (zero balance today). Identified by classified_at
+  // predating this run's timestamp.
+  const { error: deleteError } = await supabase
+    .from('holder_classifications')
+    .delete()
+    .eq('product_slug', productSlug)
+    .lt('classified_at', classifiedAt)
+  if (deleteError) throw new Error(`Supabase stale-row delete failed (${productSlug}): ${deleteError.message}`)
 }
 
 async function upsertAggregateStats(stats: ReturnType<typeof computeAggregateStats> & {
