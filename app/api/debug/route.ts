@@ -7,6 +7,12 @@ import { fetchTransferHistory } from '@/src/lib/etherscan/transfers'
 import { fetchNameTags } from '@/src/lib/etherscan/nameTags'
 import { diskCacheClearAll } from '@/src/lib/cache/disk'
 import { fetchAumHistory } from '@/src/lib/dune/supplyHistory'
+import {
+  classifyHolders,
+  computeBehavioralMix,
+  computeDormancySharePct,
+  computeAggregateStats,
+} from '@/src/lib/classify/engine'
 
 /**
  * GET /api/debug
@@ -125,6 +131,42 @@ export async function GET(request: Request) {
     errors.aumHistory = String(err)
   }
 
+  // ── Behavioral mix (all active products, capped at 3 pages to stay fast) ──
+  // Uses the same disk-cached transfer history as holderStats above.
+  type BehaviorSummary = {
+    holderCount: number
+    mix: { accumulating: number; distributing: number; dormant: number; active: number; total: number }
+    dormancySharePct: number
+    fromCache: boolean
+  }
+  const behavioralMix: Record<string, BehaviorSummary | { error: string }> = {}
+
+  for (const p of ACTIVE_PRODUCTS) {
+    try {
+      const td = await fetchTransferHistory(p, { maxPages: 3 })
+      const nowTs = Math.floor(Date.now() / 1000)
+      if (p.aggregateFlowsOnly) {
+        const agg = computeAggregateStats(td.transfers, nowTs)
+        behavioralMix[p.slug] = {
+          holderCount: agg.holderCount,
+          mix: agg.mix,
+          dormancySharePct: agg.dormancySharePct,
+          fromCache: td.fromCache,
+        }
+      } else {
+        const classifications = classifyHolders(td.transfers, nowTs)
+        behavioralMix[p.slug] = {
+          holderCount: classifications.size,
+          mix: computeBehavioralMix(classifications),
+          dormancySharePct: computeDormancySharePct(classifications),
+          fromCache: td.fromCache,
+        }
+      }
+    } catch (err) {
+      behavioralMix[p.slug] = { error: String(err) }
+    }
+  }
+
   const annotatedHolders = (holderStats?.topHolders ?? []).map((h) => ({
     ...h,
     nameTag: nameTags[h.address.toLowerCase()]?.nameTag ?? null,
@@ -135,6 +177,7 @@ export async function GET(request: Request) {
     sampleProduct: sample.slug,
     diagnostics,
     ...(Object.keys(errors).length > 0 && { errors }),
+    behavioralMix,
     holderStats: holderStats
       ? { ...holderStats, topHolders: annotatedHolders }
       : null,

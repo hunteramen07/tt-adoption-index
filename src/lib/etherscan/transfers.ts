@@ -7,7 +7,10 @@ import type { ERC20Transfer, TransferHistoryData } from './types'
 // Historical transfers are immutable so a 6-hour window is conservative.
 const CACHE_MAX_AGE_MS = 6 * 60 * 60 * 1000
 
-const PAGE_SIZE = 100 // Etherscan max per page
+// Etherscan v2 supports up to 10000 results per page; default 100 preserves
+// the original behavior for the debug endpoint. The classify script passes
+// pageSize: 10000 to minimize API round-trips on the initial history fetch.
+const DEFAULT_PAGE_SIZE = 100
 
 /**
  * Full ERC-20 transfer history for a token, with disk-backed incremental caching.
@@ -19,15 +22,17 @@ const PAGE_SIZE = 100 // Etherscan max per page
  *
  * The underlying etherscanGet respects the 5 calls/sec free-tier rate limit.
  *
- * @param options.maxPages  Cap the number of API pages per run (100 tx/page).
- *   Defaults to Infinity for a complete fetch. Set to a small number (e.g. 2)
- *   on the debug endpoint to avoid long first-run latency.
+ * @param options.maxPages  Cap the number of API pages per run. Defaults to
+ *   Infinity for a complete fetch. Set to a small number (e.g. 2) on the
+ *   debug endpoint to avoid long first-run latency.
+ * @param options.pageSize  Results per API page (1–10000). Defaults to 100.
+ *   Use 10000 in batch scripts to minimize round-trips.
  */
 export async function fetchTransferHistory(
   product: Product,
-  options: { maxPages?: number } = {}
+  options: { maxPages?: number; pageSize?: number } = {}
 ): Promise<TransferHistoryData> {
-  const { maxPages = Infinity } = options
+  const { maxPages = Infinity, pageSize = DEFAULT_PAGE_SIZE } = options
   const cacheKey = `transfers-${product.contractAddress.toLowerCase()}`
 
   const fresh = diskCacheRead<ERC20Transfer[]>(cacheKey, CACHE_MAX_AGE_MS)
@@ -54,7 +59,7 @@ export async function fetchTransferHistory(
       startblock: startBlock.toString(),
       endblock: '99999999',
       page: page.toString(),
-      offset: PAGE_SIZE.toString(),
+      offset: pageSize.toString(),
       sort: 'asc',
     })
 
@@ -70,7 +75,7 @@ export async function fetchTransferHistory(
     )
     if (maxBatchBlock > lastBlock) lastBlock = maxBatchBlock
 
-    if (batch.length < PAGE_SIZE) break // reached the last page
+    if (batch.length < pageSize) break // reached the last page
     page++
   }
 

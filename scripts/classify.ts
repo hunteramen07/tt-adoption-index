@@ -1,0 +1,297 @@
+/**
+ * npm run classify
+ *
+ * Classifies all token holder addresses for BUIDL, OUSG, USTB, USYC
+ * (per-wallet rows) and USDY (aggregate stats only), then writes results
+ * to Supabase.
+ *
+ * Resumable: completed products are recorded in .cache/classify-progress.json.
+ * Restart the script after a failure — it picks up where it left off as long
+ * as the progress file is < 12 hours old.
+ *
+ * ── Required Supabase tables ──────────────────────────────────────────────
+ *
+ * CREATE TABLE holder_classifications (
+ *   product_slug       text NOT NULL,
+ *   address            text NOT NULL,
+ *   behavior           text NOT NULL,   -- Accumulating | Distributing | Dormant | Active
+ *   balance_raw        text NOT NULL,
+ *   inflow_raw         text NOT NULL DEFAULT '0',
+ *   outflow_raw        text NOT NULL DEFAULT '0',
+ *   is_labeled_custodian boolean NOT NULL DEFAULT false,
+ *   name_tag           text,
+ *   classified_at      timestamptz NOT NULL,
+ *   as_of_block        integer NOT NULL,
+ *   PRIMARY KEY (product_slug, address)
+ * );
+ *
+ * CREATE TABLE holder_aggregate_stats (
+ *   product_slug             text PRIMARY KEY,
+ *   holder_count             integer NOT NULL,
+ *   behavior_accumulating    integer NOT NULL,
+ *   behavior_distributing    integer NOT NULL,
+ *   behavior_dormant         integer NOT NULL,
+ *   behavior_active          integer NOT NULL,
+ *   dormancy_share_pct       numeric NOT NULL,
+ *   net_new_wallets_90d      integer NOT NULL,
+ *   exited_wallets_90d       integer NOT NULL,
+ *   net_accumulation_ratio   numeric,
+ *   classified_at            timestamptz NOT NULL,
+ *   as_of_block              integer NOT NULL
+ * );
+ *
+ * Disable RLS on both tables (or grant INSERT/UPDATE to the anon role) if
+ * you do not have a SUPABASE_SERVICE_ROLE_KEY in .env.local.
+ * ─────────────────────────────────────────────────────────────────────────
+ */
+
+import { config } from 'dotenv'
+config({ path: '.env.local' })
+
+import fs from 'fs'
+import path from 'path'
+import { ACTIVE_PRODUCTS } from '@/src/config/products'
+import { fetchTransferHistory } from '@/src/lib/etherscan/transfers'
+import { etherscanGet } from '@/src/lib/etherscan/client'
+import { diskCacheRead, diskCacheWrite } from '@/src/lib/cache/disk'
+import { KNOWN_ADDRESSES } from '@/src/lib/etherscan/nameTags'
+import type { ContractSource } from '@/src/lib/etherscan/types'
+import {
+  classifyHolders,
+  computeDormancySharePct,
+  computeBehavioralMix,
+  computeAggregateStats,
+} from '@/src/lib/classify/engine'
+import type { HolderClassification } from '@/src/lib/classify/types'
+import { getSupabase } from '@/src/lib/supabase/client'
+
+// ── Constants ──────────────────────────────────────────────────────────────
+
+const PROGRESS_FILE = path.join(process.cwd(), '.cache', 'classify-progress.json')
+const PROGRESS_TTL_MS = 12 * 60 * 60 * 1000
+const UPSERT_BATCH = 500
+
+const CUSTODIAN_KEYWORDS = [
+  'coinbase', 'binance', 'exchange', 'custodian', 'custody',
+  'gnosis safe', 'multisig', 'vault', 'treasury', 'kraken',
+  'gemini', 'bitfinex', 'okx', 'bybit', 'huobi',
+]
+
+// ── Progress tracking ──────────────────────────────────────────────────────
+
+interface Progress {
+  startedAt: string
+  completedProducts: string[]
+}
+
+function loadProgress(): Progress | null {
+  try {
+    const raw = fs.readFileSync(PROGRESS_FILE, 'utf-8')
+    const p: Progress = JSON.parse(raw)
+    if (Date.now() - new Date(p.startedAt).getTime() > PROGRESS_TTL_MS) return null
+    return p
+  } catch {
+    return null
+  }
+}
+
+function saveProgress(p: Progress): void {
+  try {
+    fs.mkdirSync(path.dirname(PROGRESS_FILE), { recursive: true })
+    fs.writeFileSync(PROGRESS_FILE, JSON.stringify(p, null, 2), 'utf-8')
+  } catch (err) {
+    console.warn('[classify] could not write progress file:', err)
+  }
+}
+
+// ── Name tag resolution (script-compatible, disk-cached) ──────────────────
+
+function isCustodianTag(nameTag: string | null): boolean {
+  if (!nameTag) return false
+  const lower = nameTag.toLowerCase()
+  return CUSTODIAN_KEYWORDS.some((kw) => lower.includes(kw))
+}
+
+async function resolveNameTag(
+  address: string
+): Promise<{ nameTag: string | null; isCustodian: boolean }> {
+  const lower = address.toLowerCase()
+
+  if (KNOWN_ADDRESSES[lower]) {
+    const nameTag = KNOWN_ADDRESSES[lower]
+    return { nameTag, isCustodian: isCustodianTag(nameTag) }
+  }
+
+  const cacheKey = `nametag-${lower}`
+  const cached = diskCacheRead<string | null>(cacheKey, 24 * 60 * 60 * 1000)
+  if (cached !== null) {
+    return { nameTag: cached.data, isCustodian: isCustodianTag(cached.data) }
+  }
+
+  const sources = await etherscanGet<ContractSource[]>({
+    module: 'contract',
+    action: 'getsourcecode',
+    address,
+  })
+
+  const contractName = sources?.[0]?.ContractName?.trim() || null
+  diskCacheWrite(cacheKey, { fetchedAt: Date.now(), lastBlock: 0, data: contractName })
+
+  return { nameTag: contractName, isCustodian: isCustodianTag(contractName) }
+}
+
+/** Resolve name tags for a batch of addresses, logging progress. */
+async function resolveNameTags(
+  addresses: string[]
+): Promise<Map<string, { nameTag: string | null; isCustodian: boolean }>> {
+  const result = new Map<string, { nameTag: string | null; isCustodian: boolean }>()
+  for (let i = 0; i < addresses.length; i++) {
+    if (i > 0 && i % 50 === 0) {
+      console.log(`  name tags: ${i}/${addresses.length}`)
+    }
+    const r = await resolveNameTag(addresses[i])
+    result.set(addresses[i].toLowerCase(), r)
+  }
+  return result
+}
+
+// ── Supabase writes ────────────────────────────────────────────────────────
+
+async function upsertClassifications(
+  productSlug: string,
+  classifications: Map<string, HolderClassification>,
+  asOfBlock: number
+): Promise<void> {
+  const supabase = getSupabase()
+  const classifiedAt = new Date().toISOString()
+
+  const rows = Array.from(classifications.values()).map((c) => ({
+    product_slug: productSlug,
+    address: c.address,
+    behavior: c.behavior,
+    balance_raw: c.balanceRaw,
+    inflow_raw: c.inflowRaw,
+    outflow_raw: c.outflowRaw,
+    is_labeled_custodian: c.isLabeledCustodian,
+    name_tag: c.nameTag,
+    classified_at: classifiedAt,
+    as_of_block: asOfBlock,
+  }))
+
+  for (let i = 0; i < rows.length; i += UPSERT_BATCH) {
+    const batch = rows.slice(i, i + UPSERT_BATCH)
+    const { error } = await supabase
+      .from('holder_classifications')
+      .upsert(batch, { onConflict: 'product_slug,address' })
+    if (error) throw new Error(`Supabase upsert failed (${productSlug} batch ${i}): ${error.message}`)
+    console.log(`  wrote ${i + batch.length}/${rows.length} rows`)
+  }
+}
+
+async function upsertAggregateStats(stats: ReturnType<typeof computeAggregateStats> & {
+  productSlug: string
+  asOfBlock: number
+}): Promise<void> {
+  const supabase = getSupabase()
+  const { error } = await supabase.from('holder_aggregate_stats').upsert({
+    product_slug: stats.productSlug,
+    holder_count: stats.holderCount,
+    behavior_accumulating: stats.mix.accumulating,
+    behavior_distributing: stats.mix.distributing,
+    behavior_dormant: stats.mix.dormant,
+    behavior_active: stats.mix.active,
+    dormancy_share_pct: stats.dormancySharePct,
+    net_new_wallets_90d: stats.netNewWallets90d,
+    exited_wallets_90d: stats.exitedWallets90d,
+    net_accumulation_ratio: stats.netAccumulationRatio ?? null,
+    classified_at: new Date().toISOString(),
+    as_of_block: stats.asOfBlock,
+  }, { onConflict: 'product_slug' })
+  if (error) throw new Error(`Supabase upsert failed (aggregate ${stats.productSlug}): ${error.message}`)
+}
+
+// ── Main ───────────────────────────────────────────────────────────────────
+
+async function main() {
+  console.log('=== classify ===')
+  console.log(`window: trailing 90 days  |  ${new Date().toISOString()}`)
+
+  const progress = loadProgress() ?? { startedAt: new Date().toISOString(), completedProducts: [] }
+  if (progress.completedProducts.length > 0) {
+    console.log(`resuming — already completed: ${progress.completedProducts.join(', ')}`)
+  }
+
+  const nowTs = Math.floor(Date.now() / 1000)
+
+  for (const product of ACTIVE_PRODUCTS) {
+    if (progress.completedProducts.includes(product.slug)) {
+      console.log(`\n[${product.slug}] skipping (already done this run)`)
+      continue
+    }
+
+    console.log(`\n[${product.slug}] fetching transfer history…`)
+    const transferData = await fetchTransferHistory(product, { pageSize: 10000 })
+    const { transfers, lastBlock } = transferData
+    console.log(`  ${transfers.length} transfers through block ${lastBlock} (fromCache=${transferData.fromCache})`)
+
+    if (product.aggregateFlowsOnly) {
+      // USDY — aggregate stats only
+      console.log(`  computing aggregate stats…`)
+      const stats = computeAggregateStats(transfers, nowTs)
+      console.log(
+        `  holders=${stats.holderCount}  dormancyShare=${stats.dormancySharePct.toFixed(1)}%  ` +
+        `netNew=${stats.netNewWallets90d}  exited=${stats.exitedWallets90d}  ` +
+        `mix: A=${stats.mix.accumulating} D=${stats.mix.distributing} Dormant=${stats.mix.dormant} Active=${stats.mix.active}`
+      )
+      console.log(`  writing aggregate stats to Supabase…`)
+      await upsertAggregateStats({ ...stats, productSlug: product.slug, asOfBlock: lastBlock })
+    } else {
+      // Per-wallet classification
+      console.log(`  classifying holders…`)
+      const classifications = classifyHolders(transfers, nowTs)
+      const mix = computeBehavioralMix(classifications)
+      const dormancySharePct = computeDormancySharePct(classifications)
+      console.log(
+        `  ${classifications.size} holders  dormancyShare=${dormancySharePct.toFixed(1)}%  ` +
+        `mix: A=${mix.accumulating} D=${mix.distributing} Dormant=${mix.dormant} Active=${mix.active}`
+      )
+
+      // Resolve name tags for all holder addresses
+      console.log(`  resolving name tags for ${classifications.size} addresses…`)
+      const addresses = Array.from(classifications.keys())
+      const tags = await resolveNameTags(addresses)
+
+      // Enrich classifications with name tag data
+      for (const [addr, c] of classifications) {
+        const tag = tags.get(addr.toLowerCase())
+        if (tag) {
+          c.nameTag = tag.nameTag
+          c.isLabeledCustodian = tag.isCustodian
+        }
+      }
+
+      const custodianCount = Array.from(classifications.values()).filter(
+        (c) => c.isLabeledCustodian
+      ).length
+      if (custodianCount > 0) {
+        console.log(`  labeled custodians: ${custodianCount}`)
+      }
+
+      console.log(`  writing ${classifications.size} rows to Supabase…`)
+      await upsertClassifications(product.slug, classifications, lastBlock)
+    }
+
+    progress.completedProducts.push(product.slug)
+    saveProgress(progress)
+    console.log(`[${product.slug}] done ✓`)
+  }
+
+  // Clear progress file on successful completion
+  try { fs.unlinkSync(PROGRESS_FILE) } catch { /* already gone */ }
+  console.log('\n=== classify complete ===')
+}
+
+main().catch((err) => {
+  console.error('\n[classify] fatal error:', err)
+  process.exit(1)
+})

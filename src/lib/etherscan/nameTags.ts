@@ -6,8 +6,11 @@ import type { ContractSource, NameTagData } from './types'
  * Static lookup of well-known public addresses that frequently appear as
  * top holders in institutional tokenized products. Sourced from Etherscan
  * public labels — verify at https://etherscan.io/labelcloud.
+ *
+ * Exported so the classify script can use it without the Next.js `use cache`
+ * wrapper. Extend this table as new custodian/exchange addresses are identified.
  */
-const KNOWN_ADDRESSES: Record<string, string> = {
+export const KNOWN_ADDRESSES: Record<string, string> = {
   '0x0000000000000000000000000000000000000000': 'Null Address',
   '0x000000000000000000000000000000000000dead': 'Dead Address (Burn)',
   // Major exchanges
