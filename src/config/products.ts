@@ -15,6 +15,25 @@ export interface Product {
    */
   decimals: number
   /**
+   * NAV per token in USD, used to convert raw supply to AUM.
+   * Omit (or set to 1) for stable-$1 money-market products (BUIDL, USTB).
+   * Must be set for products whose token price accrues away from $1:
+   *   OUSG  — bond fund, token started at $100 (Jan 2023), accrues T-bill yield
+   *   USDY  — yield note, started at $1, price accrues
+   *   USYC  — yield coin, started at $1, price accrues
+   *
+   * ⚠ HARDCODED — sourced from Etherscan on the date recorded in navAsOf.
+   * Update navUsd and navAsOf together when refreshing. Until a live price
+   * source is wired (v1.1), refresh monthly.
+   */
+  navUsd?: number
+  /**
+   * ISO date (YYYY-MM-DD) when navUsd was last verified.
+   * Displayed in debug output and later the UI so staleness is visible.
+   * Omit for stable-$1 products where navUsd defaults to 1.
+   */
+  navAsOf?: string
+  /**
    * When true, use aggregate transfer flow stats only instead of
    * per-wallet behavioral classification (see METHODOLOGY.md).
    */
@@ -50,23 +69,33 @@ export const PRODUCTS: Product[] = [
     decimals: 6,
   },
   {
-    // Ondo US Government Bond — institutional, KYC-gated
+    // Ondo US Government Bond — institutional, KYC-gated.
+    // Token launched at $100 NAV (Jan 2023) and accrues T-bill yield.
+    // The navUsd below was read from Etherscan on 2026-06-11 — update monthly.
+    // NOTE: this address tracks Ethereum mainnet only (~39% of total OUSG AUM).
+    // OUSG is also on XRP Ledger, Solana, and Polygon; multi-chain coverage TBD.
     slug: 'ousg',
     name: 'Ondo US Government Bond',
     symbol: 'OUSG',
     issuer: 'Ondo Finance',
     contractAddress: '0x1B19C19393e2d034D8Ff31ff34c81252FcBbee92',
     decimals: 18,
+    navUsd: 115.53,
+    navAsOf: '2026-06-11',
   },
   {
     // Ondo US Dollar Yield — higher holder count than other products.
     // Per METHODOLOGY.md: aggregate flow stats only, no per-wallet classification.
+    // Token price accrues from $1; navUsd read from Etherscan on 2026-06-11.
+    // NOTE: Ethereum mainnet is ~45% of total USDY AUM (11 chains total).
     slug: 'usdy',
     name: 'Ondo US Dollar Yield',
     symbol: 'USDY',
     issuer: 'Ondo Finance',
     contractAddress: '0x96F6eF951840721AdBF46Ac996b59E0235CB985C',
     decimals: 18,
+    navUsd: 1.13,
+    navAsOf: '2026-06-11',
     aggregateFlowsOnly: true,
   },
   {
@@ -94,13 +123,17 @@ export const PRODUCTS: Product[] = [
     decimals: 6,
   },
   {
-    // Hashnote US Yield Coin
+    // Hashnote US Yield Coin (now operated by Circle).
+    // Token price accrues from $1; navUsd read from Etherscan on 2026-06-11.
+    // NOTE: Ethereum mainnet is ~2.9% of total USYC AUM (Solana + BNB hold the rest).
     slug: 'usyc',
     name: 'Hashnote US Yield Coin',
     symbol: 'USYC',
     issuer: 'Hashnote',
     contractAddress: '0x136471a34f6ef19fE571EFFC1CA711fdb8E49f2b',
     decimals: 6,
+    navUsd: 1.13,
+    navAsOf: '2026-06-11',
   },
 ]
 

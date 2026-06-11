@@ -47,3 +47,16 @@ Computed exactly per METHODOLOGY.md. Monthly snapshots stored in Supabase.
 
 ## Out of scope for v1
 Auth, alerts, perps, non-treasury RWAs, mobile app
+
+## Out of scope for v1 — deferred to v1.1
+- **Live NAV prices** — OUSG ($115.53), USDY ($1.13), and USYC ($1.13) have
+  accruing NAVs hardcoded in `src/config/products.ts` (field: `navUsd`,
+  verified: `navAsOf`). Replace with a live on-chain oracle or Dune
+  `prices.usd` join. OUSG is a permissioned token not on DEXes; it needs its
+  own on-chain oracle (Ondo Finance publishes one). USDY and USYC trade on DEXes
+  and can use `prices.usd`. Until wired up, refresh `navUsd`/`navAsOf` monthly.
+- **Multi-chain AUM coverage** — the Dune supply query (ID 7696914) tracks
+  Ethereum mainnet only. Ethereum's share of total fund AUM as of 2026-06-11:
+  BUIDL 7.5% (8 chains), OUSG 39.3% (4 chains), USDY 51.2% (11 chains),
+  USTB 8.8% (3 chains), USYC 2.9% (3 chains). Expanding requires per-chain
+  contract verification and Dune query updates for each additional network.

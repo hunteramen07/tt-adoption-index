@@ -6,6 +6,7 @@ import { fetchHolderStats } from '@/src/lib/etherscan/holders'
 import { fetchTransferHistory } from '@/src/lib/etherscan/transfers'
 import { fetchNameTags } from '@/src/lib/etherscan/nameTags'
 import { diskCacheClearAll } from '@/src/lib/cache/disk'
+import { fetchAumHistory } from '@/src/lib/dune/supplyHistory'
 
 /**
  * GET /api/debug
@@ -33,6 +34,7 @@ export async function GET(request: Request) {
   if (searchParams.get('clear') === '1') {
     diskCacheClearAll()
     revalidateTag('etherscan-data', 'seconds')
+    revalidateTag('dune-data', 'seconds')
     return Response.json({
       cleared: true,
       message: 'Disk cache deleted and use-cache entries invalidated. Hit /api/debug to re-fetch.',
@@ -40,11 +42,13 @@ export async function GET(request: Request) {
   }
 
   const apiKey = process.env.ETHERSCAN_API_KEY
+  const duneApiKey = process.env.DUNE_API_KEY
 
   // ── Diagnostics ──────────────────────────────────────────────────────────
   const diagnostics: Record<string, unknown> = {
     apiKeyPresent: !!apiKey,
     apiKeyLength: apiKey?.length ?? 0,
+    duneApiKeyPresent: !!duneApiKey,
   }
 
   if (!apiKey) {
@@ -113,6 +117,14 @@ export async function GET(request: Request) {
     errors.nameTags = String(err)
   }
 
+  // Dune AUM history
+  let aumHistory: Awaited<ReturnType<typeof fetchAumHistory>> | null = null
+  try {
+    aumHistory = await fetchAumHistory()
+  } catch (err) {
+    errors.aumHistory = String(err)
+  }
+
   const annotatedHolders = (holderStats?.topHolders ?? []).map((h) => ({
     ...h,
     nameTag: nameTags[h.address.toLowerCase()]?.nameTag ?? null,
@@ -137,5 +149,32 @@ export async function GET(request: Request) {
         }
       : null,
     nameTags,
+    // Per-product AUM history from Dune query 7696914
+    // latest: most recent supply → AUM conversion
+    // recentSeries: last 14 days (forward-filled, no gaps)
+    aumHistory: aumHistory
+      ? {
+          fetchedAt: aumHistory.fetchedAt,
+          executionId: aumHistory.executionId,
+          queryState: aumHistory.queryState,
+          products: Object.fromEntries(
+            Object.entries(aumHistory.products).map(([slug, hist]) => [
+              slug,
+              hist
+                ? {
+                    latestDay: hist.latest?.day ?? null,
+                    latestAumUsd: hist.latest?.aum ?? null,
+                    latestSupplyRaw: hist.latest?.supplyRaw ?? null,
+                    decimals: hist.decimals,
+                    navUsd: hist.navUsd,
+                    navAsOf: hist.navAsOf,
+                    totalDays: hist.series.length,
+                    recentSeries: hist.series.slice(-14),
+                  }
+                : null,
+            ])
+          ),
+        }
+      : null,
   })
 }
