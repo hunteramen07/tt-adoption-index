@@ -2,8 +2,9 @@
 const BASE_URL = 'https://api.etherscan.io/v2/api'
 const CHAIN_ID = '1' // Ethereum mainnet
 
-// Free tier: 5 calls/sec. 210ms ≈ 4.8/sec with a small margin.
-const MIN_INTERVAL_MS = 210
+// Free tier limit observed at 3/sec in practice. 400ms ≈ 2.5/sec leaves
+// a comfortable margin under burst enforcement.
+const MIN_INTERVAL_MS = 400
 
 // Module-level scheduler. Updated synchronously before any await, so
 // concurrent callers each claim a unique slot without a lock.

@@ -46,19 +46,23 @@ export async function fetchTransferHistory(
 
   const newTransfers: ERC20Transfer[] = []
   let lastBlock = stale?.lastBlock ?? 0
-  let page = 1
+  let iterations = 0
+  // currentStartBlock advances with each full page so we never exceed the
+  // Etherscan constraint: page × offset ≤ 10000. We always request page=1
+  // and advance startblock to the block after the last result.
+  let currentStartBlock = startBlock
   // Distinguish null (API/network error) from [] (legitimate end of data).
   // Only write to disk when the API actually responded successfully.
   let apiSucceeded = false
 
-  while (page <= maxPages) {
+  while (iterations < maxPages) {
     const batch = await etherscanGet<ERC20Transfer[]>({
       module: 'account',
       action: 'tokentx',
       contractaddress: product.contractAddress,
-      startblock: startBlock.toString(),
+      startblock: currentStartBlock.toString(),
       endblock: '99999999',
-      page: page.toString(),
+      page: '1',
       offset: pageSize.toString(),
       sort: 'asc',
     })
@@ -76,7 +80,9 @@ export async function fetchTransferHistory(
     if (maxBatchBlock > lastBlock) lastBlock = maxBatchBlock
 
     if (batch.length < pageSize) break // reached the last page
-    page++
+    // Full page — advance startblock to continue beyond the 10k limit
+    currentStartBlock = lastBlock + 1
+    iterations++
   }
 
   const allTransfers = [...existing, ...newTransfers]
