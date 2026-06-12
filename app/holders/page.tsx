@@ -259,9 +259,9 @@ export default async function HoldersPage() {
               XRP Ledger, etc. are not captured in v1.
             </li>
             <li>
-              <strong>USDY aggregate only:</strong> high holder count and API constraints
-              prevent per-wallet classification. Aggregate flow stats are derived from the
-              full transfer history.
+              <strong>USDY aggregate only:</strong> high holder count prevents per-wallet
+              classification. Aggregate flow statistics from the classification pipeline are
+              shown; per-wallet breakdown is not available.
             </li>
           </ul>
           <p className="text-xs text-zinc-400">
@@ -276,7 +276,7 @@ export default async function HoldersPage() {
         {/* Source line */}
         {result && (
           <p className="text-xs text-zinc-400">
-            Source: Etherscan (transfer history, on-chain replay) &middot; Refreshed{' '}
+            Source: Supabase (classified holder data) &middot; as of{' '}
             {fmtTimestamp(result.fetchedAt)}
           </p>
         )}

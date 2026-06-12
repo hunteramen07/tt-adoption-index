@@ -66,6 +66,17 @@ export default function MethodologyPage() {
           Ethereum mainnet deployment, and multi-chain support is planned for a
           future version.
         </P>
+        <P>
+          Where a product has multiple on-chain share classes, this index tracks
+          the <strong>broadly-distributed class</strong>. For BUIDL, we track the
+          distributed class (contract{' '}
+          <code className="text-xs bg-zinc-100 px-1 py-0.5 rounded">0x7712&hellip;aA2AEC</code>,
+          ~$181M, ~60 holders). BUIDL-I (0x6a96&hellip;c89041, ~$829M, 6 holders) is
+          excluded: a single-digit holder count reflects institutional desk allocation
+          rather than broad market adoption, and would distort concentration and dormancy
+          metrics for the segment. v2.0 will include a formal coverage policy for
+          restricted share classes.
+        </P>
 
         {/* Factors */}
         <H2>Factors and Weights</H2>
@@ -183,7 +194,14 @@ export default function MethodologyPage() {
         <P>
           Coverage tiers: full per-wallet classification for institutional products
           (BUIDL, OUSG, USTB, USYC); aggregate flow statistics only for USDY due to
-          holder count and API constraints.
+          holder count constraints.
+        </P>
+        <P>
+          Behavioral data is produced by a classification pipeline that replays on-chain
+          transfer history, labels each wallet, and stores results in a database.
+          The dashboard reads from these stored results. Behavioral metrics are therefore
+          as of the last pipeline run rather than real-time. Pipeline refresh cadence is
+          currently manual; automated daily classification is planned (see roadmap).
         </P>
         <P>
           These profile metrics inform the Dormancy factor but the full behavioral mix
@@ -222,9 +240,11 @@ export default function MethodologyPage() {
         {/* Data sources */}
         <H2>Data Sources</H2>
         <P>
-          Etherscan (holders, concentration, transfers, behavioral classification),
-          Dune Analytics (supply/AUM history), issuer disclosures (minimums,
-          eligibility, NAV).
+          Dune Analytics (supply/AUM history), Supabase (classified holder data,
+          index snapshots), Etherscan (recent large transfers, name tags), issuer
+          disclosures (minimums, eligibility, NAV). Behavioral classification is
+          computed from Etherscan transfer history and stored in Supabase; the
+          dashboard reads the stored results, not raw on-chain data.
         </P>
 
         {/* Eligibility */}

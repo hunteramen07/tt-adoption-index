@@ -16,6 +16,14 @@ Franklin Templeton BENJI is temporarily excluded from v1: it has no
 Ethereum mainnet deployment, and multi-chain support is planned for a
 future version.
 
+Where a product has multiple on-chain share classes, this index tracks
+the **broadly-distributed class**. For BUIDL, we track the distributed
+class (0x7712…aA2AEC, ~$181M, ~60 holders). BUIDL-I (0x6a96…c89041,
+~$829M, 6 holders) is excluded: a single-digit holder count reflects
+institutional desk allocation rather than broad market adoption, and
+would distort concentration and dormancy metrics for the segment.
+v2.0 will include a formal coverage policy for restricted share classes.
+
 ## Factors and weights
 
 | # | Factor | Weight | Rationale |
@@ -73,7 +81,14 @@ period, dormancy share, net new vs. exited wallets per month.
 
 Coverage tiers: full per-wallet classification for institutional
 products (BUIDL, OUSG, USTB, USYC); aggregate flow statistics only for
-USDY due to holder count and API constraints.
+USDY due to holder count constraints.
+
+Behavioral data is produced by a classification pipeline that replays
+on-chain transfer history, labels each wallet, and stores the results
+in a database. The dashboard reads from these stored results. Metrics
+are therefore as of the last pipeline run, not real-time. Pipeline
+refresh cadence is currently manual; automated daily classification via
+GitHub Actions is the next infrastructure milestone (see ROADMAP.md).
 
 These profile metrics inform the Dormancy factor but the full
 behavioral mix is not an index input in v1.0.
@@ -97,9 +112,11 @@ behavioral mix is not an index input in v1.0.
   (transfer-agent ledgers) are out of scope.
 
 ## Data sources
-Etherscan (holders, concentration, transfers, behavioral
-classification), Dune Analytics (supply/AUM history), issuer
-disclosures (minimums, eligibility, NAV).
+Dune Analytics (supply/AUM history), Supabase (classified holder data,
+index snapshots), Etherscan (recent large transfers, name tags), issuer
+disclosures (minimums, eligibility, NAV). Behavioral classification is
+computed from Etherscan transfer history and stored in Supabase; the
+dashboard reads the stored results, not raw on-chain data at request time.
 
 ## Versioning
 v1.0 — June 10, 2026. Factor additions, weight changes, or range

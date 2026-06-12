@@ -4,6 +4,7 @@ import { PRODUCTS_BY_SLUG } from '@/src/config/products'
 import type { ProductSlug } from '@/src/config/products'
 import { fetchFundData } from '@/src/lib/data/fund'
 import { AumAreaChart } from '@/app/components/charts/AumAreaChart'
+import { TopNSelector } from '@/app/components/TopNSelector'
 import type { BehavioralMix } from '@/src/lib/classify/types'
 import type { FundData } from '@/src/lib/data/fund'
 
@@ -170,7 +171,7 @@ export default async function FundPage({
             {/* AUM */}
             <div className="rounded border border-zinc-100 bg-zinc-50 px-4 py-4">
               <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                AUM (Eth)
+                AUM (Ethereum)
               </p>
               <p className="mt-1.5 text-2xl font-mono font-semibold tabular-nums text-zinc-900">
                 {latestAum != null ? fmtUsd(latestAum) : '—'}
@@ -210,15 +211,18 @@ export default async function FundPage({
               <p className="mt-1 text-[11px] text-zinc-400">distinct addresses</p>
             </div>
 
-            {/* Top-5 share */}
+            {/* Concentration */}
             <div className="rounded border border-zinc-100 bg-zinc-50 px-4 py-4">
               <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                Top-5 Share
+                Concentration
               </p>
-              <p className="mt-1.5 text-2xl font-mono font-semibold tabular-nums text-zinc-900">
-                {fmtPct(data.top5Share * 100)}
+              <TopNSelector
+                shares={data.topHolders.map((h) => h.shareOfSupply)}
+                defaultN={5}
+              />
+              <p className="mt-1 text-[11px] text-zinc-400">
+                of supply &middot; index uses Top-5
               </p>
-              <p className="mt-1 text-[11px] text-zinc-400">of total supply</p>
             </div>
 
             {/* Dormancy */}
@@ -229,9 +233,34 @@ export default async function FundPage({
               <p className="mt-1.5 text-2xl font-mono font-semibold tabular-nums text-zinc-900">
                 {fmtPct(data.dormancySharePct)}
               </p>
-              <p className="mt-1 text-[11px] text-zinc-400">trailing 90d · live</p>
+              <p className="mt-1 text-[11px] text-zinc-400">
+                trailing 90d &middot; as of {fmtMonthYear(data.fetchedAt)}
+              </p>
             </div>
           </div>
+
+          {/* BUIDL share-class context */}
+          {data.productSlug === 'buidl' && (
+            <div className="mt-4 rounded border border-amber-100 bg-amber-50/40 px-4 py-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-700 mb-1">
+                Share Class Coverage
+              </p>
+              <p className="text-xs text-zinc-600 leading-relaxed">
+                This dashboard tracks the broadly-distributed BUIDL class (
+                <a
+                  href={`https://etherscan.io/token/${PRODUCTS_BY_SLUG.buidl.contractAddress}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-mono hover:text-blue-600"
+                >
+                  0x7712&hellip;aA2AEC
+                </a>
+                , ~$181M, ~60 holders). BUIDL-I (0x6a96&hellip;c89041, ~$829M, 6 holders)
+                is excluded &mdash; single-digit holders measure desk allocation, not
+                broad market adoption. v2.0 coverage review planned.
+              </p>
+            </div>
+          )}
         </section>
 
         {/* ── AUM history chart ─────────────────────────────────────────────── */}
@@ -305,7 +334,7 @@ export default async function FundPage({
             </div>
           )}
           <p className="mt-3 text-xs text-zinc-400">
-            Source: Etherscan (transfer history replay) &middot; Refreshed{' '}
+            Source: Supabase (classified holder data) &middot; as of{' '}
             {fmtTimestamp(data.fetchedAt)}
           </p>
         </section>
@@ -372,10 +401,16 @@ export default async function FundPage({
               </tbody>
             </table>
           </div>
+          {data.topHolders.length === 0 && (
+            <p className="px-4 py-4 text-sm text-zinc-400 text-center">
+              {data.isAggregateOnly
+                ? 'Per-wallet data not available for this product.'
+                : 'No holder data — run the classify script to populate.'}
+            </p>
+          )}
           <p className="mt-2 text-xs text-zinc-400">
-            Balances derived from on-chain transfer history replay. Name tags from
-            Etherscan contract labels and static lookup; unlabeled addresses shown as
-            truncated hex.
+            Balances from last classification run as of {fmtTimestamp(data.fetchedAt)}.
+            Name tags from Etherscan contract labels; unlabeled addresses shown as truncated hex.
           </p>
         </section>
 

@@ -9,6 +9,7 @@ import type { ProductStats } from '@/src/lib/data/homepage'
 import type { AumHistoryResult } from '@/src/lib/dune/supplyHistory'
 import { Sparkline } from './components/charts/Sparkline'
 import { AumAreaChart } from './components/charts/AumAreaChart'
+import { TopNSelector } from './components/TopNSelector'
 
 // ─── Formatters ──────────────────────────────────────────────────────────────
 
@@ -189,9 +190,9 @@ export default async function Home() {
     composite: r.composite,
   }))
 
-  // Determine freshest etherscan fetch time
-  const etherFetchedAt =
-    productStatsResults.find((s) => s?.fetchedAt)?.fetchedAt ?? null
+  // Most recent classify run date across all products
+  const classifiedAt =
+    productStatsResults.find((s) => s?.classifiedAt)?.classifiedAt ?? null
 
   return (
     <div className="min-h-screen bg-white text-zinc-900">
@@ -343,7 +344,7 @@ export default async function Home() {
             <StatCard
               label="Avg Dormancy"
               value={fmtPct(avgDormancy)}
-              sub={`Trailing 90d${etherFetchedAt ? `, as of ${fmtShortDate(etherFetchedAt)}` : ''} · Live`}
+              sub={`Trailing 90d${classifiedAt ? `, as of ${fmtShortDate(classifiedAt)}` : ''}`}
               note="Index dormancy factor uses month-end snapshots"
             />
             <StatCard
@@ -354,8 +355,8 @@ export default async function Home() {
           </div>
 
           <SourceLine
-            source="Dune Analytics · Etherscan"
-            fetchedAt={aumResult?.fetchedAt ?? etherFetchedAt}
+            source="Dune Analytics · Supabase (classifications)"
+            fetchedAt={aumResult?.fetchedAt ?? classifiedAt}
           />
         </section>
 
@@ -373,14 +374,14 @@ export default async function Home() {
                   <th className="px-4 py-3 whitespace-nowrap">Fund</th>
                   <th className="px-4 py-3 whitespace-nowrap">Issuer</th>
                   <th className="px-4 py-3 whitespace-nowrap text-right">
-                    AUM (Eth)
+                    AUM (Ethereum)
                   </th>
                   <th className="px-4 py-3 whitespace-nowrap text-right">NAV</th>
                   <th className="px-4 py-3 whitespace-nowrap text-right">
                     Holders
                   </th>
                   <th className="px-4 py-3 whitespace-nowrap text-right">
-                    Top-5 Share
+                    Concentration
                   </th>
                   <th className="px-4 py-3 whitespace-nowrap text-right">
                     Dormancy
@@ -463,10 +464,12 @@ export default async function Home() {
                         )}
                       </td>
 
-                      {/* Top-5 share */}
-                      <td className="px-4 py-3 whitespace-nowrap text-right font-mono tabular-nums text-zinc-700">
-                        {stats ? fmtPct(stats.top5Share) : (
-                          <span className="text-zinc-300">—</span>
+                      {/* Top-N concentration */}
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        {stats && stats.topHolderShares.length > 0 ? (
+                          <TopNSelector shares={stats.topHolderShares} compact />
+                        ) : (
+                          <span className="text-zinc-300 float-right">—</span>
                         )}
                       </td>
 
@@ -501,8 +504,8 @@ export default async function Home() {
           </p>
 
           <SourceLine
-            source="Dune Analytics (supply) · Etherscan (holders)"
-            fetchedAt={aumResult?.fetchedAt ?? etherFetchedAt}
+            source="Dune Analytics (supply) · Supabase (holders, behavior)"
+            fetchedAt={aumResult?.fetchedAt ?? classifiedAt}
           />
         </section>
 
@@ -538,8 +541,8 @@ export default async function Home() {
             only
           </p>
           <p>
-            Data sources: Etherscan (holders, transfers), Dune Analytics (supply
-            history), Supabase (index snapshots). Not financial advice.
+            Data sources: Dune Analytics (supply history), Supabase (classifications,
+            index snapshots), Etherscan (recent transfers). Not financial advice.
           </p>
         </div>
       </footer>

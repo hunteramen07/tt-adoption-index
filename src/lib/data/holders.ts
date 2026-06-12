@@ -1,8 +1,6 @@
 import { cacheLife, cacheTag } from 'next/cache'
 import { ACTIVE_PRODUCTS } from '@/src/config/products'
-import type { Product } from '@/src/config/products'
-import { fetchTransferHistory } from '@/src/lib/etherscan/transfers'
-import { computeAggregateStats } from '@/src/lib/classify/engine'
+import { fetchAllAggregateStats } from './classifications'
 import type { BehavioralMix } from '@/src/lib/classify/types'
 
 export interface ProductBehaviorData {
@@ -26,37 +24,38 @@ export interface HoldersResult {
 
 export async function fetchHoldersBehavior(): Promise<HoldersResult | null> {
   'use cache'
-  cacheTag('etherscan-data')
+  cacheTag('supabase-classifications')
   cacheLife('hours')
 
   try {
-    const results = await Promise.all(ACTIVE_PRODUCTS.map(fetchProductBehavior))
-    const products = results.filter((r): r is ProductBehaviorData => r !== null)
-    return { products, fetchedAt: new Date().toISOString() }
-  } catch {
-    return null
-  }
-}
+    const allStats = await fetchAllAggregateStats()
+    if (allStats.length === 0) return null
 
-async function fetchProductBehavior(product: Product): Promise<ProductBehaviorData | null> {
-  try {
-    const transferData = await fetchTransferHistory(product)
-    const nowTs = Math.floor(Date.now() / 1000)
-    const agg = computeAggregateStats(transferData.transfers, nowTs)
+    const bySlug = new Map(allStats.map((s) => [s.productSlug, s]))
+    const products: ProductBehaviorData[] = []
 
-    return {
-      productSlug: product.slug,
-      productName: product.name,
-      productSymbol: product.symbol,
-      holderCount: agg.holderCount,
-      mix: agg.mix,
-      dormancySharePct: agg.dormancySharePct,
-      netNewWallets90d: agg.netNewWallets90d,
-      exitedWallets90d: agg.exitedWallets90d,
-      netAccumulationRatio: agg.netAccumulationRatio,
-      isAggregateOnly: product.aggregateFlowsOnly ?? false,
-      fetchedAt: transferData.fetchedAt,
+    for (const product of ACTIVE_PRODUCTS) {
+      const stats = bySlug.get(product.slug)
+      if (!stats) continue
+      products.push({
+        productSlug: product.slug,
+        productName: product.name,
+        productSymbol: product.symbol,
+        holderCount: stats.holderCount,
+        mix: stats.mix,
+        dormancySharePct: stats.dormancySharePct,
+        netNewWallets90d: stats.netNewWallets90d,
+        exitedWallets90d: stats.exitedWallets90d,
+        netAccumulationRatio: stats.netAccumulationRatio,
+        isAggregateOnly: product.aggregateFlowsOnly ?? false,
+        fetchedAt: stats.classifiedAt,
+      })
     }
+
+    if (products.length === 0) return null
+
+    const latestAt = allStats.map((s) => s.classifiedAt).sort().at(-1) ?? new Date().toISOString()
+    return { products, fetchedAt: latestAt }
   } catch {
     return null
   }

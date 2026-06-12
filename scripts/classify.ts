@@ -289,6 +289,12 @@ async function main() {
 
       console.log(`  writing ${classifications.size} rows to Supabase…`)
       await upsertClassifications(product.slug, classifications, lastBlock)
+
+      // Also write aggregate stats so the dashboard can read from Supabase
+      // without replaying the full transfer history on every request.
+      console.log(`  writing aggregate stats to Supabase…`)
+      const aggStats = computeAggregateStats(transfers, nowTs)
+      await upsertAggregateStats({ ...aggStats, productSlug: product.slug, asOfBlock: lastBlock })
     }
 
     progress.completedProducts.push(product.slug)
