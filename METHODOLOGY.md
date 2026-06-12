@@ -103,3 +103,9 @@ disclosures (minimums, eligibility, NAV).
 ## Versioning
 v1.0 — June 2026. Factor additions, weight changes, or range
 recalibrations increment the version and are documented in a changelog.
+
+v1.1 — June 2026. Dormancy aggregation corrected from simple product
+average to supply-weighted share of total segment supply, matching the
+original factor definition ("share of total supply held by addresses with
+no outbound transfer in the trailing 90 days"). Historical readings
+restated.

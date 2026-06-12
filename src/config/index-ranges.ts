@@ -83,4 +83,4 @@ export const BREADTH_RANGE: FactorRange = {
   hi: 6,
 } as const
 
-export const METHODOLOGY_VERSION = '1.0'
+export const METHODOLOGY_VERSION = '1.1'

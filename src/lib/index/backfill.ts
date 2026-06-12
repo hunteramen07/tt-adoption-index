@@ -295,7 +295,8 @@ export async function runBackfill(options: BackfillOptions = {}): Promise<void> 
     let totalAum = 0
     let totalHolders = 0
     let top5Shares: number[] = []
-    let dormancyShares: number[] = []
+    let dormancyWeightedSum = 0
+    let dormancyAumTotal = 0
     let totalVolume30d = 0
     let liveCount = 0
 
@@ -317,7 +318,10 @@ export async function runBackfill(options: BackfillOptions = {}): Promise<void> 
       totalHolders += metrics.holderCount
       if (metrics.holderCount > 0) {
         top5Shares.push(metrics.top5Share)
-        dormancyShares.push(metrics.dormancyShare)
+      }
+      if (metrics.aum > 0) {
+        dormancyWeightedSum += metrics.dormancyShare * metrics.aum
+        dormancyAumTotal += metrics.aum
       }
       totalVolume30d += metrics.velocity * metrics.aum // recover volume_USD from velocity
 
@@ -337,8 +341,8 @@ export async function runBackfill(options: BackfillOptions = {}): Promise<void> 
     const avgTop5Share = top5Shares.length > 0
       ? top5Shares.reduce((s, v) => s + v, 0) / top5Shares.length
       : 0
-    const avgDormancyShare = dormancyShares.length > 0
-      ? dormancyShares.reduce((s, v) => s + v, 0) / dormancyShares.length
+    const avgDormancyShare = dormancyAumTotal > 0
+      ? dormancyWeightedSum / dormancyAumTotal
       : 0
     const velocity = totalAum > 0 ? totalVolume30d / totalAum : 0
 
