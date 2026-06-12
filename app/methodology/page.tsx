@@ -300,14 +300,14 @@ export default function MethodologyPage() {
         <H2>Versioning</H2>
         <div className="space-y-3 text-sm text-zinc-600 border-l-2 border-zinc-100 pl-4">
           <div>
-            <p className="font-semibold text-zinc-800">v1.0 &mdash; June 2026</p>
+            <p className="font-semibold text-zinc-800">v1.0 &mdash; June 10, 2026</p>
             <p>
               Initial release. Factor additions, weight changes, or range
               recalibrations increment the version and are documented here.
             </p>
           </div>
           <div>
-            <p className="font-semibold text-zinc-800">v1.1 &mdash; June 2026</p>
+            <p className="font-semibold text-zinc-800">v1.1 &mdash; June 11, 2026</p>
             <p>
               Dormancy aggregation corrected from simple product average to
               supply-weighted share of total segment supply, matching the original
