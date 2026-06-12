@@ -407,7 +407,7 @@ export default async function FundPage({
                 <tbody className="divide-y divide-zinc-50">
                   {data.recentLargeTransfers.map((tx, i) => (
                     <tr
-                      key={tx.hash}
+                      key={`${tx.hash}-${i}`}
                       className={i % 2 === 0 ? 'bg-white' : 'bg-zinc-50/50'}
                     >
                       <td className="px-4 py-3 text-xs text-zinc-500 whitespace-nowrap">
