@@ -255,9 +255,17 @@ export default async function FundPage({
                 >
                   0x7712&hellip;aA2AEC
                 </a>
-                , ~$181M, ~60 holders). BUIDL-I (0x6a96&hellip;c89041, ~$829M, 6 holders)
-                is excluded &mdash; single-digit holders measure desk allocation, not
-                broad market adoption. v2.0 coverage review planned.
+                , ~$181M, ~60 holders). BUIDL-I (
+                <a
+                  href="https://etherscan.io/token/0x6a9da2d710bb9b700acde7cb81f10f1ff8c89041"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-mono hover:text-blue-600"
+                >
+                  0x6a9d&hellip;89041
+                </a>
+                , ~$829M, 6 holders) is excluded &mdash; single-digit holders measure
+                desk allocation, not broad market adoption. v2.0 coverage review planned.
               </p>
             </div>
           )}

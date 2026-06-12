@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { METHODOLOGY_VERSION } from '@/src/config/index-ranges'
 
 export const metadata = {
@@ -201,7 +202,8 @@ export default function MethodologyPage() {
           transfer history, labels each wallet, and stores results in a database.
           The dashboard reads from these stored results. Behavioral metrics are therefore
           as of the last pipeline run rather than real-time. Pipeline refresh cadence is
-          currently manual; automated daily classification is planned (see roadmap).
+          currently manual; automated daily classification is planned (see{' '}
+          <Link href="/roadmap">roadmap</Link>).
         </P>
         <P>
           These profile metrics inform the Dormancy factor but the full behavioral mix

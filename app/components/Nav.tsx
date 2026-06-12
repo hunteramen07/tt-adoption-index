@@ -7,6 +7,7 @@ const LINKS = [
   { href: '/', label: 'Overview' },
   { href: '/holders', label: 'Holders' },
   { href: '/methodology', label: 'Methodology' },
+  { href: '/roadmap', label: 'Roadmap' },
 ]
 
 export function Nav() {
