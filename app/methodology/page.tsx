@@ -63,7 +63,8 @@ export default function MethodologyPage() {
         <P>
           BlackRock BUIDL, Ondo OUSG, Ondo USDY, Superstate USTB, Hashnote USYC.
           Franklin Templeton BENJI is temporarily excluded from v1: it has no
-          Ethereum mainnet deployment, and multi-chain support is planned for v1.1.
+          Ethereum mainnet deployment, and multi-chain support is planned for a
+          future version.
         </P>
 
         {/* Factors */}
@@ -108,7 +109,7 @@ export default function MethodologyPage() {
           per-product NAV. Distributing money-market products (BUIDL, USTB) hold ~$1
           NAV; accumulating products (OUSG at ~$115, USDY/USYC at ~$1.13) accrue
           yield into the token price. NAVs are hardcoded with a navAsOf date,
-          refreshed monthly; live price sources are planned for v1.1.
+          refreshed monthly; live price sources are planned for a future version.
         </P>
 
         <H3>2. Holder Growth</H3>
@@ -199,14 +200,14 @@ export default function MethodologyPage() {
             (exchanges, known custodians) are flagged where available.
           </li>
           <li>
-            <strong>Ethereum mainnet only:</strong> v1 measures Ethereum mainnet
+            <strong>Ethereum mainnet only:</strong>{' '}v1 measures Ethereum mainnet
             adoption only. Ethereum&apos;s share of total product AUM ranges from ~3%
             (USYC) to ~51% (USDY) per rwa.xyz, so the index reflects
-            Ethereum-chain adoption specifically. Multi-chain coverage is the v1.1
-            priority.
+            Ethereum-chain adoption specifically. Multi-chain coverage is the
+            next coverage expansion.
           </li>
           <li>
-            <strong>Per-token classification:</strong> behavioral labels reflect flows
+            <strong>Per-token classification:</strong>{' '}behavioral labels reflect flows
             of each token in isolation. Holders interacting with DeFi wrappers
             (e.g., Flux Finance&apos;s fOUSG for OUSG) may be classified as
             Distributing or Accumulating while their economic exposure is unchanged.

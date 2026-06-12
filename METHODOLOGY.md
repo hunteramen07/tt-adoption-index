@@ -13,7 +13,8 @@ A reading of 50 means adoption is flat; above 50, accelerating; below
 ## Covered products (v1)
 BlackRock BUIDL, Ondo OUSG, Ondo USDY, Superstate USTB, Hashnote USYC.
 Franklin Templeton BENJI is temporarily excluded from v1: it has no
-Ethereum mainnet deployment, and multi-chain support is planned for v1.1.
+Ethereum mainnet deployment, and multi-chain support is planned for a
+future version.
 
 ## Factors and weights
 
@@ -32,7 +33,7 @@ Ethereum mainnet deployment, and multi-chain support is planned for v1.1.
    products (BUIDL, USTB) hold ~$1 NAV; accumulating products (OUSG at
    ~$115, USDY/USYC at ~$1.13) accrue yield into the token price. NAVs
    are hardcoded with a navAsOf date, refreshed monthly; live price
-   sources are planned for v1.1.
+   sources are planned for a future version.
 2. **Holder growth** — 3-month % change in total distinct holder
    addresses across covered products.
 3. **Concentration trend** — 3-month change in the average top-5 holder
@@ -85,7 +86,7 @@ behavioral mix is not an index input in v1.0.
 - **Ethereum mainnet only:** v1 measures Ethereum mainnet adoption only.
   Ethereum's share of total product AUM ranges from ~3% (USYC) to ~51%
   (USDY) per rwa.xyz, so the index reflects Ethereum-chain adoption
-  specifically. Multi-chain coverage is the v1.1 priority.
+  specifically. Multi-chain coverage is the next coverage expansion.
 - **Per-token classification:** behavioral labels reflect flows of each
   token in isolation. Holders interacting with DeFi wrappers (e.g., Flux
   Finance's fOUSG for OUSG) may be classified as Distributing or
