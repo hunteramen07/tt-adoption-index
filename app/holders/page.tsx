@@ -1,3 +1,4 @@
+import { connection } from 'next/server'
 import { fetchHoldersBehavior } from '@/src/lib/data/holders'
 import type { ProductBehaviorData } from '@/src/lib/data/holders'
 import type { BehavioralMix } from '@/src/lib/classify/types'
@@ -205,6 +206,7 @@ export const metadata = {
 }
 
 export default async function HoldersPage() {
+  await connection()
   const result = await fetchHoldersBehavior()
 
   return (

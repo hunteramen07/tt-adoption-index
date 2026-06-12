@@ -1,3 +1,4 @@
+import { connection } from 'next/server'
 import { ACTIVE_PRODUCTS } from '@/src/config/products'
 import { METHODOLOGY_VERSION } from '@/src/config/index-ranges'
 import { fetchIndexHistory } from '@/src/lib/index/history'
@@ -137,6 +138,7 @@ function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default async function Home() {
+  await connection()
   // Parallel fetch: index history, Dune AUM, and per-product live stats
   const [indexResult, aumResult, ...productStatsResults] = await Promise.all([
     fetchIndexHistory(),
