@@ -193,18 +193,6 @@ export default async function Home() {
 
   return (
     <div className="min-h-screen bg-white text-zinc-900">
-      {/* ── Global header ─────────────────────────────────────────────── */}
-      <header className="border-b border-zinc-100 bg-white px-4 sm:px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-baseline gap-3">
-          <span className="text-sm font-semibold tracking-widest uppercase text-zinc-800">
-            RTA Index
-          </span>
-          <span className="text-sm text-zinc-400">
-            Tokenized Treasury Adoption Index
-          </span>
-        </div>
-      </header>
-
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-10 space-y-14">
         {/* ══ Section 1: The 30-second view ═══════════════════════════════ */}
         <section>
@@ -255,8 +243,7 @@ export default async function Home() {
                   </div>
 
                   <p className="mt-1 text-xs text-zinc-400">
-                    {fmtMonthYear(latest.readingDate)} reading &middot; v
-                    {latest.methodologyVersion}
+                    {fmtMonthYear(latest.readingDate)} reading &middot; v{latest.methodologyVersion}
                   </p>
                 </div>
 

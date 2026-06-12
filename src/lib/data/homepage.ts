@@ -2,7 +2,7 @@ import { cacheLife, cacheTag } from 'next/cache'
 import type { Product } from '@/src/config/products'
 import { fetchTransferHistory } from '@/src/lib/etherscan/transfers'
 import { fetchTotalSupply } from '@/src/lib/etherscan/holders'
-import { deriveHolderStats } from '@/src/lib/etherscan/balances'
+import { computeBalances, deriveHolderStats } from '@/src/lib/etherscan/balances'
 import {
   classifyHolders,
   computeDormancySharePct,
@@ -37,7 +37,16 @@ export async function fetchProductStats(
       fetchTotalSupply(product.contractAddress),
     ])
 
-    const supply = totalSupplyRaw ?? '0'
+    // Compute implied supply from transfer history as a resilient fallback.
+    // If Etherscan tokensupply fails (rate-limit, network error), using '0'
+    // would make every holder appear to hold 0% of supply and cache a corrupt
+    // result for the cache TTL.
+    const balances = computeBalances(transferData.transfers)
+    const impliedSupply = [...balances.values()]
+      .reduce((s, v) => s + v, BigInt(0))
+      .toString()
+    const supply = totalSupplyRaw ?? impliedSupply
+
     const { holderCount, topHolders } = deriveHolderStats(
       transferData.transfers,
       supply,
