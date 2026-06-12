@@ -1,15 +1,11 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ACTIVE_PRODUCTS, PRODUCTS_BY_SLUG } from '@/src/config/products'
+import { PRODUCTS_BY_SLUG } from '@/src/config/products'
 import type { ProductSlug } from '@/src/config/products'
 import { fetchFundData } from '@/src/lib/data/fund'
 import { AumAreaChart } from '@/app/components/charts/AumAreaChart'
 import type { BehavioralMix } from '@/src/lib/classify/types'
 import type { FundData } from '@/src/lib/data/fund'
-
-export async function generateStaticParams() {
-  return ACTIVE_PRODUCTS.map((p) => ({ slug: p.slug }))
-}
 
 // ─── Formatters ───────────────────────────────────────────────────────────────
 
