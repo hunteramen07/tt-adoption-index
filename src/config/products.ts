@@ -114,13 +114,17 @@ export const PRODUCTS: Product[] = [
     active: false,
   },
   {
-    // Superstate Short Duration US Government Securities Fund
+    // Superstate Short Duration US Government Securities Fund.
+    // Accumulating fund — token price accrues from $1; NAV ~$11.08 verified
+    // 2026-06-16 (rwa.xyz $11.06, CoinGecko $11.10, AUM÷supply $11.06).
     slug: 'ustb',
     name: 'Superstate Short Duration US Government Securities Fund',
     symbol: 'USTB',
     issuer: 'Superstate',
     contractAddress: '0x43415eB6ff9DB7E26A15b704e7A3eDCe97d31C4e',
     decimals: 6,
+    navUsd: 11.08,
+    navAsOf: '2026-06-16',
   },
   {
     // Hashnote US Yield Coin (now operated by Circle).
