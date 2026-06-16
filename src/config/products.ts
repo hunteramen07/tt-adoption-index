@@ -16,11 +16,19 @@ export interface Product {
   decimals: number
   /**
    * NAV per token in USD, used to convert raw supply to AUM.
-   * Omit (or set to 1) for stable-$1 money-market products (BUIDL, USTB).
-   * Must be set for products whose token price accrues away from $1:
+   * REQUIRED for every active fund — do NOT omit, even for stable-$1 funds.
+   * Stable-$1 money-market products (BUIDL) must declare navUsd: 1.00 explicitly;
+   * accruing-NAV products carry their current price:
    *   OUSG  — bond fund, token started at $100 (Jan 2023), accrues T-bill yield
    *   USDY  — yield note, started at $1, price accrues
+   *   USTB  — short-duration fund, started at $1, price accrues
    *   USYC  — yield coin, started at $1, price accrues
+   * A missing navUsd on an active fund throws at import time (see getNavUsd and
+   * the validation pass at the bottom of this file) — read via getNavUsd(product),
+   * never `product.navUsd ?? 1`, so a missing NAV fails loudly instead of
+   * silently defaulting to $1.
+   *
+   * Optional only on the type so inactive placeholders (e.g. BENJI) can omit it.
    *
    * ⚠ HARDCODED — sourced from Etherscan on the date recorded in navAsOf.
    * Update navUsd and navAsOf together when refreshing. Until a live price
@@ -30,7 +38,7 @@ export interface Product {
   /**
    * ISO date (YYYY-MM-DD) when navUsd was last verified.
    * Displayed in debug output and later the UI so staleness is visible.
-   * Omit for stable-$1 products where navUsd defaults to 1.
+   * Omit for stable-$1 products whose navUsd does not drift.
    */
   navAsOf?: string
   /**
@@ -60,13 +68,17 @@ export interface Product {
 
 export const PRODUCTS: Product[] = [
   {
-    // BlackRock USD Institutional Digital Liquidity Fund
+    // BlackRock USD Institutional Digital Liquidity Fund.
+    // True stable-$1 money-market fund — NAV is held at $1.00 by design.
+    // Declared explicitly (not omitted) so every fund carries an explicit NAV;
+    // see getNavUsd + the import-time validation at the bottom of this file.
     slug: 'buidl',
     name: 'BlackRock USD Institutional Digital Liquidity Fund',
     symbol: 'BUIDL',
     issuer: 'BlackRock',
     contractAddress: '0x7712c34205737192402172409a8F7ccef8aA2AEC',
     decimals: 6,
+    navUsd: 1.00,
   },
   {
     // Ondo US Government Bond — institutional, KYC-gated.
@@ -147,3 +159,26 @@ export const PRODUCTS_BY_SLUG = Object.fromEntries(
 
 /** Products available for data fetching — excludes entries with active: false. */
 export const ACTIVE_PRODUCTS = PRODUCTS.filter((p) => p.active !== false)
+
+/**
+ * Returns a product's NAV per token in USD. THROWS if navUsd is missing — every
+ * fund must declare an explicit NAV. Use this everywhere instead of
+ * `product.navUsd ?? 1`, so a fund missing its NAV fails loudly rather than
+ * silently understating AUM by defaulting to $1 (the USTB bug, 2026-06).
+ */
+export function getNavUsd(product: Product): number {
+  if (product.navUsd == null) {
+    throw new Error(
+      `Missing navUsd for product '${product.slug}' — every fund must declare an explicit NAV (see products.ts).`
+    )
+  }
+  return product.navUsd
+}
+
+// Build-time validation: fail loudly at module load if any active fund is
+// missing navUsd. This runs once, eagerly, when products.ts is first imported —
+// so a missing NAV breaks the next build (during page-data collection) instead
+// of 500-ing a live page at request time. Inactive placeholders are exempt.
+for (const product of ACTIVE_PRODUCTS) {
+  getNavUsd(product)
+}

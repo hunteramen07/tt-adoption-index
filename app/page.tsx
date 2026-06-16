@@ -1,5 +1,5 @@
 import { connection } from 'next/server'
-import { ACTIVE_PRODUCTS } from '@/src/config/products'
+import { ACTIVE_PRODUCTS, getNavUsd } from '@/src/config/products'
 import { METHODOLOGY_VERSION } from '@/src/config/index-ranges'
 import { fetchIndexHistory } from '@/src/lib/index/history'
 import { fetchAumHistory } from '@/src/lib/dune/supplyHistory'
@@ -445,7 +445,7 @@ export default async function Home() {
                       <td className="px-4 py-3 whitespace-nowrap text-right">
                         <div>
                           <span className="font-mono tabular-nums text-zinc-800">
-                            ${(product.navUsd ?? 1).toFixed(product.navUsd && product.navUsd > 10 ? 2 : 4)}
+                            ${getNavUsd(product).toFixed(getNavUsd(product) > 10 ? 2 : 4)}
                           </span>
                           {product.navAsOf ? (
                             <p className="text-[10px] text-zinc-400">

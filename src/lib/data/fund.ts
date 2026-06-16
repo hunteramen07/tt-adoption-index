@@ -1,5 +1,5 @@
 import { cacheLife, cacheTag } from 'next/cache'
-import { PRODUCTS_BY_SLUG } from '@/src/config/products'
+import { PRODUCTS_BY_SLUG, getNavUsd } from '@/src/config/products'
 import type { ProductSlug } from '@/src/config/products'
 import { etherscanGet } from '@/src/lib/etherscan/client'
 import { fetchNameTags } from '@/src/lib/etherscan/nameTags'
@@ -69,7 +69,7 @@ export async function fetchFundData(slug: ProductSlug): Promise<FundData | null>
         : fetchTopHoldersFromDb(slug, product.decimals, 10),
       fetchRecentLargeTransfers(
         product.contractAddress,
-        product.navUsd ?? 1,
+        getNavUsd(product),
         product.decimals
       ),
       fetchAumHistory(),
@@ -92,7 +92,7 @@ export async function fetchFundData(slug: ProductSlug): Promise<FundData | null>
       productName: product.name,
       productSymbol: product.symbol,
       issuer: product.issuer,
-      navUsd: product.navUsd ?? 1,
+      navUsd: getNavUsd(product),
       navAsOf: product.navAsOf ?? null,
       holderCount: agg.holderCount,
       top5Share,

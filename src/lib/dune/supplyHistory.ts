@@ -1,5 +1,5 @@
 import { cacheLife, cacheTag } from 'next/cache'
-import { ACTIVE_PRODUCTS } from '@/src/config/products'
+import { ACTIVE_PRODUCTS, getNavUsd } from '@/src/config/products'
 import type { ProductSlug } from '@/src/config/products'
 import { duneGetLatestResults } from './client'
 
@@ -69,7 +69,7 @@ export async function fetchAumHistory(): Promise<AumHistoryResult | null> {
 
   for (const [slug, points] of grouped) {
     const product = ACTIVE_PRODUCTS.find((p) => p.slug === slug)!
-    const navUsd = product.navUsd ?? 1
+    const navUsd = getNavUsd(product)
     const navAsOf = product.navAsOf ?? null
     points.sort((a, b) => a.day.localeCompare(b.day))
     const series = forwardFill(points, product.decimals, navUsd)

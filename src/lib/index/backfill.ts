@@ -18,7 +18,7 @@
  * for calibration review. DO NOT finalize index-ranges.ts until reviewing it.
  */
 
-import { ACTIVE_PRODUCTS } from '@/src/config/products'
+import { ACTIVE_PRODUCTS, getNavUsd } from '@/src/config/products'
 import { diskCacheReadStale } from '@/src/lib/cache/disk'
 import { duneGetLatestResults } from '@/src/lib/dune/client'
 import { computeBalances } from '@/src/lib/etherscan/balances'
@@ -68,7 +68,7 @@ async function loadAumSeries(): Promise<Map<string, ProductAumSeries>> {
   const result = new Map<string, ProductAumSeries>()
   for (const [slug, points] of grouped) {
     const product = ACTIVE_PRODUCTS.find((p) => p.slug === slug)!
-    const navUsd = product.navUsd ?? 1
+    const navUsd = getNavUsd(product)
     points.sort((a, b) => a.day.localeCompare(b.day))
     const series = forwardFill(points, product.decimals, navUsd)
     result.set(slug, { slug, series })
@@ -303,7 +303,7 @@ export async function runBackfill(options: BackfillOptions = {}): Promise<void> 
     for (const product of ACTIVE_PRODUCTS) {
       const series = aumSeries.get(product.slug)
       const transfers = transfersBySlug.get(product.slug) ?? []
-      const navUsd = product.navUsd ?? 1
+      const navUsd = getNavUsd(product)
 
       // AUM from Dune (may be null for very early dates before product launched)
       const aum = series ? (lookupAum(series.series, date) ?? 0) : 0
