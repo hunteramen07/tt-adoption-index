@@ -2,9 +2,9 @@
 
 Items are listed by theme, not timeline. No dates are committed.
 
-## Infrastructure
+## Shipped
 
-**Automated daily classification (GitHub Actions)**
+**✅ Automated daily classification (GitHub Actions) — shipped 2026-06-16**
 Run the classify pipeline on a nightly cron, commit results to Supabase,
 and update behavioral metrics automatically. Eliminates manual `npm run classify`
 and ensures /holders and fund behavioral mixes stay current without developer
