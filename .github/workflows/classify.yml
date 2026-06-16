@@ -44,7 +44,8 @@ jobs:
       - name: Run classification pipeline
         run: npm run classify
         env:
+          # RLS is disabled on holder_classifications / holder_aggregate_stats,
+          # so the pipeline writes with the anon key — no service-role key needed.
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
