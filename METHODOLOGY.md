@@ -11,7 +11,8 @@ A reading of 50 means adoption is flat; above 50, accelerating; below
 50, contracting.
 
 ## Covered products (v1)
-BlackRock BUIDL, Ondo OUSG, Ondo USDY, Superstate USTB, Hashnote USYC.
+BlackRock BUIDL, Ondo OUSG, Ondo USDY, Superstate USTB, Circle USYC
+(formerly Hashnote; Circle acquired Hashnote in January 2025).
 Franklin Templeton BENJI is temporarily excluded from v1: it has no
 Ethereum mainnet deployment, and multi-chain support is planned for a
 future version.
@@ -79,9 +80,12 @@ outflows), Dormant (no movement), or Active (regular two-way flow).
 Published aggregates: behavioral mix per product, average holding
 period, dormancy share, net new vs. exited wallets per month.
 
-Coverage tiers: full per-wallet classification for institutional
-products (BUIDL, OUSG, USTB, USYC); aggregate flow statistics only for
-USDY due to holder count constraints.
+Coverage tiers: for BUIDL, OUSG, USTB, and USYC, per-wallet classifications
+are computed and stored individually. USDY wallets are also classified
+individually, but only the aggregate behavior counts are persisted (not the
+per-wallet rows), due to its larger holder count. All five funds' published
+behavioral aggregates are therefore derived from individual wallet
+classification.
 
 Behavioral data is produced by a classification pipeline that replays
 on-chain transfer history, labels each wallet, and stores the results
@@ -127,3 +131,8 @@ average to supply-weighted share of total segment supply, matching the
 original factor definition ("share of total supply held by addresses with
 no outbound transfer in the trailing 90 days"). Historical readings
 restated.
+
+v1.1 (doc correction, 2026-06-16): Clarified that USDY wallets are classified
+individually but only aggregate counts are persisted (prior wording implied
+USDY was not classified per-wallet). Updated USYC issuer to Circle (acquired
+Hashnote Jan 2025). No methodology logic, factor, weight, or range changed.
