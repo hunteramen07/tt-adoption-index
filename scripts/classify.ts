@@ -40,7 +40,19 @@
  *   as_of_block              integer NOT NULL
  * );
  *
- * Disable RLS on both tables (or grant INSERT/UPDATE to the anon role) if
+ * CREATE TABLE behavior_history (         -- append-only behavior log over time
+ *   product_slug          text        NOT NULL,
+ *   dormancy_share_pct    numeric     NOT NULL,
+ *   holder_count          integer     NOT NULL,
+ *   behavior_accumulating integer     NOT NULL,
+ *   behavior_distributing integer     NOT NULL,
+ *   behavior_dormant      integer     NOT NULL,
+ *   behavior_active       integer     NOT NULL,
+ *   recorded_at           timestamptz NOT NULL DEFAULT now(),
+ *   PRIMARY KEY (product_slug, recorded_at)
+ * );  -- see supabase/migrations/20260616024608_create_behavior_history.sql
+ *
+ * Disable RLS on all tables (or grant INSERT/UPDATE to the anon role) if
  * you do not have a SUPABASE_SERVICE_ROLE_KEY in .env.local.
  * ─────────────────────────────────────────────────────────────────────────
  */
@@ -220,6 +232,26 @@ async function upsertAggregateStats(stats: ReturnType<typeof computeAggregateSta
   if (error) throw new Error(`Supabase upsert failed (aggregate ${stats.productSlug}): ${error.message}`)
 }
 
+// Append one row to behavior_history per fund per run. Unlike the aggregate
+// upsert above, this is an INSERT (not an upsert): every run accumulates a new
+// row so holder-behavior metrics build a time series instead of being
+// overwritten. recorded_at is filled by the column's now() default.
+async function insertBehaviorHistory(stats: ReturnType<typeof computeAggregateStats> & {
+  productSlug: string
+}): Promise<void> {
+  const supabase = getSupabase()
+  const { error } = await supabase.from('behavior_history').insert({
+    product_slug: stats.productSlug,
+    dormancy_share_pct: stats.dormancySharePct,
+    holder_count: stats.holderCount,
+    behavior_accumulating: stats.mix.accumulating,
+    behavior_distributing: stats.mix.distributing,
+    behavior_dormant: stats.mix.dormant,
+    behavior_active: stats.mix.active,
+  })
+  if (error) throw new Error(`Supabase insert failed (behavior_history ${stats.productSlug}): ${error.message}`)
+}
+
 // ── Main ───────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -255,6 +287,7 @@ async function main() {
       )
       console.log(`  writing aggregate stats to Supabase…`)
       await upsertAggregateStats({ ...stats, productSlug: product.slug, asOfBlock: lastBlock })
+      await insertBehaviorHistory({ ...stats, productSlug: product.slug })
     } else {
       // Per-wallet classification
       console.log(`  classifying holders…`)
@@ -295,6 +328,7 @@ async function main() {
       console.log(`  writing aggregate stats to Supabase…`)
       const aggStats = computeAggregateStats(transfers, nowTs)
       await upsertAggregateStats({ ...aggStats, productSlug: product.slug, asOfBlock: lastBlock })
+      await insertBehaviorHistory({ ...aggStats, productSlug: product.slug })
     }
 
     progress.completedProducts.push(product.slug)
