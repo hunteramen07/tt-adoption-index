@@ -43,3 +43,5 @@ next-env.d.ts
 
 # local Etherscan transfer history disk cache
 .cache/
+
+_local/
