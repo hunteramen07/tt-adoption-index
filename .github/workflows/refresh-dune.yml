@@ -30,7 +30,7 @@ jobs:
             "https://api.dune.com/api/v1/query/7696914/execute" \
             -H "X-Dune-API-Key: ${{ secrets.DUNE_API_KEY }}" \
             -H "Content-Type: application/json" \
-            -d '{"performance": "medium"}')
+            -d '{}')
           echo "Response: $RESPONSE"
 
           EXECUTION_ID=$(echo "$RESPONSE" | grep -o '"execution_id":"[^"]*"' | cut -d'"' -f4)
@@ -40,4 +40,3 @@ jobs:
             exit 1
           fi
           echo "Execution triggered: $EXECUTION_ID"
-          
