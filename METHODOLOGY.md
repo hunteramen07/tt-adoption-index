@@ -1,4 +1,4 @@
-# RWA Token Adoption Index (RTA Index) — Methodology v1.0
+# RWA Token Adoption Index (RTA Index) — Methodology v1.1
 
 ## Purpose
 A single 0–100 score measuring institutional adoption of tokenized
@@ -39,8 +39,8 @@ v2.0 will include a formal coverage policy for restricted share classes.
 ## Factor definitions
 1. **AUM growth** — 3-month % change in total AUM across covered
    products. AUM = supply × per-product NAV. Distributing money-market
-   products (BUIDL, USTB) hold ~$1 NAV; accumulating products (OUSG at
-   ~$115, USDY/USYC at ~$1.13) accrue yield into the token price. NAVs
+   products (BUIDL) hold ~$1 NAV; accumulating products (OUSG at ~$115,
+   USTB at ~$11, USDY/USYC at ~$1.13) accrue yield into the token price. NAVs
    are hardcoded with a navAsOf date, refreshed monthly; live price
    sources are planned for a future version.
 2. **Holder growth** — 3-month % change in total distinct holder
@@ -91,8 +91,8 @@ Behavioral data is produced by a classification pipeline that replays
 on-chain transfer history, labels each wallet, and stores the results
 in a database. The dashboard reads from these stored results. Metrics
 are therefore as of the last pipeline run, not real-time. Pipeline
-refresh cadence is currently manual; automated daily classification via
-GitHub Actions is the next infrastructure milestone (see ROADMAP.md).
+refresh cadence is automated: classification runs nightly via GitHub
+Actions (see ROADMAP.md).
 
 These profile metrics inform the Dormancy factor but the full
 behavioral mix is not an index input in v1.0.
@@ -136,3 +136,9 @@ v1.1 (doc correction, 2026-06-16): Clarified that USDY wallets are classified
 individually but only aggregate counts are persisted (prior wording implied
 USDY was not classified per-wallet). Updated USYC issuer to Circle (acquired
 Hashnote Jan 2025). No methodology logic, factor, weight, or range changed.
+
+v1.1 (doc correction, 2026-06-16): Corrected USTB from distributing/$1 to
+accumulating/~$11 in the AUM-growth factor description (matches the products.ts
+NAV fix). Updated classification cadence wording to reflect shipped nightly
+GitHub Actions automation. Corrected document title from v1.0 to v1.1. No
+methodology logic, factor, weight, or range changed.
