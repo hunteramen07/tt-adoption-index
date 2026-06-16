@@ -1,5 +1,6 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import {
   LineChart,
   Line,
@@ -20,9 +21,10 @@ interface CompositeHistoryChartProps {
   data: HistoryPoint[]
 }
 
-function fmtMonthYear(label: string): string {
-  if (typeof label !== 'string') return String(label)
-  const d = new Date(label + 'T00:00:00Z')
+function fmtMonthYear(label: ReactNode): string {
+  if (label == null) return ''
+  const str = String(label)
+  const d = new Date(str + 'T00:00:00Z')
   return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
 }
 
