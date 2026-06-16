@@ -1,0 +1,43 @@
+name: Nightly Dune Refresh
+
+# Triggers a fresh execution of the supply/AUM Dune query (7696914) so the
+# homepage "total AUM over time" chart stays current. The site fetches Dune
+# results live (1h cache), but the underlying query only recomputes when
+# executed — and the free tier has no auto-refresh, so we trigger it here.
+#
+# Independent of the classify pipeline (market data vs. behavioral data).
+# Isolated so a Dune API hiccup doesn't look like a classify failure.
+
+on:
+  schedule:
+    - cron: '30 6 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: refresh-dune
+  cancel-in-progress: false
+
+jobs:
+  refresh-dune:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Trigger Dune query execution
+        run: |
+          echo "Triggering execution of Dune query 7696914..."
+          RESPONSE=$(curl -s -X POST \
+            "https://api.dune.com/api/v1/query/7696914/execute" \
+            -H "X-Dune-API-Key: ${{ secrets.DUNE_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{"performance": "medium"}')
+          echo "Response: $RESPONSE"
+
+          EXECUTION_ID=$(echo "$RESPONSE" | grep -o '"execution_id":"[^"]*"' | cut -d'"' -f4)
+          if [ -z "$EXECUTION_ID" ]; then
+            echo "ERROR: No execution_id returned. Dune API call failed."
+            echo "Check DUNE_API_KEY and plan permissions."
+            exit 1
+          fi
+          echo "Execution triggered: $EXECUTION_ID"
+          
