@@ -1,0 +1,50 @@
+name: Nightly Holder Classification
+
+# Runs the classify pipeline once per night and writes fresh holder
+# classifications + aggregate stats to Supabase. The monthly index reading
+# is NOT computed here — it stays a manual, first-of-month task.
+#
+# Cadence rationale: holder labels use a trailing 90-day window, so a nightly
+# refresh captures essentially all real movement. Sub-daily runs would add
+# Etherscan/Dune API load without changing 90-day labels meaningfully.
+
+on:
+  # 07:00 UTC daily = ~02:00-03:00 US Eastern. After midnight, low-traffic.
+  schedule:
+    - cron: '0 7 * * *'
+  # Allow manual runs from the Actions tab (for testing / on-demand refresh).
+  workflow_dispatch:
+
+# Prevent overlapping runs: if a nightly run is still going when another
+# triggers, queue rather than run concurrently (the pipeline is not safe to
+# run twice at once against the same tables).
+concurrency:
+  group: classify
+  cancel-in-progress: false
+
+jobs:
+  classify:
+    runs-on: ubuntu-latest
+    # The full replay across all products can take a while; give it room.
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run classification pipeline
+        run: npm run classify
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
