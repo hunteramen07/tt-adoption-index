@@ -179,6 +179,7 @@ async function upsertClassifications(
 
   const rows = Array.from(classifications.values()).map((c) => ({
     product_slug: productSlug,
+    network: 'ethereum',
     address: c.address,
     behavior: c.behavior,
     balance_raw: c.balanceRaw,
@@ -194,7 +195,7 @@ async function upsertClassifications(
     const batch = rows.slice(i, i + UPSERT_BATCH)
     const { error } = await supabase
       .from('holder_classifications')
-      .upsert(batch, { onConflict: 'product_slug,address' })
+      .upsert(batch, { onConflict: 'product_slug,network,address' })
     if (error) throw new Error(`Supabase upsert failed (${productSlug} batch ${i}): ${error.message}`)
     console.log(`  wrote ${i + batch.length}/${rows.length} rows`)
   }
@@ -217,6 +218,7 @@ async function upsertAggregateStats(stats: ReturnType<typeof computeAggregateSta
   const supabase = getSupabase()
   const { error } = await supabase.from('holder_aggregate_stats').upsert({
     product_slug: stats.productSlug,
+    network: 'ethereum',
     holder_count: stats.holderCount,
     behavior_accumulating: stats.mix.accumulating,
     behavior_distributing: stats.mix.distributing,
@@ -228,7 +230,7 @@ async function upsertAggregateStats(stats: ReturnType<typeof computeAggregateSta
     net_accumulation_ratio: stats.netAccumulationRatio ?? null,
     classified_at: new Date().toISOString(),
     as_of_block: stats.asOfBlock,
-  }, { onConflict: 'product_slug' })
+  }, { onConflict: 'product_slug,network' })
   if (error) throw new Error(`Supabase upsert failed (aggregate ${stats.productSlug}): ${error.message}`)
 }
 
@@ -242,6 +244,7 @@ async function insertBehaviorHistory(stats: ReturnType<typeof computeAggregateSt
   const supabase = getSupabase()
   const { error } = await supabase.from('behavior_history').insert({
     product_slug: stats.productSlug,
+    network: 'ethereum',
     dormancy_share_pct: stats.dormancySharePct,
     holder_count: stats.holderCount,
     behavior_accumulating: stats.mix.accumulating,
