@@ -23,6 +23,7 @@ import type { ERC20Transfer } from '@/src/lib/etherscan/types'
 const TRANSACTIONS_URL = 'https://api.rwa.xyz/v4/transactions'
 const PER_PAGE = 1000
 const THROTTLE_MS = 600
+const REQUEST_TIMEOUT_MS = 30_000
 
 /**
  * Convert rwa.xyz's decimal-adjusted `amount` (e.g. 330.15 for 330.15 tokens)
@@ -138,10 +139,26 @@ export async function fetchTransfersRWA(
     // rwa.xyz /v4 takes the query object as a single URL-encoded `query` param.
     const url = `${TRANSACTIONS_URL}?query=${encodeURIComponent(JSON.stringify(query))}`
 
-    const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${apiKey}` },
-      cache: 'no-store',
-    })
+    // Per-request timeout so a stalled page fails loudly instead of hanging.
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
+    let res: Response
+    try {
+      res = await fetch(url, {
+        headers: { Authorization: `Bearer ${apiKey}` },
+        cache: 'no-store',
+        signal: controller.signal,
+      })
+    } catch (err) {
+      if (controller.signal.aborted) {
+        throw new Error(
+          `rwa.xyz /v4/transactions timed out (page ${page}) after ${REQUEST_TIMEOUT_MS}ms`
+        )
+      }
+      throw err
+    } finally {
+      clearTimeout(timeout)
+    }
 
     if (!res.ok) {
       const body = await res.text()
@@ -156,6 +173,8 @@ export async function fetchTransfersRWA(
       if (!allowed.has(tx.token.address.toLowerCase())) continue
       out.push(normalizeTransaction(tx, decimals))
     }
+
+    console.log(`[rwa] fetched page ${page}/${pageCount} (${out.length} transfers so far)`)
 
     page++
     if (page <= pageCount && page <= maxPages) await sleep(THROTTLE_MS)
