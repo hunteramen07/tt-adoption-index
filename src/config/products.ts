@@ -1,5 +1,33 @@
 export type ProductSlug = 'buidl' | 'ousg' | 'usdy' | 'benji' | 'ustb' | 'usyc'
 
+/**
+ * A single on-chain deployment (token) of a fund on one network.
+ *
+ * Multi-chain REFERENCE DATA only — consumed by the Stage 1+ rwa.xyz multi-chain
+ * pipeline, NOT by the current Ethereum-only pipeline (which uses
+ * Product.contractAddress). A fund may have multiple tokens on the same network
+ * (e.g. USDY's native + "Certificate" forms on Ethereum), so this is a flat list
+ * rather than a map keyed by network.
+ *
+ * Sourced from rwa.xyz /v4/assets; mirrors its `tokens[]` structure.
+ */
+export interface ProductToken {
+  /** rwa.xyz network_id — authoritative. */
+  networkId: number
+  /**
+   * Lowercase network slug matching rwa.xyz `network.slug` and the Supabase
+   * `network` column (e.g. 'ethereum', 'solana', 'xrp-ledger').
+   */
+  networkSlug: string
+  /** Contract address / token identifier in the network's native format. */
+  address: string
+  /**
+   * False for opaque chains where per-wallet flows are not observable (e.g.
+   * privacy rails like Canton). All true today — no opaque chains tracked yet.
+   */
+  behaviorallyObservable: boolean
+}
+
 export interface Product {
   slug: ProductSlug
   name: string
@@ -52,6 +80,24 @@ export interface Product {
    * Defaults to true when omitted.
    */
   active?: boolean
+  /**
+   * rwa.xyz asset_id for this fund. Reference data for the multi-chain rewrite
+   * (Stage 1+); not used by the current pipeline.
+   */
+  rwaAssetId?: number
+  /**
+   * All tracked on-chain deployments of this fund across networks. Reference
+   * data for the Stage 1+ multi-chain pipeline; the current Ethereum-only
+   * pipeline ignores this and continues to use contractAddress. Multiple
+   * entries per network are permitted (see USDY: native + Certificate).
+   */
+  tokens?: ProductToken[]
+  /**
+   * Tokenization platform / technology provider, when distinct from the fund
+   * manager (the `issuer` field). E.g. USTB is managed by Invesco but tokenized
+   * on Superstate's platform.
+   */
+  tokenizationPlatform?: string
 }
 
 // IMPORTANT: All contract addresses are sourced from training data and MUST
@@ -79,6 +125,19 @@ export const PRODUCTS: Product[] = [
     contractAddress: '0x7712c34205737192402172409a8F7ccef8aA2AEC',
     decimals: 6,
     navUsd: 1.00,
+    rwaAssetId: 2331,
+    // Distributed class only. BUIDL-I (0x6a9da2...c89041, ~6 holders) is the
+    // excluded restricted institutional class — deliberately NOT listed here.
+    tokens: [
+      { networkId: 1, networkSlug: 'ethereum', address: '0x7712c34205737192402172409a8f7ccef8aa2aec', behaviorallyObservable: true },
+      { networkId: 2, networkSlug: 'solana', address: 'GyWgeqpy5GueU2YbkE8xqUeVEokCMMCEeUrfbtMw6phr', behaviorallyObservable: true },
+      { networkId: 3, networkSlug: 'polygon', address: '0x2893ef551b6dd69f661ac00f11d93e5dc5dc0e99', behaviorallyObservable: true },
+      { networkId: 4, networkSlug: 'optimism', address: '0xa1cdab15bba75a80df4089cafba013e376957cf5', behaviorallyObservable: true },
+      { networkId: 5, networkSlug: 'avalanche-c-chain', address: '0x53fc82f14f009009b440a706e31c9021e1196a2f', behaviorallyObservable: true },
+      { networkId: 8, networkSlug: 'bnb-chain', address: '0x2d5bdc96d9c8aabbdb38c9a27398513e7e5ef84f', behaviorallyObservable: true },
+      { networkId: 11, networkSlug: 'arbitrum', address: '0xa6525ae43edcd03dc08e775774dcabd3bb925872', behaviorallyObservable: true },
+      { networkId: 38, networkSlug: 'aptos', address: '0x50038be55be5b964cfa32cf128b5cf05f123959f286b4cc02b86cafd48945f89', behaviorallyObservable: true },
+    ],
   },
   {
     // Ondo US Government Bond — institutional, KYC-gated.
@@ -94,6 +153,13 @@ export const PRODUCTS: Product[] = [
     decimals: 18,
     navUsd: 115.53,
     navAsOf: '2026-06-11',
+    rwaAssetId: 57,
+    tokens: [
+      { networkId: 1, networkSlug: 'ethereum', address: '0x1b19c19393e2d034d8ff31ff34c81252fcbbee92', behaviorallyObservable: true },
+      { networkId: 3, networkSlug: 'polygon', address: '0xba11c5effa33c4d6f8f593cfa394241cfe925811', behaviorallyObservable: true },
+      { networkId: 2, networkSlug: 'solana', address: 'i7u4r16TcsJTgq1kAG8opmVZyVnAKBwLKu6ZPMwzxNc', behaviorallyObservable: true },
+      { networkId: 46, networkSlug: 'xrp-ledger', address: 'rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p', behaviorallyObservable: true },
+    ],
   },
   {
     // Ondo US Dollar Yield — higher holder count than other products.
@@ -109,6 +175,23 @@ export const PRODUCTS: Product[] = [
     navUsd: 1.13,
     navAsOf: '2026-06-11',
     aggregateFlowsOnly: true,
+    rwaAssetId: 60,
+    // USDY has TWO Ethereum tokens — native + "Certificate" (purchased-but-not-
+    // -fully-unlocked USDY). Same fund/economic exposure; both kept (not collapsed).
+    tokens: [
+      { networkId: 1, networkSlug: 'ethereum', address: '0x96f6ef951840721adbf46ac996b59e0235cb985c', behaviorallyObservable: true },
+      { networkId: 1, networkSlug: 'ethereum', address: '0xe86845788d6e3e5c2393ade1a051ae617d974c09', behaviorallyObservable: true },
+      { networkId: 2, networkSlug: 'solana', address: 'A1KLoBrKBde8Ty9qtNQUtq3C2ortoC3u7twggz7sEto6', behaviorallyObservable: true },
+      { networkId: 9, networkSlug: 'stellar', address: 'USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1', behaviorallyObservable: true },
+      { networkId: 11, networkSlug: 'arbitrum', address: '0x35e050d3c0ec2d29d269a8ecea763a183bdf9a9d', behaviorallyObservable: true },
+      { networkId: 14, networkSlug: 'noble', address: 'ausdy', behaviorallyObservable: true },
+      { networkId: 33, networkSlug: 'mantle', address: '0x5be26527e817998a7206475496fde1e68957c5a6', behaviorallyObservable: true },
+      { networkId: 37, networkSlug: 'sui', address: '0x960b531667636f39e85867775f52f6b1f220a058c4de786905bdf761e06a56bb::usdy::USDY', behaviorallyObservable: true },
+      { networkId: 38, networkSlug: 'aptos', address: '0xf0876baf6f8c37723f0e9d9c1bbad1ccb49324c228bcc906e2f1f5a9e139eda1', behaviorallyObservable: true },
+      { networkId: 42, networkSlug: 'mantra', address: 'ibc/6749D16BC09F419C090C330FC751FFF1C96143DB7A4D2FCAEC2F348A3E17618A', behaviorallyObservable: true },
+      { networkId: 48, networkSlug: 'plume', address: '0xd2b65e851be3d80d3c2ce795eb2e78f16cb088b2', behaviorallyObservable: true },
+      { networkId: 70, networkSlug: 'sei', address: '0x54cd901491aef397084453f4372b93c33260e2a6', behaviorallyObservable: true },
+    ],
   },
   {
     // Franklin OnChain US Government Money Fund.
@@ -126,30 +209,48 @@ export const PRODUCTS: Product[] = [
     active: false,
   },
   {
-    // Superstate Short Duration US Government Securities Fund.
+    // Invesco Short Duration US Government Securities Fund.
+    // Managed by Invesco; tokenized on Superstate's platform (manager and
+    // tokenization provider are now distinct — see tokenizationPlatform).
     // Accumulating fund — token price accrues from $1; NAV ~$11.08 verified
     // 2026-06-16 (rwa.xyz $11.06, CoinGecko $11.10, AUM÷supply $11.06).
     slug: 'ustb',
-    name: 'Superstate Short Duration US Government Securities Fund',
+    name: 'Invesco Short Duration US Government Securities Fund',
     symbol: 'USTB',
-    issuer: 'Superstate',
+    issuer: 'Invesco',
+    tokenizationPlatform: 'Superstate',
     contractAddress: '0x43415eB6ff9DB7E26A15b704e7A3eDCe97d31C4e',
     decimals: 6,
     navUsd: 11.08,
     navAsOf: '2026-06-16',
+    rwaAssetId: 1385,
+    tokens: [
+      { networkId: 1, networkSlug: 'ethereum', address: '0x43415eb6ff9db7e26a15b704e7a3edce97d31c4e', behaviorallyObservable: true },
+      { networkId: 48, networkSlug: 'plume', address: '0xe4fa682f94610ccd170680cc3b045d77d9e528a8', behaviorallyObservable: true },
+      { networkId: 2, networkSlug: 'solana', address: 'CCz3SGVziFeLYk2xfEstkiqJfYkjaSWb2GCABYsVcjo2', behaviorallyObservable: true },
+    ],
   },
   {
-    // Hashnote US Yield Coin (now operated by Circle).
+    // Hashnote US Yield Coin.
+    // Primary issuer is now Circle (Circle acquired Hashnote, which originated
+    // it); Hashnote recorded as the originating platform — see tokenizationPlatform.
     // Token price accrues from $1; navUsd read from Etherscan on 2026-06-11.
     // NOTE: Ethereum mainnet is ~2.9% of total USYC AUM (Solana + BNB hold the rest).
     slug: 'usyc',
     name: 'Hashnote US Yield Coin',
     symbol: 'USYC',
-    issuer: 'Hashnote',
+    issuer: 'Circle',
+    tokenizationPlatform: 'Hashnote',
     contractAddress: '0x136471a34f6ef19fE571EFFC1CA711fdb8E49f2b',
     decimals: 6,
     navUsd: 1.13,
     navAsOf: '2026-06-11',
+    rwaAssetId: 51,
+    tokens: [
+      { networkId: 1, networkSlug: 'ethereum', address: '0x136471a34f6ef19fe571effc1ca711fdb8e49f2b', behaviorallyObservable: true },
+      { networkId: 8, networkSlug: 'bnb-chain', address: '0x8d0fa28f221eb5735bc71d3a0da67ee5bc821311', behaviorallyObservable: true },
+      { networkId: 2, networkSlug: 'solana', address: '7LWanZteUKtvFjv4MHYgKXXdAuCQYFPJysL9pxxdRQGn', behaviorallyObservable: true },
+    ],
   },
 ]
 
