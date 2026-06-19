@@ -24,6 +24,9 @@ const TRANSACTIONS_URL = 'https://api.rwa.xyz/v4/transactions'
 const PER_PAGE = 1000
 const THROTTLE_MS = 600
 const REQUEST_TIMEOUT_MS = 30_000
+// Mint/burn counterparty marker — matches the zero-address string EVM uses, so
+// the classify engine treats coerced Solana mints/burns identically to EVM ones.
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
 /**
  * Convert rwa.xyz's decimal-adjusted `amount` (e.g. 330.15 for 330.15 tokens)
@@ -44,13 +47,26 @@ export function toRawUnits(amount: number, decimals: number): string {
 
 /** Subset of a rwa.xyz /v4/transactions result that we actually read. */
 export interface RwaTransaction {
-  from_address: string
-  to_address: string
+  /**
+   * Counterparties. On Ethereum, mints/burns use the zero-address STRING, so
+   * these are always present. On some non-EVM networks (observed on Solana)
+   * rwa.xyz returns null here instead — a null from_address on a mint, or a
+   * null to_address on a burn. normalizeTransaction coerces those to the
+   * zero-address string (matching EVM) and throws on any other null.
+   */
+  from_address: string | null
+  to_address: string | null
   /** Decimal-adjusted token count, NOT raw units. */
   amount: number
   /** Precise ISO timestamp, e.g. "2026-06-16T14:37:59.000Z". */
   timestamp: string
   transaction_hash: string
+  /**
+   * rwa.xyz transaction classification object. Its `slug` distinguishes the
+   * transaction kind; slugs containing "mint"/"burn" identify mints/burns,
+   * which on non-EVM chains arrive with a null counterparty.
+   */
+  transaction_type: { slug: string } | null
   /** Carries the on-chain token contract; used to post-filter (Finding #2). */
   token: { address: string }
 }
@@ -65,11 +81,36 @@ interface RwaTransactionsResponse {
  * four engine-read fields carry real data; everything else is an empty-string
  * placeholder (and blockNumber "0" — rwa.xyz transactions have no block number,
  * and the engine never reads it).
+ *
+ * Non-EVM (e.g. Solana) mints/burns arrive with a null counterparty instead of
+ * EVM's zero-address string. We coerce those to the zero-address — but ONLY when
+ * the transaction_type slug confirms a mint (null from) or burn (null to). Any
+ * other null is unexpected and throws, so we never silently corrupt balances.
  */
 export function normalizeTransaction(tx: RwaTransaction, decimals: number): ERC20Transfer {
+  const slug = tx.transaction_type?.slug
+
+  let from = tx.from_address
+  if (from == null) {
+    if (slug?.includes('mint')) {
+      from = ZERO_ADDRESS
+    } else {
+      throw new Error(`null from_address on non-mint tx: slug=${slug} hash=${tx.transaction_hash}`)
+    }
+  }
+
+  let to = tx.to_address
+  if (to == null) {
+    if (slug?.includes('burn')) {
+      to = ZERO_ADDRESS
+    } else {
+      throw new Error(`null to_address on non-burn tx: slug=${slug} hash=${tx.transaction_hash}`)
+    }
+  }
+
   return {
-    from: tx.from_address,
-    to: tx.to_address,
+    from,
+    to,
     value: toRawUnits(tx.amount, decimals),
     timeStamp: String(Math.floor(new Date(tx.timestamp).getTime() / 1000)),
     blockNumber: '0',
