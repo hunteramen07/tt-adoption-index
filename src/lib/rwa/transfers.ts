@@ -23,7 +23,7 @@ import type { ERC20Transfer } from '@/src/lib/etherscan/types'
 const TRANSACTIONS_URL = 'https://api.rwa.xyz/v4/transactions'
 const PER_PAGE = 1000
 const THROTTLE_MS = 600
-const REQUEST_TIMEOUT_MS = 30_000
+const REQUEST_TIMEOUT_MS = 90_000
 // Mint/burn counterparty marker — matches the zero-address string EVM uses, so
 // the classify engine treats coerced Solana mints/burns identically to EVM ones.
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
@@ -173,7 +173,10 @@ export async function fetchTransfersRWA(
           { operator: 'equals', field: 'network_id', value: networkId },
         ],
       },
-      sort: { field: 'date', direction: 'asc' },
+      // Sort on the stable `id` key, not `date`: gives deterministic,
+      // non-overlapping pagination cheaply (date-sort caused progressive page
+      // timeouts). The classify engine is order-invariant, so id-order is fine.
+      sort: { field: 'id', direction: 'asc' },
       pagination: { page, perPage: PER_PAGE },
     }
 
