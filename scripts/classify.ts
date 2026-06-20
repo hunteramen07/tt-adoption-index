@@ -92,7 +92,7 @@ import { getSupabase } from '@/src/lib/supabase/client'
 // ── Constants ──────────────────────────────────────────────────────────────
 
 const PROGRESS_FILE = path.join(process.cwd(), '.cache', 'classify-progress.json')
-const PROGRESS_TTL_MS = 12 * 60 * 60 * 1000
+const PROGRESS_TTL_MS = 7 * 24 * 60 * 60 * 1000
 const UPSERT_BATCH = 500
 
 const CUSTODIAN_KEYWORDS = [
