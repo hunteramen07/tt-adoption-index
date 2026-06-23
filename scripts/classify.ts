@@ -75,19 +75,18 @@ import path from 'path'
 import { ACTIVE_PRODUCTS } from '@/src/config/products'
 import type { Product } from '@/src/config/products'
 import { fetchTransferHistory } from '@/src/lib/etherscan/transfers'
-import { fetchTransfersRWA } from '@/src/lib/rwa/transfers'
 import { etherscanGet } from '@/src/lib/etherscan/client'
 import { diskCacheRead, diskCacheWrite } from '@/src/lib/cache/disk'
 import { KNOWN_ADDRESSES } from '@/src/lib/etherscan/nameTags'
 import type { ContractSource, ERC20Transfer } from '@/src/lib/etherscan/types'
 import {
   classifyHolders,
-  computeDormancySharePct,
-  computeBehavioralMix,
   computeAggregateStats,
+  computeAggregateStatsFromState,
 } from '@/src/lib/classify/engine'
 import type { HolderClassification } from '@/src/lib/classify/types'
 import { getSupabase } from '@/src/lib/supabase/client'
+import { makeSupabaseDeps, runIncrementalFetchMerge } from '@/src/lib/rwa/incremental'
 
 // ── Constants ──────────────────────────────────────────────────────────────
 
@@ -273,22 +272,19 @@ async function insertBehaviorHistory(stats: ReturnType<typeof computeAggregateSt
 // ── Classify + write (shared by both fetch paths) ───────────────────────────
 
 /**
- * Classify a single (product, network) transfer set and write per-wallet rows,
- * aggregate stats, and a behavior_history row. This is the exact logic the
- * Etherscan per-wallet branch has always used; the rwa.xyz multi-chain path
- * reuses it unchanged, once per network.
+ * Name-tag enrich (Ethereum-only gating) + write per-wallet classifications,
+ * aggregate stats, and a behavior_history row. Shared tail for both fetch
+ * paths: callers arrive with classifications + aggStats already computed —
+ * from full history (Etherscan) or from merged incremental state (rwa.xyz).
  */
-async function classifyAndWritePerWallet(
+async function enrichAndWriteClassifications(
   product: Product,
-  transfers: ERC20Transfer[],
+  classifications: Map<string, HolderClassification>,
+  aggStats: ReturnType<typeof computeAggregateStats>,
   network: string,
-  asOfBlock: number,
-  nowTs: number
+  asOfBlock: number
 ): Promise<void> {
-  console.log(`  classifying holders…`)
-  const classifications = classifyHolders(transfers, nowTs)
-  const mix = computeBehavioralMix(classifications)
-  const dormancySharePct = computeDormancySharePct(classifications)
+  const { mix, dormancySharePct } = aggStats
   console.log(
     `  ${classifications.size} holders  dormancyShare=${dormancySharePct.toFixed(1)}%  ` +
     `mix: A=${mix.accumulating} D=${mix.distributing} Dormant=${mix.dormant} Active=${mix.active}`
@@ -327,9 +323,26 @@ async function classifyAndWritePerWallet(
   // Also write aggregate stats so the dashboard can read from Supabase
   // without replaying the full transfer history on every request.
   console.log(`  writing aggregate stats to Supabase…`)
-  const aggStats = computeAggregateStats(transfers, nowTs)
   await upsertAggregateStats({ ...aggStats, productSlug: product.slug, asOfBlock }, network)
   await insertBehaviorHistory({ ...aggStats, productSlug: product.slug }, network)
+}
+
+/**
+ * Classify a single (product, network) from full transfer history (Etherscan
+ * path). Unchanged behavior — computes from the supplied transfers, then writes
+ * via the shared enrich-and-write tail.
+ */
+async function classifyAndWritePerWallet(
+  product: Product,
+  transfers: ERC20Transfer[],
+  network: string,
+  asOfBlock: number,
+  nowTs: number
+): Promise<void> {
+  console.log(`  classifying holders…`)
+  const classifications = classifyHolders(transfers, nowTs)
+  const aggStats = computeAggregateStats(transfers, nowTs)
+  await enrichAndWriteClassifications(product, classifications, aggStats, network, asOfBlock)
 }
 
 // ── rwa.xyz multi-chain path (BUIDL) ────────────────────────────────────────
@@ -357,10 +370,51 @@ function observableNetworks(
 }
 
 /**
- * Fetch + classify a product across all its observable networks via rwa.xyz,
- * treating each (product, network) as one unit. Resumable per network via a
- * `slug:network` progress key. rwa.xyz transfers have no block number, so
- * as_of_block is stored as 0 (it is not used in classify math).
+ * Classify one (product, network) via the INCREMENTAL fetch-merge path:
+ *   cursor + persisted balances (paginated read) → incremental gte pull +
+ *   boundary dedup → merge → bounded 90d window pull for behavior → classify via
+ *   the FromState cores → atomic RPC write-back of balances + cursor.
+ *
+ * First run (no cursor) is a full backfill — it still does the one-time deep
+ * full-history pull. Every later run resumes from the cursor and pulls only new
+ * transactions plus the bounded window, so it avoids the deep pagination that
+ * was timing out CI. Balances + cursor advance atomically (apply_incremental_merge
+ * RPC); the per-wallet classifications / aggregate stats are written by the
+ * shared tail and are idempotently re-derived from state on any retry.
+ */
+async function classifyRwaNetworkIncremental(
+  product: Product,
+  net: { networkId: number; networkSlug: string; addresses: string[] },
+  nowTs: number
+): Promise<void> {
+  const deps = await makeSupabaseDeps({
+    assetId: product.rwaAssetId!,
+    networkId: net.networkId,
+    decimals: product.decimals,
+    tokenAddresses: net.addresses,
+  })
+
+  const res = await runIncrementalFetchMerge(
+    { productSlug: product.slug, network: net.networkSlug, mode: 'per-wallet', nowTs },
+    deps
+  )
+  console.log(
+    `  fetched ${res.fetchedCount} (dedup-dropped ${res.dedupedBoundaryCount} boundary, ${res.newCount} new), ` +
+    `persisted ${res.merged.size} balance rows, cursor → ${res.newCursor?.lastTxTimestamp ?? '(unchanged)'}` +
+    ` (+${res.newCursor?.boundaryIds.length ?? 0} boundary id(s))`
+  )
+
+  // Both outputs derive from the same merged state + window the orchestrator used.
+  const classifications = res.classifications!
+  const aggStats = computeAggregateStatsFromState(res.positive, res.windowTransfers, nowTs)
+  await enrichAndWriteClassifications(product, classifications, aggStats, net.networkSlug, 0)
+}
+
+/**
+ * Classify a product across all its observable networks via rwa.xyz, treating
+ * each (product, network) as one unit, through the incremental fetch-merge path.
+ * Resumable per network via a `slug:network` progress key. rwa.xyz transfers
+ * have no block number, so as_of_block is stored as 0 (unused in classify math).
  */
 async function classifyRwaMultiChain(
   product: Product,
@@ -372,7 +426,7 @@ async function classifyRwaMultiChain(
   }
 
   const networks = observableNetworks(product)
-  console.log(`\n[${product.slug}] multi-chain via rwa.xyz — ${networks.length} observable network(s)`)
+  console.log(`\n[${product.slug}] multi-chain via rwa.xyz (incremental) — ${networks.length} observable network(s)`)
 
   for (const net of networks) {
     const key = `${product.slug}:${net.networkSlug}`
@@ -381,16 +435,8 @@ async function classifyRwaMultiChain(
       continue
     }
 
-    console.log(`\n[${key}] fetching transfers via rwa.xyz (${net.addresses.length} contract(s))…`)
-    const transfers = await fetchTransfersRWA(
-      product.rwaAssetId,
-      net.networkId,
-      product.decimals,
-      net.addresses
-    )
-    console.log(`  ${transfers.length} transfers (rwa.xyz has no block number; as_of_block=0)`)
-
-    await classifyAndWritePerWallet(product, transfers, net.networkSlug, 0, nowTs)
+    console.log(`\n[${key}] incremental fetch-merge via rwa.xyz (${net.addresses.length} contract(s))…`)
+    await classifyRwaNetworkIncremental(product, net, nowTs)
 
     progress.completedProducts.push(key)
     saveProgress(progress)
@@ -411,7 +457,17 @@ async function main() {
 
   const nowTs = Math.floor(Date.now() / 1000)
 
+  // Optional scope filter: CLASSIFY_ONLY=buidl[,slug…] restricts the run to the
+  // listed product slugs. Used to validate a single fund family in isolation
+  // (e.g. the BUIDL incremental path) without re-running the others.
+  const onlySlugs = process.env.CLASSIFY_ONLY?.split(',').map((s) => s.trim()).filter(Boolean)
+  if (onlySlugs && onlySlugs.length > 0) {
+    console.log(`scope: CLASSIFY_ONLY=${onlySlugs.join(',')}`)
+  }
+
   for (const product of ACTIVE_PRODUCTS) {
+    if (onlySlugs && onlySlugs.length > 0 && !onlySlugs.includes(product.slug)) continue
+
     // BUIDL → rwa.xyz multi-chain path (Stage 3). It manages its own per-network
     // progress keys and writes, so handle it and move on. Every other fund stays
     // on the existing Etherscan path below, unchanged. Temporary dual-path state.
