@@ -10,7 +10,11 @@ const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 export const WINDOW_SECONDS = 90 * 24 * 3600
 
 /**
- * Classify all current token holders over the trailing 90-day window.
+ * Classify holders over the trailing 90-day window from precomputed state.
+ *
+ * Balances are supplied precomputed (e.g. from holder_balance_state); flows are
+ * derived from the separately-fetched trailing-90d transfer set. This is the
+ * core used by both the full-history wrapper and the incremental fetch path.
  *
  * Classification priority (mutually exclusive):
  *   Dormant      — zero in AND zero out in the window
@@ -21,51 +25,41 @@ export const WINDOW_SECONDS = 90 * 24 * 3600
  * nameTag and isLabeledCustodian are left as defaults; the caller is
  * responsible for enriching them via name tag resolution.
  */
-export function classifyHolders(
-  transfers: ERC20Transfer[],
+export function classifyHoldersFromState(
+  balances: Map<string, bigint>,
+  windowTransfers: ERC20Transfer[],
   nowTs: number = Math.floor(Date.now() / 1000)
 ): Map<string, HolderClassification> {
   const windowStart = nowTs - WINDOW_SECONDS
-  const balances = computeBalances(transfers)
-
   type Flows = { inflow: bigint; outflow: bigint }
   const flows = new Map<string, Flows>()
+  const ZERO = BigInt(0)
 
-  for (const t of transfers) {
-    if (parseInt(t.timeStamp) < windowStart) continue
+  for (const t of windowTransfers) {
+    if (parseInt(t.timeStamp) < windowStart) continue // safety filter; set is already trimmed
     const from = t.from.toLowerCase()
     const to = t.to.toLowerCase()
     const value = BigInt(t.value)
-
     if (to !== ZERO_ADDRESS) {
-      const f = flows.get(to) ?? { inflow: BigInt(0), outflow: BigInt(0) }
+      const f = flows.get(to) ?? { inflow: ZERO, outflow: ZERO }
       f.inflow += value
       flows.set(to, f)
     }
     if (from !== ZERO_ADDRESS) {
-      const f = flows.get(from) ?? { inflow: BigInt(0), outflow: BigInt(0) }
+      const f = flows.get(from) ?? { inflow: ZERO, outflow: ZERO }
       f.outflow += value
       flows.set(from, f)
     }
   }
 
   const result = new Map<string, HolderClassification>()
-  const ZERO = BigInt(0)
-
   for (const [address, balanceRaw] of balances) {
     const f = flows.get(address)
     let behavior: BehaviorLabel
-
-    if (!f || (f.inflow === ZERO && f.outflow === ZERO)) {
-      behavior = 'Dormant'
-    } else if (f.inflow > ZERO && f.outflow > ZERO) {
-      behavior = 'Active'
-    } else if (f.inflow > ZERO) {
-      behavior = 'Accumulating'
-    } else {
-      behavior = 'Distributing'
-    }
-
+    if (!f || (f.inflow === ZERO && f.outflow === ZERO)) behavior = 'Dormant'
+    else if (f.inflow > ZERO && f.outflow > ZERO) behavior = 'Active'
+    else if (f.inflow > ZERO) behavior = 'Accumulating'
+    else behavior = 'Distributing'
     result.set(address, {
       address,
       behavior,
@@ -76,8 +70,19 @@ export function classifyHolders(
       nameTag: null,
     })
   }
-
   return result
+}
+
+/**
+ * Classify all current token holders over the trailing 90-day window.
+ * Thin wrapper — unchanged behavior for existing callers: computes balances
+ * from the full transfer history, then delegates to classifyHoldersFromState.
+ */
+export function classifyHolders(
+  transfers: ERC20Transfer[],
+  nowTs: number = Math.floor(Date.now() / 1000)
+): Map<string, HolderClassification> {
+  return classifyHoldersFromState(computeBalances(transfers), transfers, nowTs)
 }
 
 /**
@@ -122,12 +127,13 @@ export function computeBehavioralMix(
 }
 
 /**
- * Compute aggregate behavioral stats for products where per-wallet rows are
- * not written (e.g. USDY). All metrics are derived from the full transfer
- * history without additional API calls.
+ * Compute aggregate behavioral stats from precomputed holder state. Balances
+ * carry {balance, firstReceipt}; window flows come from windowTransfers. Core
+ * used by both the full-history wrapper and the incremental fetch path.
  */
-export function computeAggregateStats(
-  transfers: ERC20Transfer[],
+export function computeAggregateStatsFromState(
+  balances: Map<string, { balance: bigint; firstReceipt: number | null }>,
+  windowTransfers: ERC20Transfer[],
   nowTs: number = Math.floor(Date.now() / 1000)
 ): {
   holderCount: number
@@ -138,13 +144,89 @@ export function computeAggregateStats(
   netAccumulationRatio: number | null
 } {
   const windowStart = nowTs - WINDOW_SECONDS
+  const ZERO = BigInt(0)
 
-  const currentBalances = computeBalances(transfers)
-  const historicalBalances = computeBalances(
-    transfers.filter((t) => parseInt(t.timeStamp) < windowStart)
-  )
+  // Classify from the balance map (drop first_receipt for the classify call).
+  const balanceMap = new Map<string, bigint>()
+  for (const [addr, s] of balances) balanceMap.set(addr, s.balance)
+  const classifications = classifyHoldersFromState(balanceMap, windowTransfers, nowTs)
+  const mix = computeBehavioralMix(classifications)
+  const dormancySharePct = computeDormancySharePct(classifications)
+  const netAccumulationRatio =
+    mix.accumulating + mix.distributing > 0
+      ? mix.accumulating / (mix.accumulating + mix.distributing)
+      : null
 
-  // Net new: current holders whose first token receipt is inside the window
+  // Net new: current holders whose first-ever receipt is inside the window.
+  let netNewWallets90d = 0
+  for (const s of balances.values()) {
+    if (s.firstReceipt !== null && s.firstReceipt >= windowStart) netNewWallets90d++
+  }
+
+  // ── exitedWallets90d: window-start-balance reconstruction (NEW logic) ──────
+  // A wallet exited iff it held > 0 at window start but holds nothing now.
+  // We have no pre-window history, so reconstruct window-start balance from the
+  // CURRENT balance and the NET window flow:
+  //     balanceAtStart = balanceNow - (inflowWindow - outflowWindow)
+  // Only NON-current addresses can be exits (current holders still hold > 0),
+  // and for those balanceNow = 0, so:
+  //     balanceAtStart = outflowWindow - inflowWindow   ( > 0 ⇒ net-shed ⇒ exit)
+  //
+  // Boundary cases:
+  //  • received AND fully exited within the window (no pre-window balance):
+  //      inflow == outflow ⇒ balanceAtStart 0 ⇒ NOT counted (correct — held
+  //      nothing at window start).
+  //  • exit exactly at the window edge (timeStamp === windowStart): the same
+  //      strict `< windowStart` split used everywhere keeps the edge transfer
+  //      INSIDE the window, matching the original historical filter
+  //      (computeBalances(transfers.filter(ts < windowStart))) exactly.
+  type Flow = { inflow: bigint; outflow: bigint }
+  const windowFlow = new Map<string, Flow>()
+  for (const t of windowTransfers) {
+    if (parseInt(t.timeStamp) < windowStart) continue
+    const from = t.from.toLowerCase()
+    const to = t.to.toLowerCase()
+    const value = BigInt(t.value)
+    if (to !== ZERO_ADDRESS) {
+      const f = windowFlow.get(to) ?? { inflow: ZERO, outflow: ZERO }
+      f.inflow += value
+      windowFlow.set(to, f)
+    }
+    if (from !== ZERO_ADDRESS) {
+      const f = windowFlow.get(from) ?? { inflow: ZERO, outflow: ZERO }
+      f.outflow += value
+      windowFlow.set(from, f)
+    }
+  }
+
+  let exitedWallets90d = 0
+  for (const [addr, f] of windowFlow) {
+    if (balances.has(addr)) continue // still a current holder ⇒ not exited
+    const balanceAtStart = f.outflow - f.inflow // = 0 - netFlow, since balanceNow = 0
+    if (balanceAtStart > ZERO) exitedWallets90d++
+  }
+
+  return {
+    holderCount: balances.size,
+    mix,
+    dormancySharePct,
+    netNewWallets90d,
+    exitedWallets90d,
+    netAccumulationRatio,
+  }
+}
+
+/**
+ * Compute aggregate behavioral stats for products where per-wallet rows are
+ * not written (e.g. USDY). Thin wrapper — builds the {balance, firstReceipt}
+ * state from full history then delegates, preserving the original behavior
+ * exactly. All metrics are derived without additional API calls.
+ */
+export function computeAggregateStats(
+  transfers: ERC20Transfer[],
+  nowTs: number = Math.floor(Date.now() / 1000)
+) {
+  const balances = computeBalances(transfers)
   const firstReceipt = new Map<string, number>()
   for (const t of transfers) {
     const to = t.to.toLowerCase()
@@ -153,34 +235,9 @@ export function computeAggregateStats(
     const existing = firstReceipt.get(to)
     if (existing === undefined || ts < existing) firstReceipt.set(to, ts)
   }
-
-  let netNewWallets90d = 0
-  for (const addr of currentBalances.keys()) {
-    const first = firstReceipt.get(addr)
-    if (first !== undefined && first >= windowStart) netNewWallets90d++
+  const state = new Map<string, { balance: bigint; firstReceipt: number | null }>()
+  for (const [addr, bal] of balances) {
+    state.set(addr, { balance: bal, firstReceipt: firstReceipt.get(addr) ?? null })
   }
-
-  // Exited: had positive balance at window start, now zero
-  let exitedWallets90d = 0
-  for (const addr of historicalBalances.keys()) {
-    if (!currentBalances.has(addr)) exitedWallets90d++
-  }
-
-  const classifications = classifyHolders(transfers, nowTs)
-  const mix = computeBehavioralMix(classifications)
-  const dormancySharePct = computeDormancySharePct(classifications)
-
-  const netAccumulationRatio =
-    mix.accumulating + mix.distributing > 0
-      ? mix.accumulating / (mix.accumulating + mix.distributing)
-      : null
-
-  return {
-    holderCount: currentBalances.size,
-    mix,
-    dormancySharePct,
-    netNewWallets90d,
-    exitedWallets90d,
-    netAccumulationRatio,
-  }
+  return computeAggregateStatsFromState(state, transfers, nowTs)
 }
