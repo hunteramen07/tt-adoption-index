@@ -10,6 +10,22 @@ const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 export const WINDOW_SECONDS = 90 * 24 * 3600
 
 /**
+ * Canonicalize a holder address for use as a map key. Hex (EVM/Aptos/Sui) and
+ * bech32 (Noble) addresses are case-insensitive, so they are lowercased to unify
+ * mixed-case appearances of the same wallet. Case-sensitive encodings — base58
+ * (Solana, XRPL) and base32/StrKey (Stellar) — MUST be preserved verbatim, or
+ * distinct wallets collide and one wallet can split. `caseSensitive` defaults to
+ * false so every existing (EVM) call site stays byte-identical.
+ *
+ * The zero-address sentinel ('0x000…0') is already lowercase hex and mint/burn
+ * counterparties are coerced to that exact string upstream, so `=== ZERO_ADDRESS`
+ * comparisons still match even when caseSensitive is true (the string is untouched
+ * and no base58 address collides with it).
+ */
+export const normalizeAddress = (addr: string, caseSensitive = false): string =>
+  caseSensitive ? addr : addr.toLowerCase()
+
+/**
  * Classify holders over the trailing 90-day window from precomputed state.
  *
  * Balances are supplied precomputed (e.g. from holder_balance_state); flows are
@@ -28,7 +44,8 @@ export const WINDOW_SECONDS = 90 * 24 * 3600
 export function classifyHoldersFromState(
   balances: Map<string, bigint>,
   windowTransfers: ERC20Transfer[],
-  nowTs: number = Math.floor(Date.now() / 1000)
+  nowTs: number = Math.floor(Date.now() / 1000),
+  caseSensitive = false
 ): Map<string, HolderClassification> {
   const windowStart = nowTs - WINDOW_SECONDS
   type Flows = { inflow: bigint; outflow: bigint }
@@ -37,8 +54,8 @@ export function classifyHoldersFromState(
 
   for (const t of windowTransfers) {
     if (parseInt(t.timeStamp) < windowStart) continue // safety filter; set is already trimmed
-    const from = t.from.toLowerCase()
-    const to = t.to.toLowerCase()
+    const from = normalizeAddress(t.from, caseSensitive)
+    const to = normalizeAddress(t.to, caseSensitive)
     const value = BigInt(t.value)
     if (to !== ZERO_ADDRESS) {
       const f = flows.get(to) ?? { inflow: ZERO, outflow: ZERO }
@@ -134,7 +151,8 @@ export function computeBehavioralMix(
 export function computeAggregateStatsFromState(
   balances: Map<string, { balance: bigint; firstReceipt: number | null }>,
   windowTransfers: ERC20Transfer[],
-  nowTs: number = Math.floor(Date.now() / 1000)
+  nowTs: number = Math.floor(Date.now() / 1000),
+  caseSensitive = false
 ): {
   holderCount: number
   mix: BehavioralMix
@@ -149,7 +167,7 @@ export function computeAggregateStatsFromState(
   // Classify from the balance map (drop first_receipt for the classify call).
   const balanceMap = new Map<string, bigint>()
   for (const [addr, s] of balances) balanceMap.set(addr, s.balance)
-  const classifications = classifyHoldersFromState(balanceMap, windowTransfers, nowTs)
+  const classifications = classifyHoldersFromState(balanceMap, windowTransfers, nowTs, caseSensitive)
   const mix = computeBehavioralMix(classifications)
   const dormancySharePct = computeDormancySharePct(classifications)
   const netAccumulationRatio =
@@ -184,8 +202,8 @@ export function computeAggregateStatsFromState(
   const windowFlow = new Map<string, Flow>()
   for (const t of windowTransfers) {
     if (parseInt(t.timeStamp) < windowStart) continue
-    const from = t.from.toLowerCase()
-    const to = t.to.toLowerCase()
+    const from = normalizeAddress(t.from, caseSensitive)
+    const to = normalizeAddress(t.to, caseSensitive)
     const value = BigInt(t.value)
     if (to !== ZERO_ADDRESS) {
       const f = windowFlow.get(to) ?? { inflow: ZERO, outflow: ZERO }

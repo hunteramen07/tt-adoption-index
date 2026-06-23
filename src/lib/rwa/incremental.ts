@@ -31,6 +31,7 @@ import { fetchTransfersRWA } from './transfers'
 import {
   classifyHoldersFromState,
   computeAggregateStatsFromState,
+  normalizeAddress,
   WINDOW_SECONDS,
 } from '@/src/lib/classify/engine'
 import type { HolderClassification } from '@/src/lib/classify/types'
@@ -165,15 +166,16 @@ export function dedupBoundary(
 
 export function mergeTransfers(
   state: BalanceStateMap,
-  transfers: RwaTransfer[]
+  transfers: RwaTransfer[],
+  caseSensitive = false
 ): { merged: BalanceStateMap } {
   // Clone so the input map is not mutated (callers may reuse the loaded state).
   const merged: BalanceStateMap = new Map()
   for (const [addr, s] of state) merged.set(addr, { balance: s.balance, firstReceipt: s.firstReceipt })
 
   for (const t of transfers) {
-    const from = t.from.toLowerCase()
-    const to = t.to.toLowerCase()
+    const from = normalizeAddress(t.from, caseSensitive)
+    const to = normalizeAddress(t.to, caseSensitive)
     const value = BigInt(t.value)
     const ts = parseInt(t.timeStamp)
 
@@ -285,6 +287,10 @@ export interface IncrementalParams {
   mode: 'per-wallet' | 'aggregate'
   nowTs?: number
   windowSeconds?: number
+  /** True for case-sensitive address encodings (base58/base32 — Solana, XRPL,
+   *  Stellar). When false (default, EVM/hex), holder addresses are lowercased to
+   *  unify mixed-case. Must match the casing loadState/writeBack persist with. */
+  caseSensitive?: boolean
 }
 
 export interface IncrementalResult {
@@ -310,6 +316,7 @@ export async function runIncrementalFetchMerge(
   const { productSlug, network, mode } = params
   const nowTs = params.nowTs ?? Math.floor(Date.now() / 1000)
   const windowSeconds = params.windowSeconds ?? WINDOW_SECONDS
+  const caseSensitive = params.caseSensitive ?? false
 
   // 1–2. Cursor + persisted state.
   const cursor = await deps.loadCursor(productSlug, network)
@@ -325,7 +332,7 @@ export async function runIncrementalFetchMerge(
   const newCursor = computeNewCursor(newTransfers, cursor)
 
   // 5. Merge into the balance map. Exited holders are retained as balance-0 rows.
-  const { merged } = mergeTransfers(state, newTransfers)
+  const { merged } = mergeTransfers(state, newTransfers, caseSensitive)
 
   // Classification consumes only the positive-balance subset (matches
   // computeBalances, which drops ≤ 0); the zero rows exist solely to preserve
@@ -345,9 +352,9 @@ export async function runIncrementalFetchMerge(
   if (mode === 'per-wallet') {
     const balanceMap = new Map<string, bigint>()
     for (const [addr, s] of positive) balanceMap.set(addr, s.balance)
-    classifications = classifyHoldersFromState(balanceMap, windowTransfers, nowTs)
+    classifications = classifyHoldersFromState(balanceMap, windowTransfers, nowTs, caseSensitive)
   } else {
-    aggregateStats = computeAggregateStatsFromState(positive, windowTransfers, nowTs)
+    aggregateStats = computeAggregateStatsFromState(positive, windowTransfers, nowTs, caseSensitive)
   }
 
   // 8b. Persist balances + cursor atomically (see WriteBackPayload). The full
@@ -386,6 +393,10 @@ export interface RwaFetchConfig {
   networkId: number
   decimals: number
   tokenAddresses: string[]
+  /** Case-sensitive address encoding (non-EVM). Threaded into loadState so the
+   *  keys read back from holder_balance_state round-trip with the SAME casing the
+   *  merge/write path used — must agree with IncrementalParams.caseSensitive. */
+  caseSensitive?: boolean
 }
 
 /**
@@ -434,7 +445,7 @@ export async function makeSupabaseDeps(
           .range(from, from + PAGE - 1)
         if (error) throw new Error(`holder_balance_state read failed (${productSlug}/${network}): ${error.message}`)
         for (const row of data ?? []) {
-          map.set(String(row.address).toLowerCase(), {
+          map.set(normalizeAddress(String(row.address), config.caseSensitive ?? false), {
             balance: parseNumericToBigInt(String(row.balance)),
             firstReceipt: row.first_receipt ? isoToUnix(row.first_receipt) : null,
           })

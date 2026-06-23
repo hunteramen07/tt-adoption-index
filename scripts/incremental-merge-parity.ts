@@ -28,6 +28,7 @@ import {
   isoToUnix,
   unixToIso,
   utcDay,
+  mergeTransfers,
   runIncrementalFetchMerge,
   type BalanceStateMap,
   type FetchCursor,
@@ -391,6 +392,41 @@ async function testReentrantExact() {
   console.log(`    → netNew = ${inc.netNewWallets90d} (W only); re-entrant X correctly NOT net-new. Divergence eliminated.`)
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// (7) case-sensitive (base58) addresses are preserved, never lowercased.
+//
+// Solana/XRPL/Stellar addresses are case-sensitive: lowercasing them collides
+// distinct wallets (the live BUIDL Solana corruption). With caseSensitive=true the
+// merge must key holders VERBATIM; the default (EVM) path must still lowercase —
+// so the same input collapses there, proving the default behavior is unchanged.
+// Also asserts the zero-address sentinel still resolves under caseSensitive=true.
+// ─────────────────────────────────────────────────────────────────────────────
+function testCaseSensitiveAddresses() {
+  console.log('\n[7] case-sensitive (base58) addresses: preserved verbatim, never lowercased')
+  // A real Solana-style base58 address and its lowercase form = two DISTINCT wallets.
+  const W = 'GyWgeqpy5GueU2YbkE8xqUeVEokCMMCEeUrfbtMw6phr'
+  const Wlower = W.toLowerCase()
+  const txs = [
+    rtx('1-h-1', ZERO, W, '100', day(1)), // mint 100 → W
+    rtx('1-h-2', ZERO, Wlower, '40', day(2)), // mint 40 → lowercase twin
+    rtx('1-h-3', W, ZERO, '30', day(3)), // burn 30 from W
+  ]
+
+  // caseSensitive=true: verbatim keys, twins stay distinct.
+  const { merged } = mergeTransfers(new Map(), txs, true)
+  expect('W and its lowercase twin are DISTINCT keys', merged.has(W) && merged.has(Wlower) && W !== Wlower)
+  expect('W balance = 70 (100 in − 30 burn), case preserved', merged.get(W)?.balance === BigInt(70))
+  expect('lowercase twin balance = 40 (not merged into W)', merged.get(Wlower)?.balance === BigInt(40))
+  expect('stored key is verbatim mixed-case', [...merged.keys()].includes(W))
+  expect('zero-address sentinel still resolved (no 0x0 holder row)', !merged.has(ZERO))
+
+  // Default (EVM) path lowercases — the SAME input collapses to one key, proving
+  // existing call sites are byte-identical and the bug is what we just prevented.
+  const { merged: evm } = mergeTransfers(new Map(), txs)
+  expect('EVM default collapses both into the lowercase key (unchanged behavior)',
+    evm.size === 1 && evm.get(Wlower)?.balance === BigInt(110)) // 100 + 40 − 30
+}
+
 async function main() {
   console.log('=== incremental fetch-merge parity gate (offline, deterministic) ===')
   testNumericConversion()
@@ -400,6 +436,7 @@ async function main() {
   await testSameDayCarryForward()
   await testClassificationParity()
   await testReentrantExact()
+  testCaseSensitiveAddresses()
 
   console.log('\n=== result ===')
   if (failures > 0) {

@@ -74,6 +74,7 @@ import fs from 'fs'
 import path from 'path'
 import { ACTIVE_PRODUCTS } from '@/src/config/products'
 import type { Product } from '@/src/config/products'
+import { isCaseSensitive } from '@/src/config/networks'
 import { fetchTransferHistory } from '@/src/lib/etherscan/transfers'
 import { etherscanGet } from '@/src/lib/etherscan/client'
 import { diskCacheRead, diskCacheWrite } from '@/src/lib/cache/disk'
@@ -354,7 +355,7 @@ async function classifyAndWritePerWallet(
  */
 function observableNetworks(
   product: Product
-): Array<{ networkId: number; networkSlug: string; addresses: string[] }> {
+): Array<{ networkId: number; networkSlug: string; addresses: string[]; caseSensitive: boolean }> {
   const byNetwork = new Map<number, { networkSlug: string; addresses: string[] }>()
   for (const token of product.tokens ?? []) {
     if (!token.behaviorallyObservable) continue
@@ -366,6 +367,9 @@ function observableNetworks(
     networkId,
     networkSlug: v.networkSlug,
     addresses: v.addresses,
+    // Chain-encoding case-sensitivity (base58/base32 ⇒ preserve case). Sourced
+    // once per network from the registry, not per-token.
+    caseSensitive: isCaseSensitive(networkId),
   }))
 }
 
@@ -384,7 +388,7 @@ function observableNetworks(
  */
 async function classifyRwaNetworkIncremental(
   product: Product,
-  net: { networkId: number; networkSlug: string; addresses: string[] },
+  net: { networkId: number; networkSlug: string; addresses: string[]; caseSensitive: boolean },
   nowTs: number
 ): Promise<void> {
   const deps = await makeSupabaseDeps({
@@ -392,10 +396,11 @@ async function classifyRwaNetworkIncremental(
     networkId: net.networkId,
     decimals: product.decimals,
     tokenAddresses: net.addresses,
+    caseSensitive: net.caseSensitive,
   })
 
   const res = await runIncrementalFetchMerge(
-    { productSlug: product.slug, network: net.networkSlug, mode: 'per-wallet', nowTs },
+    { productSlug: product.slug, network: net.networkSlug, mode: 'per-wallet', nowTs, caseSensitive: net.caseSensitive },
     deps
   )
   console.log(
@@ -406,7 +411,7 @@ async function classifyRwaNetworkIncremental(
 
   // Both outputs derive from the same merged state + window the orchestrator used.
   const classifications = res.classifications!
-  const aggStats = computeAggregateStatsFromState(res.positive, res.windowTransfers, nowTs)
+  const aggStats = computeAggregateStatsFromState(res.positive, res.windowTransfers, nowTs, net.caseSensitive)
   await enrichAndWriteClassifications(product, classifications, aggStats, net.networkSlug, 0)
 }
 
