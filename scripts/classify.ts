@@ -355,13 +355,26 @@ async function classifyAndWritePerWallet(
  */
 function observableNetworks(
   product: Product
-): Array<{ networkId: number; networkSlug: string; addresses: string[]; caseSensitive: boolean }> {
-  const byNetwork = new Map<number, { networkSlug: string; addresses: string[] }>()
+): Array<{ networkId: number; networkSlug: string; addresses: string[]; caseSensitive: boolean; decimals: number }> {
+  const byNetwork = new Map<number, { networkSlug: string; addresses: string[]; decimals: number }>()
   for (const token of product.tokens ?? []) {
     if (!token.behaviorallyObservable) continue
+    // Per-token decimals, falling back to the fund-level value when omitted.
+    const decimals = token.decimals ?? product.decimals
     const existing = byNetwork.get(token.networkId)
-    if (existing) existing.addresses.push(token.address)
-    else byNetwork.set(token.networkId, { networkSlug: token.networkSlug, addresses: [token.address] })
+    if (existing) {
+      // Multiple contracts on one network (e.g. USDY's two ETH tokens) must share
+      // decimals — throw rather than silently pick one if they disagree.
+      if (existing.decimals !== decimals) {
+        throw new Error(
+          `[${product.slug}] conflicting decimals on network ${token.networkId}: ` +
+          `${existing.decimals} vs ${decimals} — all tokens on a network must agree`
+        )
+      }
+      existing.addresses.push(token.address)
+    } else {
+      byNetwork.set(token.networkId, { networkSlug: token.networkSlug, addresses: [token.address], decimals })
+    }
   }
   return Array.from(byNetwork, ([networkId, v]) => ({
     networkId,
@@ -370,6 +383,7 @@ function observableNetworks(
     // Chain-encoding case-sensitivity (base58/base32 ⇒ preserve case). Sourced
     // once per network from the registry, not per-token.
     caseSensitive: isCaseSensitive(networkId),
+    decimals: v.decimals,
   }))
 }
 
@@ -388,13 +402,13 @@ function observableNetworks(
  */
 async function classifyRwaNetworkIncremental(
   product: Product,
-  net: { networkId: number; networkSlug: string; addresses: string[]; caseSensitive: boolean },
+  net: { networkId: number; networkSlug: string; addresses: string[]; caseSensitive: boolean; decimals: number },
   nowTs: number
 ): Promise<void> {
   const deps = await makeSupabaseDeps({
     assetId: product.rwaAssetId!,
     networkId: net.networkId,
-    decimals: product.decimals,
+    decimals: net.decimals,
     tokenAddresses: net.addresses,
     caseSensitive: net.caseSensitive,
   })

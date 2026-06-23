@@ -20,6 +20,7 @@
 
 import { computeBalances } from '@/src/lib/etherscan/balances'
 import { computeAggregateStats } from '@/src/lib/classify/engine'
+import { toRawUnits } from '@/src/lib/rwa/transfers'
 import type { RwaTransfer } from '@/src/lib/rwa/transfers'
 import {
   parseNumericToBigInt,
@@ -427,6 +428,22 @@ function testCaseSensitiveAddresses() {
     evm.size === 1 && evm.get(Wlower)?.balance === BigInt(110)) // 100 + 40 − 30
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// (8) per-token decimals: amount→raw uses the TOKEN's decimals, not a fund-level
+// constant. A 6-decimal token (OUSG Solana/XRPL) must convert distinctly from an
+// 18-decimal one; using the wrong (18) value over-scales a 6-dp amount by 10^12.
+// ─────────────────────────────────────────────────────────────────────────────
+function testDecimalsConversion() {
+  console.log('\n[8] per-token decimals: amount→raw scales by the token decimals')
+  expect('6-dp integer 1 → 1e6 raw', toRawUnits(1, 6) === '1000000')
+  expect('6-dp fraction 1.5 → 1500000 raw', toRawUnits(1.5, 6) === '1500000')
+  expect('18-dp integer 1 → 1e18 raw', toRawUnits(1, 18) === '1000000000000000000')
+  // Same amount under the WRONG (18) decimals is exactly 10^12× the correct 6-dp
+  // value — the silent mis-scale per-token decimals + the fetch guard prevent.
+  expect('wrong 18-dp scaling = 10^12× the 6-dp value (distinct)',
+    BigInt(toRawUnits(1, 18)) === BigInt(toRawUnits(1, 6)) * (BigInt(10) ** BigInt(12)))
+}
+
 async function main() {
   console.log('=== incremental fetch-merge parity gate (offline, deterministic) ===')
   testNumericConversion()
@@ -437,6 +454,7 @@ async function main() {
   await testClassificationParity()
   await testReentrantExact()
   testCaseSensitiveAddresses()
+  testDecimalsConversion()
 
   console.log('\n=== result ===')
   if (failures > 0) {
