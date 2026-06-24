@@ -95,6 +95,12 @@ const PROGRESS_FILE = path.join(process.cwd(), '.cache', 'classify-progress.json
 const PROGRESS_TTL_MS = 7 * 24 * 60 * 60 * 1000
 const UPSERT_BATCH = 500
 
+// Funds routed through the rwa.xyz multi-chain incremental path (per-network,
+// cursor-based) instead of the Etherscan single-chain path. Migrating funds onto
+// this set one at a time as their per-network config (decimals, address casing)
+// is verified — see classifyRwaMultiChain.
+const RWA_MULTICHAIN_SLUGS = new Set(['buidl', 'ustb'])
+
 const CUSTODIAN_KEYWORDS = [
   'coinbase', 'binance', 'exchange', 'custodian', 'custody',
   'gnosis safe', 'multisig', 'vault', 'treasury', 'kraken',
@@ -487,10 +493,10 @@ async function main() {
   for (const product of ACTIVE_PRODUCTS) {
     if (onlySlugs && onlySlugs.length > 0 && !onlySlugs.includes(product.slug)) continue
 
-    // BUIDL → rwa.xyz multi-chain path (Stage 3). It manages its own per-network
-    // progress keys and writes, so handle it and move on. Every other fund stays
-    // on the existing Etherscan path below, unchanged. Temporary dual-path state.
-    if (product.slug === 'buidl') {
+    // rwa.xyz multi-chain funds (BUIDL, USTB) → per-network incremental path. Each
+    // manages its own per-network progress keys and writes, so handle and move on.
+    // Funds not in the set stay on the existing Etherscan single-chain path below.
+    if (RWA_MULTICHAIN_SLUGS.has(product.slug)) {
       await classifyRwaMultiChain(product, progress, nowTs)
       continue
     }
