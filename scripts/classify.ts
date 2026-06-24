@@ -88,6 +88,7 @@ import {
 import type { HolderClassification } from '@/src/lib/classify/types'
 import { getSupabase } from '@/src/lib/supabase/client'
 import { makeSupabaseDeps, runIncrementalFetchMerge } from '@/src/lib/rwa/incremental'
+import { fetchNetworkMarketValue } from '@/src/lib/rwa/transfers'
 
 // ── Constants ──────────────────────────────────────────────────────────────
 
@@ -235,7 +236,7 @@ async function upsertClassifications(
 async function upsertAggregateStats(stats: ReturnType<typeof computeAggregateStats> & {
   productSlug: string
   asOfBlock: number
-}, network: string): Promise<void> {
+}, network: string, marketValueUsd: number | null = null): Promise<void> {
   const supabase = getSupabase()
   const { error } = await supabase.from('holder_aggregate_stats').upsert({
     product_slug: stats.productSlug,
@@ -251,6 +252,10 @@ async function upsertAggregateStats(stats: ReturnType<typeof computeAggregateSta
     net_accumulation_ratio: stats.netAccumulationRatio ?? null,
     classified_at: new Date().toISOString(),
     as_of_block: stats.asOfBlock,
+    // Omit-on-null: only write market_value_usd when a fresh value was captured, so
+    // a transient market-value fetch failure never blanks a previously-good value
+    // (PostgREST upsert leaves payload-absent columns untouched on conflict).
+    ...(marketValueUsd != null ? { market_value_usd: marketValueUsd } : {}),
   }, { onConflict: 'product_slug,network' })
   if (error) throw new Error(`Supabase upsert failed (aggregate ${stats.productSlug}/${network}): ${error.message}`)
 }
@@ -289,7 +294,8 @@ async function enrichAndWriteClassifications(
   classifications: Map<string, HolderClassification>,
   aggStats: ReturnType<typeof computeAggregateStats>,
   network: string,
-  asOfBlock: number
+  asOfBlock: number,
+  marketValueUsd: number | null = null
 ): Promise<void> {
   const { mix, dormancySharePct } = aggStats
   console.log(
@@ -330,7 +336,7 @@ async function enrichAndWriteClassifications(
   // Also write aggregate stats so the dashboard can read from Supabase
   // without replaying the full transfer history on every request.
   console.log(`  writing aggregate stats to Supabase…`)
-  await upsertAggregateStats({ ...aggStats, productSlug: product.slug, asOfBlock }, network)
+  await upsertAggregateStats({ ...aggStats, productSlug: product.slug, asOfBlock }, network, marketValueUsd)
   await insertBehaviorHistory({ ...aggStats, productSlug: product.slug }, network)
 }
 
@@ -429,10 +435,16 @@ async function classifyRwaNetworkIncremental(
     ` (+${res.newCursor?.boundaryIds.length ?? 0} boundary id(s))`
   )
 
+  // Per-network USD market value (supply weight for cross-chain supply-weighted
+  // dormancy, read-layer Phase 2a). One cheap dedicated call; null on failure →
+  // omit-on-null in the write preserves any previously-good value.
+  const marketValueUsd = await fetchNetworkMarketValue(product.rwaAssetId!, net.networkId, net.addresses)
+  console.log(`  market value (network ${net.networkSlug}): ${marketValueUsd != null ? `$${marketValueUsd.toLocaleString()}` : '(unavailable — keeping prior)'}`)
+
   // Both outputs derive from the same merged state + window the orchestrator used.
   const classifications = res.classifications!
   const aggStats = computeAggregateStatsFromState(res.positive, res.windowTransfers, nowTs, net.caseSensitive)
-  await enrichAndWriteClassifications(product, classifications, aggStats, net.networkSlug, 0)
+  await enrichAndWriteClassifications(product, classifications, aggStats, net.networkSlug, 0, marketValueUsd)
 }
 
 /**

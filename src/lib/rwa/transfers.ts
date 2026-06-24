@@ -90,11 +90,14 @@ export interface RwaTransaction {
    */
   transaction_type: { slug: string } | null
   /**
-   * Carries the on-chain token contract (used to post-filter, Finding #2) and
-   * the token's decimals — `amount` is decimal-adjusted to this, so it is the
-   * authoritative figure the config value is asserted against at fetch time.
+   * Carries the on-chain token contract (used to post-filter, Finding #2), the
+   * token's decimals (`amount` is decimal-adjusted to this — the figure the config
+   * value is asserted against at fetch time), and the per-network USD market value
+   * (≈ supply × price for this token class, constant across the network's rows;
+   * read by fetchNetworkMarketValue as the supply weight for cross-chain
+   * supply-weighted dormancy). market_value_dollar is optional — absent ⇒ missing.
    */
-  token: { address: string; decimals: number }
+  token: { address: string; decimals: number; market_value_dollar?: { val: number } | null }
 }
 
 interface RwaTransactionsResponse {
@@ -321,4 +324,81 @@ export async function fetchTransfersRWA(
   }
 
   return out
+}
+
+/**
+ * Per-network total USD market value for a fund's allowed token(s) on one network,
+ * read from rwa.xyz token metadata (token.market_value_dollar.val). This is the
+ * supply weight for cross-chain supply-weighted dormancy (read-layer Phase 2a).
+ *
+ * One cheap request. NOT perPage:1 deliberately: a small page is post-filtered to
+ * the allowed token addresses so an EXCLUDED class (e.g. BUIDL-I) is never read by
+ * accident, and multi-contract networks (e.g. USDY's two ETH tokens) sum their
+ * classes. market_value_dollar is constant across a token's rows — if rows for the
+ * same token disagree materially, warn (don't throw), mirroring the decimals guard.
+ *
+ * Returns null on ANY failure / no allowed rows. Callers MUST treat null as "leave
+ * the stored value untouched" (omit-on-null), never as zero — so a transient
+ * rwa.xyz hiccup can't blank a previously-good value.
+ */
+export async function fetchNetworkMarketValue(
+  assetId: number,
+  networkId: number,
+  tokenAddresses: string[]
+): Promise<number | null> {
+  const apiKey = process.env.RWA_API_KEY
+  if (!apiKey) throw new Error('RWA_API_KEY environment variable is not set')
+  const allowed = new Set(tokenAddresses.map((a) => a.toLowerCase()))
+
+  const query = {
+    filter: {
+      operator: 'and',
+      filters: [
+        { operator: 'equals', field: 'asset_id', value: assetId },
+        { operator: 'equals', field: 'network_id', value: networkId },
+      ],
+    },
+    sort: { field: 'id', direction: 'asc' },
+    pagination: { page: 1, perPage: 100 },
+  }
+  const url = `${TRANSACTIONS_URL}?query=${encodeURIComponent(JSON.stringify(query))}`
+
+  let data: RwaTransactionsResponse
+  try {
+    data = await fetchTransactionsPage(url, 1, apiKey)
+  } catch (err) {
+    console.warn(
+      `[rwa] market-value fetch failed (network ${networkId}): ${(err as Error).message} — leaving stored value untouched`
+    )
+    return null
+  }
+
+  // First market value per allowed token class; warn (don't throw) if a token's
+  // rows report materially (>1%) different values — should be constant per network.
+  const byToken = new Map<string, number>()
+  for (const tx of data.results) {
+    const addr = (tx.token?.address || '').toLowerCase()
+    if (!allowed.has(addr)) continue
+    const v = tx.token?.market_value_dollar?.val
+    if (typeof v !== 'number') continue
+    const prior = byToken.get(addr)
+    if (prior === undefined) {
+      byToken.set(addr, v)
+    } else if (Math.abs(v - prior) > Math.abs(prior) * 0.01) {
+      console.warn(
+        `[rwa] market_value_dollar varies across rows for ${addr} (network ${networkId}): ${prior} vs ${v} — using first`
+      )
+    }
+  }
+
+  if (byToken.size === 0) {
+    console.warn(
+      `[rwa] no allowed-token market value found (network ${networkId}) — leaving stored value untouched`
+    )
+    return null
+  }
+
+  let total = 0
+  for (const v of byToken.values()) total += v
+  return total
 }

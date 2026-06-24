@@ -40,7 +40,7 @@ export async function fetchAllAggregateStats(): Promise<ProductBehaviorStats[]> 
   const { data, error } = await supabase
     .from('holder_aggregate_stats')
     .select(
-      'product_slug, holder_count, behavior_accumulating, behavior_distributing, behavior_dormant, behavior_active, dormancy_share_pct, net_new_wallets_90d, exited_wallets_90d, net_accumulation_ratio, classified_at'
+      'product_slug, holder_count, behavior_accumulating, behavior_distributing, behavior_dormant, behavior_active, dormancy_share_pct, net_new_wallets_90d, exited_wallets_90d, net_accumulation_ratio, market_value_usd, classified_at'
     )
 
   if (error || !data) return []
@@ -67,7 +67,7 @@ export async function fetchProductAggregate(
   const { data, error } = await supabase
     .from('holder_aggregate_stats')
     .select(
-      'product_slug, holder_count, behavior_accumulating, behavior_distributing, behavior_dormant, behavior_active, dormancy_share_pct, net_new_wallets_90d, exited_wallets_90d, net_accumulation_ratio, classified_at'
+      'product_slug, holder_count, behavior_accumulating, behavior_distributing, behavior_dormant, behavior_active, dormancy_share_pct, net_new_wallets_90d, exited_wallets_90d, net_accumulation_ratio, market_value_usd, classified_at'
     )
     .eq('product_slug', productSlug)
 
@@ -89,6 +89,12 @@ export async function fetchProductAggregate(
  */
 function aggregateRows(rows: Array<Record<string, unknown>>): ProductBehaviorStats {
   const num = (v: unknown): number => (typeof v === 'number' ? v : 0)
+  // numeric columns may arrive as number or decimal-string; parse defensively.
+  const parseNum = (v: unknown): number | null => {
+    if (typeof v === 'number') return isFinite(v) ? v : null
+    if (typeof v === 'string' && v.trim() !== '') { const n = Number(v); return isFinite(n) ? n : null }
+    return null
+  }
   let holderCount = 0, accumulating = 0, distributing = 0, dormant = 0, active = 0
   let netNew = 0, exited = 0, classifiedAt = ''
   for (const r of rows) {
@@ -103,13 +109,33 @@ function aggregateRows(rows: Array<Record<string, unknown>>): ProductBehaviorSta
     if (ca > classifiedAt) classifiedAt = ca
   }
   const networkCount = rows.length
+
+  // Dormancy is supply-weighted. Single-network ⇒ that one network's value is valid
+  // as-is. Multi-network ⇒ Σ(dormancy% × market_value_usd) / Σ(market_value_usd)
+  // (Phase 2a), but ONLY when EVERY network row has a non-null market value — if any
+  // is missing, stay "pending" (null) rather than report a partial-data number.
+  let dormancySharePct: number | null
+  if (networkCount === 1) {
+    dormancySharePct = num(rows[0].dormancy_share_pct)
+  } else {
+    const mvs = rows.map((r) => parseNum(r.market_value_usd))
+    if (mvs.every((v) => v !== null)) {
+      let weighted = 0, mvTotal = 0
+      for (let i = 0; i < rows.length; i++) {
+        weighted += num(rows[i].dormancy_share_pct) * (mvs[i] as number)
+        mvTotal += mvs[i] as number
+      }
+      dormancySharePct = mvTotal > 0 ? weighted / mvTotal : null
+    } else {
+      dormancySharePct = null // pending: some network lacks market_value_usd yet
+    }
+  }
+
   return {
     productSlug: rows[0].product_slug as string,
     holderCount,
     mix: { accumulating, distributing, dormant, active, total: accumulating + distributing + dormant + active },
-    // Single-network ⇒ that one network's supply-weighted dormancy is valid as-is.
-    // Multi-network ⇒ null until Phase 2 captures per-network supply to weight by.
-    dormancySharePct: networkCount === 1 ? num(rows[0].dormancy_share_pct) : null,
+    dormancySharePct,
     netNewWallets90d: netNew,
     exitedWallets90d: exited,
     netAccumulationRatio:
