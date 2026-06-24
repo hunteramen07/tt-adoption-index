@@ -38,9 +38,11 @@ export interface FundData {
   navUsd: number
   navAsOf: string | null
   holderCount: number
-  /** Fraction 0–1: combined share of top-5 holders */
+  /** Fraction 0–1: combined share of top-5 holders (PHASE 1: Ethereum slice only) */
   top5Share: number
-  dormancySharePct: number
+  /** Percentage 0–100, or null when supply-weighted dormancy can't be computed yet
+   *  (multi-chain fund; per-network supply not captured — Phase 2). */
+  dormancySharePct: number | null
   mix: BehavioralMix
   netNewWallets90d: number
   exitedWallets90d: number

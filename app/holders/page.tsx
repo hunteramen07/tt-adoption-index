@@ -141,9 +141,15 @@ function ProductCard({ data }: { data: ProductBehaviorData }) {
             Dormancy
           </p>
           <p className="mt-0.5 text-base font-mono font-semibold tabular-nums text-zinc-800">
-            {fmtPct(data.dormancySharePct)}
+            {data.dormancySharePct === null ? (
+              <span className="text-zinc-400 text-sm font-sans font-normal">multi-chain · pending</span>
+            ) : (
+              fmtPct(data.dormancySharePct)
+            )}
           </p>
-          <p className="text-[10px] text-zinc-400">of supply</p>
+          <p className="text-[10px] text-zinc-400">
+            {data.dormancySharePct === null ? 'supply-weighted across chains — Phase 2' : 'of supply'}
+          </p>
         </div>
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">

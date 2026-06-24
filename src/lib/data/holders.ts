@@ -9,7 +9,9 @@ export interface ProductBehaviorData {
   productSymbol: string
   holderCount: number
   mix: BehavioralMix
-  dormancySharePct: number
+  /** Percentage 0–100, or null when supply-weighted dormancy can't be computed
+   *  (multi-chain fund; per-network supply not captured yet — Phase 2). */
+  dormancySharePct: number | null
   netNewWallets90d: number
   exitedWallets90d: number
   netAccumulationRatio: number | null

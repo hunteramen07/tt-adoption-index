@@ -231,10 +231,16 @@ export default async function FundPage({
                 Dormancy
               </p>
               <p className="mt-1.5 text-2xl font-mono font-semibold tabular-nums text-zinc-900">
-                {fmtPct(data.dormancySharePct)}
+                {data.dormancySharePct === null ? (
+                  <span className="text-base font-sans font-normal text-zinc-400">multi-chain · pending</span>
+                ) : (
+                  fmtPct(data.dormancySharePct)
+                )}
               </p>
               <p className="mt-1 text-[11px] text-zinc-400">
-                trailing 90d &middot; as of {fmtMonthYear(data.fetchedAt)}
+                {data.dormancySharePct === null
+                  ? 'supply-weighted dormancy across chains — Phase 2'
+                  : <>trailing 90d &middot; as of {fmtMonthYear(data.fetchedAt)}</>}
               </p>
             </div>
           </div>

@@ -175,7 +175,9 @@ export default async function Home() {
     const stats = statsMap.get(product.slug)
     if (stats) {
       totalHolders += stats.holderCount
-      if (productAum > 0) {
+      // Exclude funds whose dormancy is pending (multi-chain, no per-network supply
+      // yet — Phase 2) from the AUM-weighted average rather than counting them as 0.
+      if (productAum > 0 && stats.dormancyShare !== null) {
         dormancyWeightedSum += stats.dormancyShare * productAum
         dormancyAumTotal += productAum
       }
@@ -475,7 +477,13 @@ export default async function Home() {
 
                       {/* Dormancy */}
                       <td className="px-4 py-3 whitespace-nowrap text-right font-mono tabular-nums text-zinc-700">
-                        {stats ? fmtPct(stats.dormancyShare) : (
+                        {stats ? (
+                          stats.dormancyShare === null ? (
+                            <span className="text-zinc-400 text-xs" title="Supply-weighted dormancy across chains needs per-network supply (Phase 2)">multi-chain · pending</span>
+                          ) : (
+                            fmtPct(stats.dormancyShare)
+                          )
+                        ) : (
                           <span className="text-zinc-300">—</span>
                         )}
                       </td>
