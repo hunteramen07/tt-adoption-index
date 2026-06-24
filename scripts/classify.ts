@@ -99,7 +99,7 @@ const UPSERT_BATCH = 500
 // cursor-based) instead of the Etherscan single-chain path. Migrating funds onto
 // this set one at a time as their per-network config (decimals, address casing)
 // is verified — see classifyRwaMultiChain.
-const RWA_MULTICHAIN_SLUGS = new Set(['buidl', 'ustb'])
+const RWA_MULTICHAIN_SLUGS = new Set(['buidl', 'ustb', 'usyc'])
 
 const CUSTODIAN_KEYWORDS = [
   'coinbase', 'binance', 'exchange', 'custodian', 'custody',
@@ -493,7 +493,7 @@ async function main() {
   for (const product of ACTIVE_PRODUCTS) {
     if (onlySlugs && onlySlugs.length > 0 && !onlySlugs.includes(product.slug)) continue
 
-    // rwa.xyz multi-chain funds (BUIDL, USTB) → per-network incremental path. Each
+    // rwa.xyz multi-chain funds (BUIDL, USTB, USYC) → per-network incremental path. Each
     // manages its own per-network progress keys and writes, so handle and move on.
     // Funds not in the set stay on the existing Etherscan single-chain path below.
     if (RWA_MULTICHAIN_SLUGS.has(product.slug)) {

@@ -256,9 +256,9 @@ export const PRODUCTS: Product[] = [
     navAsOf: '2026-06-11',
     rwaAssetId: 51,
     tokens: [
-      { networkId: 1, networkSlug: 'ethereum', address: '0x136471a34f6ef19fe571effc1ca711fdb8e49f2b', behaviorallyObservable: true },
-      { networkId: 8, networkSlug: 'bnb-chain', address: '0x8d0fa28f221eb5735bc71d3a0da67ee5bc821311', behaviorallyObservable: true },
-      { networkId: 2, networkSlug: 'solana', address: '7LWanZteUKtvFjv4MHYgKXXdAuCQYFPJysL9pxxdRQGn', behaviorallyObservable: true },
+      { networkId: 1, networkSlug: 'ethereum', address: '0x136471a34f6ef19fe571effc1ca711fdb8e49f2b', behaviorallyObservable: true, decimals: 6 },
+      { networkId: 8, networkSlug: 'bnb-chain', address: '0x8d0fa28f221eb5735bc71d3a0da67ee5bc821311', behaviorallyObservable: true, decimals: 6 },
+      { networkId: 2, networkSlug: 'solana', address: '7LWanZteUKtvFjv4MHYgKXXdAuCQYFPJysL9pxxdRQGn', behaviorallyObservable: true, decimals: 6 },
     ],
   },
 ]
