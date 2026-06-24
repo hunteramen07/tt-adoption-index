@@ -20,6 +20,7 @@
 
 import { computeBalances } from '@/src/lib/etherscan/balances'
 import { computeAggregateStats } from '@/src/lib/classify/engine'
+import { toRawUnits } from '@/src/lib/rwa/transfers'
 import type { RwaTransfer } from '@/src/lib/rwa/transfers'
 import {
   parseNumericToBigInt,
@@ -28,6 +29,7 @@ import {
   isoToUnix,
   unixToIso,
   utcDay,
+  mergeTransfers,
   runIncrementalFetchMerge,
   type BalanceStateMap,
   type FetchCursor,
@@ -391,6 +393,57 @@ async function testReentrantExact() {
   console.log(`    → netNew = ${inc.netNewWallets90d} (W only); re-entrant X correctly NOT net-new. Divergence eliminated.`)
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// (7) case-sensitive (base58) addresses are preserved, never lowercased.
+//
+// Solana/XRPL/Stellar addresses are case-sensitive: lowercasing them collides
+// distinct wallets (the live BUIDL Solana corruption). With caseSensitive=true the
+// merge must key holders VERBATIM; the default (EVM) path must still lowercase —
+// so the same input collapses there, proving the default behavior is unchanged.
+// Also asserts the zero-address sentinel still resolves under caseSensitive=true.
+// ─────────────────────────────────────────────────────────────────────────────
+function testCaseSensitiveAddresses() {
+  console.log('\n[7] case-sensitive (base58) addresses: preserved verbatim, never lowercased')
+  // A real Solana-style base58 address and its lowercase form = two DISTINCT wallets.
+  const W = 'GyWgeqpy5GueU2YbkE8xqUeVEokCMMCEeUrfbtMw6phr'
+  const Wlower = W.toLowerCase()
+  const txs = [
+    rtx('1-h-1', ZERO, W, '100', day(1)), // mint 100 → W
+    rtx('1-h-2', ZERO, Wlower, '40', day(2)), // mint 40 → lowercase twin
+    rtx('1-h-3', W, ZERO, '30', day(3)), // burn 30 from W
+  ]
+
+  // caseSensitive=true: verbatim keys, twins stay distinct.
+  const { merged } = mergeTransfers(new Map(), txs, true)
+  expect('W and its lowercase twin are DISTINCT keys', merged.has(W) && merged.has(Wlower) && W !== Wlower)
+  expect('W balance = 70 (100 in − 30 burn), case preserved', merged.get(W)?.balance === BigInt(70))
+  expect('lowercase twin balance = 40 (not merged into W)', merged.get(Wlower)?.balance === BigInt(40))
+  expect('stored key is verbatim mixed-case', [...merged.keys()].includes(W))
+  expect('zero-address sentinel still resolved (no 0x0 holder row)', !merged.has(ZERO))
+
+  // Default (EVM) path lowercases — the SAME input collapses to one key, proving
+  // existing call sites are byte-identical and the bug is what we just prevented.
+  const { merged: evm } = mergeTransfers(new Map(), txs)
+  expect('EVM default collapses both into the lowercase key (unchanged behavior)',
+    evm.size === 1 && evm.get(Wlower)?.balance === BigInt(110)) // 100 + 40 − 30
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// (8) per-token decimals: amount→raw uses the TOKEN's decimals, not a fund-level
+// constant. A 6-decimal token (OUSG Solana/XRPL) must convert distinctly from an
+// 18-decimal one; using the wrong (18) value over-scales a 6-dp amount by 10^12.
+// ─────────────────────────────────────────────────────────────────────────────
+function testDecimalsConversion() {
+  console.log('\n[8] per-token decimals: amount→raw scales by the token decimals')
+  expect('6-dp integer 1 → 1e6 raw', toRawUnits(1, 6) === '1000000')
+  expect('6-dp fraction 1.5 → 1500000 raw', toRawUnits(1.5, 6) === '1500000')
+  expect('18-dp integer 1 → 1e18 raw', toRawUnits(1, 18) === '1000000000000000000')
+  // Same amount under the WRONG (18) decimals is exactly 10^12× the correct 6-dp
+  // value — the silent mis-scale per-token decimals + the fetch guard prevent.
+  expect('wrong 18-dp scaling = 10^12× the 6-dp value (distinct)',
+    BigInt(toRawUnits(1, 18)) === BigInt(toRawUnits(1, 6)) * (BigInt(10) ** BigInt(12)))
+}
+
 async function main() {
   console.log('=== incremental fetch-merge parity gate (offline, deterministic) ===')
   testNumericConversion()
@@ -400,6 +453,8 @@ async function main() {
   await testSameDayCarryForward()
   await testClassificationParity()
   await testReentrantExact()
+  testCaseSensitiveAddresses()
+  testDecimalsConversion()
 
   console.log('\n=== result ===')
   if (failures > 0) {

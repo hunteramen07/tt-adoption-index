@@ -74,6 +74,7 @@ import fs from 'fs'
 import path from 'path'
 import { ACTIVE_PRODUCTS } from '@/src/config/products'
 import type { Product } from '@/src/config/products'
+import { isCaseSensitive } from '@/src/config/networks'
 import { fetchTransferHistory } from '@/src/lib/etherscan/transfers'
 import { etherscanGet } from '@/src/lib/etherscan/client'
 import { diskCacheRead, diskCacheWrite } from '@/src/lib/cache/disk'
@@ -93,6 +94,12 @@ import { makeSupabaseDeps, runIncrementalFetchMerge } from '@/src/lib/rwa/increm
 const PROGRESS_FILE = path.join(process.cwd(), '.cache', 'classify-progress.json')
 const PROGRESS_TTL_MS = 7 * 24 * 60 * 60 * 1000
 const UPSERT_BATCH = 500
+
+// Funds routed through the rwa.xyz multi-chain incremental path (per-network,
+// cursor-based) instead of the Etherscan single-chain path. Migrating funds onto
+// this set one at a time as their per-network config (decimals, address casing)
+// is verified — see classifyRwaMultiChain.
+const RWA_MULTICHAIN_SLUGS = new Set(['buidl', 'ustb', 'usyc'])
 
 const CUSTODIAN_KEYWORDS = [
   'coinbase', 'binance', 'exchange', 'custodian', 'custody',
@@ -354,18 +361,35 @@ async function classifyAndWritePerWallet(
  */
 function observableNetworks(
   product: Product
-): Array<{ networkId: number; networkSlug: string; addresses: string[] }> {
-  const byNetwork = new Map<number, { networkSlug: string; addresses: string[] }>()
+): Array<{ networkId: number; networkSlug: string; addresses: string[]; caseSensitive: boolean; decimals: number }> {
+  const byNetwork = new Map<number, { networkSlug: string; addresses: string[]; decimals: number }>()
   for (const token of product.tokens ?? []) {
     if (!token.behaviorallyObservable) continue
+    // Per-token decimals, falling back to the fund-level value when omitted.
+    const decimals = token.decimals ?? product.decimals
     const existing = byNetwork.get(token.networkId)
-    if (existing) existing.addresses.push(token.address)
-    else byNetwork.set(token.networkId, { networkSlug: token.networkSlug, addresses: [token.address] })
+    if (existing) {
+      // Multiple contracts on one network (e.g. USDY's two ETH tokens) must share
+      // decimals — throw rather than silently pick one if they disagree.
+      if (existing.decimals !== decimals) {
+        throw new Error(
+          `[${product.slug}] conflicting decimals on network ${token.networkId}: ` +
+          `${existing.decimals} vs ${decimals} — all tokens on a network must agree`
+        )
+      }
+      existing.addresses.push(token.address)
+    } else {
+      byNetwork.set(token.networkId, { networkSlug: token.networkSlug, addresses: [token.address], decimals })
+    }
   }
   return Array.from(byNetwork, ([networkId, v]) => ({
     networkId,
     networkSlug: v.networkSlug,
     addresses: v.addresses,
+    // Chain-encoding case-sensitivity (base58/base32 ⇒ preserve case). Sourced
+    // once per network from the registry, not per-token.
+    caseSensitive: isCaseSensitive(networkId),
+    decimals: v.decimals,
   }))
 }
 
@@ -384,18 +408,19 @@ function observableNetworks(
  */
 async function classifyRwaNetworkIncremental(
   product: Product,
-  net: { networkId: number; networkSlug: string; addresses: string[] },
+  net: { networkId: number; networkSlug: string; addresses: string[]; caseSensitive: boolean; decimals: number },
   nowTs: number
 ): Promise<void> {
   const deps = await makeSupabaseDeps({
     assetId: product.rwaAssetId!,
     networkId: net.networkId,
-    decimals: product.decimals,
+    decimals: net.decimals,
     tokenAddresses: net.addresses,
+    caseSensitive: net.caseSensitive,
   })
 
   const res = await runIncrementalFetchMerge(
-    { productSlug: product.slug, network: net.networkSlug, mode: 'per-wallet', nowTs },
+    { productSlug: product.slug, network: net.networkSlug, mode: 'per-wallet', nowTs, caseSensitive: net.caseSensitive },
     deps
   )
   console.log(
@@ -406,7 +431,7 @@ async function classifyRwaNetworkIncremental(
 
   // Both outputs derive from the same merged state + window the orchestrator used.
   const classifications = res.classifications!
-  const aggStats = computeAggregateStatsFromState(res.positive, res.windowTransfers, nowTs)
+  const aggStats = computeAggregateStatsFromState(res.positive, res.windowTransfers, nowTs, net.caseSensitive)
   await enrichAndWriteClassifications(product, classifications, aggStats, net.networkSlug, 0)
 }
 
@@ -468,10 +493,10 @@ async function main() {
   for (const product of ACTIVE_PRODUCTS) {
     if (onlySlugs && onlySlugs.length > 0 && !onlySlugs.includes(product.slug)) continue
 
-    // BUIDL → rwa.xyz multi-chain path (Stage 3). It manages its own per-network
-    // progress keys and writes, so handle it and move on. Every other fund stays
-    // on the existing Etherscan path below, unchanged. Temporary dual-path state.
-    if (product.slug === 'buidl') {
+    // rwa.xyz multi-chain funds (BUIDL, USTB, USYC) → per-network incremental path. Each
+    // manages its own per-network progress keys and writes, so handle and move on.
+    // Funds not in the set stay on the existing Etherscan single-chain path below.
+    if (RWA_MULTICHAIN_SLUGS.has(product.slug)) {
       await classifyRwaMultiChain(product, progress, nowTs)
       continue
     }

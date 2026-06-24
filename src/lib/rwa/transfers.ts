@@ -89,8 +89,12 @@ export interface RwaTransaction {
    * which on non-EVM chains arrive with a null counterparty.
    */
   transaction_type: { slug: string } | null
-  /** Carries the on-chain token contract; used to post-filter (Finding #2). */
-  token: { address: string }
+  /**
+   * Carries the on-chain token contract (used to post-filter, Finding #2) and
+   * the token's decimals — `amount` is decimal-adjusted to this, so it is the
+   * authoritative figure the config value is asserted against at fetch time.
+   */
+  token: { address: string; decimals: number }
 }
 
 interface RwaTransactionsResponse {
@@ -298,6 +302,15 @@ export async function fetchTransfersRWA(
     for (const tx of data.results) {
       // Post-filter to the allowed token address(es) — excludes BUIDL-I etc.
       if (!allowed.has(tx.token.address.toLowerCase())) continue
+      // Guard: the configured decimals MUST match what rwa.xyz reports for this
+      // token, or toRawUnits would silently mis-scale raw balances by a power of
+      // ten. Fires for every rwa-path network (confirms fund-level fallbacks too).
+      if (tx.token.decimals !== decimals) {
+        throw new Error(
+          `rwa.xyz decimals mismatch (network ${networkId}, token ${tx.token.address}): ` +
+          `config ${decimals} vs rwa.xyz ${tx.token.decimals}`
+        )
+      }
       out.push(normalizeTransaction(tx, decimals))
     }
 

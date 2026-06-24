@@ -26,6 +26,15 @@ export interface ProductToken {
    * privacy rails like Canton). All true today — no opaque chains tracked yet.
    */
   behaviorallyObservable: boolean
+  /**
+   * Token decimals on THIS network. rwa.xyz `amount` is decimal-adjusted to the
+   * token's own decimals, which can differ per network for the same fund (e.g.
+   * OUSG is 18 on Ethereum/Polygon but 6 on Solana/XRPL). Omit to fall back to
+   * the fund-level Product.decimals. fetchTransfersRWA asserts this matches the
+   * rwa.xyz token.decimals at fetch time, so a wrong/stale value fails loudly
+   * instead of mis-scaling raw units by a power of ten.
+   */
+  decimals?: number
 }
 
 export interface Product {
@@ -155,10 +164,10 @@ export const PRODUCTS: Product[] = [
     navAsOf: '2026-06-11',
     rwaAssetId: 57,
     tokens: [
-      { networkId: 1, networkSlug: 'ethereum', address: '0x1b19c19393e2d034d8ff31ff34c81252fcbbee92', behaviorallyObservable: true },
-      { networkId: 3, networkSlug: 'polygon', address: '0xba11c5effa33c4d6f8f593cfa394241cfe925811', behaviorallyObservable: true },
-      { networkId: 2, networkSlug: 'solana', address: 'i7u4r16TcsJTgq1kAG8opmVZyVnAKBwLKu6ZPMwzxNc', behaviorallyObservable: true },
-      { networkId: 46, networkSlug: 'xrp-ledger', address: 'rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p', behaviorallyObservable: true },
+      { networkId: 1, networkSlug: 'ethereum', address: '0x1b19c19393e2d034d8ff31ff34c81252fcbbee92', behaviorallyObservable: true, decimals: 18 },
+      { networkId: 3, networkSlug: 'polygon', address: '0xba11c5effa33c4d6f8f593cfa394241cfe925811', behaviorallyObservable: true, decimals: 18 },
+      { networkId: 2, networkSlug: 'solana', address: 'i7u4r16TcsJTgq1kAG8opmVZyVnAKBwLKu6ZPMwzxNc', behaviorallyObservable: true, decimals: 6 },
+      { networkId: 46, networkSlug: 'xrp-ledger', address: 'rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p', behaviorallyObservable: true, decimals: 6 },
     ],
   },
   {
@@ -225,9 +234,9 @@ export const PRODUCTS: Product[] = [
     navAsOf: '2026-06-16',
     rwaAssetId: 1385,
     tokens: [
-      { networkId: 1, networkSlug: 'ethereum', address: '0x43415eb6ff9db7e26a15b704e7a3edce97d31c4e', behaviorallyObservable: true },
-      { networkId: 48, networkSlug: 'plume', address: '0xe4fa682f94610ccd170680cc3b045d77d9e528a8', behaviorallyObservable: true },
-      { networkId: 2, networkSlug: 'solana', address: 'CCz3SGVziFeLYk2xfEstkiqJfYkjaSWb2GCABYsVcjo2', behaviorallyObservable: true },
+      { networkId: 1, networkSlug: 'ethereum', address: '0x43415eb6ff9db7e26a15b704e7a3edce97d31c4e', behaviorallyObservable: true, decimals: 6 },
+      { networkId: 48, networkSlug: 'plume', address: '0xe4fa682f94610ccd170680cc3b045d77d9e528a8', behaviorallyObservable: true, decimals: 6 },
+      { networkId: 2, networkSlug: 'solana', address: 'CCz3SGVziFeLYk2xfEstkiqJfYkjaSWb2GCABYsVcjo2', behaviorallyObservable: true, decimals: 6 },
     ],
   },
   {
@@ -247,9 +256,9 @@ export const PRODUCTS: Product[] = [
     navAsOf: '2026-06-11',
     rwaAssetId: 51,
     tokens: [
-      { networkId: 1, networkSlug: 'ethereum', address: '0x136471a34f6ef19fe571effc1ca711fdb8e49f2b', behaviorallyObservable: true },
-      { networkId: 8, networkSlug: 'bnb-chain', address: '0x8d0fa28f221eb5735bc71d3a0da67ee5bc821311', behaviorallyObservable: true },
-      { networkId: 2, networkSlug: 'solana', address: '7LWanZteUKtvFjv4MHYgKXXdAuCQYFPJysL9pxxdRQGn', behaviorallyObservable: true },
+      { networkId: 1, networkSlug: 'ethereum', address: '0x136471a34f6ef19fe571effc1ca711fdb8e49f2b', behaviorallyObservable: true, decimals: 6 },
+      { networkId: 8, networkSlug: 'bnb-chain', address: '0x8d0fa28f221eb5735bc71d3a0da67ee5bc821311', behaviorallyObservable: true, decimals: 6 },
+      { networkId: 2, networkSlug: 'solana', address: '7LWanZteUKtvFjv4MHYgKXXdAuCQYFPJysL9pxxdRQGn', behaviorallyObservable: true, decimals: 6 },
     ],
   },
 ]
