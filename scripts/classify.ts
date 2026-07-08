@@ -72,7 +72,7 @@ config({ path: '.env.local' })
 
 import fs from 'fs'
 import path from 'path'
-import { ACTIVE_PRODUCTS } from '@/src/config/products'
+import { ACTIVE_PRODUCTS, getNavUsd } from '@/src/config/products'
 import type { Product } from '@/src/config/products'
 import { isCaseSensitive } from '@/src/config/networks'
 import { fetchTransferHistory } from '@/src/lib/etherscan/transfers'
@@ -88,7 +88,6 @@ import {
 import type { HolderClassification } from '@/src/lib/classify/types'
 import { getSupabase } from '@/src/lib/supabase/client'
 import { makeSupabaseDeps, runIncrementalFetchMerge } from '@/src/lib/rwa/incremental'
-import { fetchNetworkMarketValue } from '@/src/lib/rwa/transfers'
 
 // ── Constants ──────────────────────────────────────────────────────────────
 
@@ -436,10 +435,19 @@ async function classifyRwaNetworkIncremental(
   )
 
   // Per-network USD market value (supply weight for cross-chain supply-weighted
-  // dormancy, read-layer Phase 2a). One cheap dedicated call; null on failure →
-  // omit-on-null in the write preserves any previously-good value.
-  const marketValueUsd = await fetchNetworkMarketValue(product.rwaAssetId!, net.networkId, net.addresses)
-  console.log(`  market value (network ${net.networkSlug}): ${marketValueUsd != null ? `$${marketValueUsd.toLocaleString()}` : '(unavailable — keeping prior)'}`)
+  // dormancy, read-layer Phase 2a): self-computed from the merged positive
+  // balances — Σ balance / 10^decimals × NAV — rather than fetched from rwa.xyz
+  // token metadata, so it is always consistent with the holder state just
+  // persisted. Truncating sub-token dust in the bigint division is fine for a
+  // weight. Never null, so the omit-on-null guard downstream is just a safety net.
+  let supplyRaw = BigInt(0)
+  for (const s of res.positive.values()) supplyRaw += s.balance
+  const supplyTokens = Number(supplyRaw / BigInt(10) ** BigInt(net.decimals))
+  const marketValueUsd = supplyTokens * getNavUsd(product)
+  console.log(
+    `  market value (network ${net.networkSlug}): $${marketValueUsd.toLocaleString()}` +
+    ` (${supplyTokens.toLocaleString()} tokens × $${getNavUsd(product)} NAV)`
+  )
 
   // Both outputs derive from the same merged state + window the orchestrator used.
   const classifications = res.classifications!
