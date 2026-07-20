@@ -88,7 +88,7 @@ import {
 import type { HolderClassification } from '@/src/lib/classify/types'
 import { getSupabase } from '@/src/lib/supabase/client'
 import { makeSupabaseDeps, runIncrementalFetchMerge } from '@/src/lib/rwa/incremental'
-import type { BalanceStateMap } from '@/src/lib/rwa/incremental'
+import type { BalanceStateMap, IncrementalDeps } from '@/src/lib/rwa/incremental'
 import { fetchAssetSupplyByToken, sumSupplyForNetwork } from '@/src/lib/rwa/assets'
 import type { TokenSupply } from '@/src/lib/rwa/assets'
 
@@ -297,7 +297,11 @@ async function enrichAndWriteClassifications(
   aggStats: ReturnType<typeof computeAggregateStats>,
   network: string,
   asOfBlock: number,
-  marketValueUsd: number | null = null
+  marketValueUsd: number | null = null,
+  // Re-anchor is a REPAIR, not an observation — it re-derives current state and
+  // must NOT append a behavior_history point (the next nightly writes that day's
+  // observation from the repaired state). Default true = normal nightly behavior.
+  writeBehaviorHistory = true
 ): Promise<void> {
   const { mix, dormancySharePct } = aggStats
   console.log(
@@ -339,7 +343,11 @@ async function enrichAndWriteClassifications(
   // without replaying the full transfer history on every request.
   console.log(`  writing aggregate stats to Supabase…`)
   await upsertAggregateStats({ ...aggStats, productSlug: product.slug, asOfBlock }, network, marketValueUsd)
-  await insertBehaviorHistory({ ...aggStats, productSlug: product.slug }, network)
+  if (writeBehaviorHistory) {
+    await insertBehaviorHistory({ ...aggStats, productSlug: product.slug }, network)
+  } else {
+    console.log(`  skipping behavior_history append (re-anchor is a repair, not an observation)`)
+  }
 }
 
 /**
@@ -629,6 +637,173 @@ async function classifyRwaMultiChain(
   }
 }
 
+// ── Re-anchor (periodic full-history rebuild) ───────────────────────────────
+// Repairs STATE DRIFT — corruption that lives only in accumulated persisted state
+// (e.g. the case-fold class), not in the source. Per-network: full rebuild from
+// epoch → supply-reconciliation gate → atomic replace-swap. Does NOT fix
+// source-side corruption (reproduces identically) — see
+// _local/periodic-reanchor-design.md.
+
+/** Tolerance on the gate: swap only if candidate deviation ≤ current + ε.
+ *  0.5% absorbs float noise without letting a materially-worse candidate through.
+ *  (design doc open question "ε" — revisit against real per-network spreads.) */
+const REANCHOR_EPSILON = 0.005
+
+/** Σ positive balances of a state map, in whole tokens. */
+function sumPositiveTokens(map: BalanceStateMap, decimals: number): number {
+  let raw = BigInt(0)
+  for (const s of map.values()) if (s.balance > BigInt(0)) raw += s.balance
+  return toTokens(raw, decimals)
+}
+
+/**
+ * Re-anchor one (product, network): rebuild candidate state from epoch, gate it
+ * against the independent /v4/assets supply, and atomically replace stored state
+ * ONLY if the candidate is no worse than what's already there. Warn-only on skip
+ * — a blocked swap always leaves prior good state intact.
+ */
+async function reanchorRwaNetwork(
+  product: Product,
+  net: { networkId: number; networkSlug: string; addresses: string[]; caseSensitive: boolean; decimals: number },
+  nowTs: number,
+  supplyByToken: Map<string, TokenSupply> | null
+): Promise<void> {
+  const tag = `${product.slug}:${net.networkSlug}`
+  const nav = getNavUsd(product)
+
+  // Degenerate-reference guard (design Q1): never gate against null/zero supply —
+  // a zero denominator makes the deviation meaningless. Skip the night, log why.
+  const { supplyTokens: aggSupply, missing } = supplyByToken
+    ? sumSupplyForNetwork(supplyByToken, net.addresses, net.decimals, tag)
+    : { supplyTokens: null, missing: net.addresses }
+  if (aggSupply == null || aggSupply <= 0) {
+    console.warn(
+      `  ⏭  ${tag}: SKIPPED — /v4/assets supply is ${aggSupply == null ? 'null' : aggSupply} ` +
+      `(degenerate reference; token(s) ${missing.join(', ')}). Re-anchor needs a valid supply to gate against.`
+    )
+    return
+  }
+  if (missing.length > 0) {
+    console.warn(`  ${tag}: gating against PARTIAL supply — no /v4/assets entry for ${missing.join(', ')}`)
+  }
+
+  const deps = await makeSupabaseDeps({
+    assetId: product.rwaAssetId!,
+    networkId: net.networkId,
+    decimals: net.decimals,
+    tokenAddresses: net.addresses,
+    caseSensitive: net.caseSensitive,
+  })
+  if (!deps.reanchorSwap) {
+    console.error(`  ERROR ${tag}: apply_reanchor_swap not wired (deps.reanchorSwap missing) — aborting network.`)
+    return
+  }
+
+  // Current stored-state deviation (the thing we might replace).
+  const currentState = await deps.loadState(product.slug, net.networkSlug)
+  const currTokens = sumPositiveTokens(currentState, net.decimals)
+  const currDev = Math.abs(currTokens - aggSupply) / aggSupply
+
+  // Candidate: full rebuild from epoch. Force null cursor + empty state via a deps
+  // wrapper, and skipWriteBack so nothing persists until the gate approves.
+  const reanchorDeps: IncrementalDeps = {
+    ...deps,
+    loadCursor: async () => null,
+    loadState: async () => new Map(),
+  }
+  console.log(`  ${tag}: rebuilding full history from epoch…`)
+  const res = await runIncrementalFetchMerge(
+    {
+      productSlug: product.slug,
+      network: net.networkSlug,
+      mode: 'per-wallet',
+      nowTs,
+      caseSensitive: net.caseSensitive,
+      skipWriteBack: true,
+    },
+    reanchorDeps
+  )
+  const candTokens = sumPositiveTokens(res.positive, net.decimals)
+  const candDev = Math.abs(candTokens - aggSupply) / aggSupply
+
+  console.log(
+    `  ${tag}: gate — stored dev ${(currDev * 100).toFixed(2)}% (${currTokens.toLocaleString()} tok) ` +
+    `vs candidate dev ${(candDev * 100).toFixed(2)}% (${candTokens.toLocaleString()} tok); ` +
+    `supply ${aggSupply.toLocaleString()} tok`
+  )
+
+  // Gate: never replace better state with worse.
+  if (candDev > currDev + REANCHOR_EPSILON) {
+    console.warn(
+      `  ⛔ ${tag}: SWAP BLOCKED — candidate (${(candDev * 100).toFixed(2)}%) worse than stored ` +
+      `(${(currDev * 100).toFixed(2)}%) beyond ε ${(REANCHOR_EPSILON * 100).toFixed(1)}%. ` +
+      `Likely a transient rwa.xyz gap — keeping current state.`
+    )
+    return
+  }
+
+  // Atomic replace-swap (apply_reanchor_swap): delete + insert candidate + move
+  // cursor, one transaction. Prior state survives if this throws.
+  await deps.reanchorSwap({
+    productSlug: product.slug,
+    network: net.networkSlug,
+    merged: res.merged,
+    newCursor: res.newCursor,
+  })
+  console.log(
+    `  ✅ ${tag}: re-anchored (${res.merged.size} rows, cursor → ${res.newCursor?.lastTxTimestamp ?? '(reset)'})`
+  )
+
+  // Re-derive classifications/aggregate from the swapped state and write them.
+  // Skip behavior_history (repair, not observation — design Q5). Weight from the
+  // same /v4/assets supply used to gate.
+  const marketValueUsd = aggSupply * nav
+  const classifications = res.classifications!
+  const aggStats = computeAggregateStatsFromState(res.positive, res.windowTransfers, nowTs, net.caseSensitive)
+  await enrichAndWriteClassifications(product, classifications, aggStats, net.networkSlug, 0, marketValueUsd, false)
+
+  // Tripwire on the freshly-swapped state (now clean, except any source-side
+  // corruption that reproduces — expected no-op on Solana until B3).
+  reconcileState(product.slug, net.networkSlug, net.decimals, res.positive, res.merged, aggSupply, nav)
+}
+
+/**
+ * Re-anchor every observable network of one fund. One /v4/assets fetch (the gate's
+ * reference) shared across networks; a fetch failure aborts the fund rather than
+ * gating blind. Per-network errors are isolated so one bad network never blocks
+ * the rest, and never touches stored state (the swap is all-or-nothing).
+ */
+async function reanchorRwaFund(product: Product, nowTs: number): Promise<void> {
+  if (product.rwaAssetId == null) {
+    throw new Error(`[${product.slug}] missing rwaAssetId — required for re-anchor`)
+  }
+  const networks = observableNetworks(product)
+  console.log(`\n[${product.slug}] RE-ANCHOR (gated full-history rebuild) — ${networks.length} network(s)`)
+
+  let supplyByToken: Map<string, TokenSupply>
+  try {
+    supplyByToken = await fetchAssetSupplyByToken(product.rwaAssetId)
+    console.log(`  /v4/assets: supply for ${supplyByToken.size} token(s)`)
+  } catch (err) {
+    console.error(
+      `  ABORT: /v4/assets fetch failed for ${product.slug} — cannot gate re-anchor without a supply ` +
+      `reference; leaving all state intact: ${(err as Error).message}`
+    )
+    return
+  }
+
+  for (const net of networks) {
+    try {
+      await reanchorRwaNetwork(product, net, nowTs, supplyByToken)
+    } catch (err) {
+      console.error(
+        `  ERROR ${product.slug}:${net.networkSlug} re-anchor failed — stored state intact: ${(err as Error).message}`
+      )
+    }
+  }
+  console.log(`[${product.slug}] re-anchor complete`)
+}
+
 // ── Main ───────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -641,6 +816,36 @@ async function main() {
   }
 
   const nowTs = Math.floor(Date.now() / 1000)
+
+  // Re-anchor mode: REANCHOR=<fund> runs a gated full-history rebuild for ONE fund
+  // and exits, instead of the normal incremental classify. Repairs state drift;
+  // see _local/periodic-reanchor-design.md.
+  const reanchorSlug = process.env.REANCHOR?.trim().toLowerCase()
+  if (reanchorSlug) {
+    console.log(`\n=== RE-ANCHOR mode: ${reanchorSlug} ===`)
+    if (reanchorSlug === 'usdy') {
+      console.error(
+        `[usdy] re-anchor unsupported — its ~1.18M-row Solana history exceeds the all-or-nothing ` +
+        `backfill (needs chunked backfill first). Aborting.`
+      )
+      return
+    }
+    if (!RWA_MULTICHAIN_SLUGS.has(reanchorSlug)) {
+      console.error(
+        `[${reanchorSlug}] re-anchor only applies to rwa.xyz multi-chain funds ` +
+        `(${[...RWA_MULTICHAIN_SLUGS].join(', ')}). Aborting.`
+      )
+      return
+    }
+    const product = ACTIVE_PRODUCTS.find((p) => p.slug === reanchorSlug)
+    if (!product) {
+      console.error(`[${reanchorSlug}] not found in ACTIVE_PRODUCTS. Aborting.`)
+      return
+    }
+    await reanchorRwaFund(product, nowTs)
+    console.log('\n=== re-anchor done ===')
+    return
+  }
 
   // Optional scope filter: CLASSIFY_ONLY=buidl[,slug…] restricts the run to the
   // listed product slugs. Used to validate a single fund family in isolation

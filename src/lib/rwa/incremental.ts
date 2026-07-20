@@ -278,6 +278,11 @@ export interface IncrementalDeps {
   /** Bounded trailing-window pull (gte windowStart). */
   fetchWindow(sinceDate: string): Promise<RwaTransfer[]>
   writeBack(payload: WriteBackPayload): Promise<void>
+  /** REPLACE-semantics atomic swap for the re-anchor path (apply_reanchor_swap):
+   *  deletes the network's stored rows, inserts the candidate, moves the cursor —
+   *  all in one transaction. Optional so test/parity fakes need not implement it;
+   *  the re-anchor caller checks presence. Only `merged` + `newCursor` are read. */
+  reanchorSwap?(payload: WriteBackPayload): Promise<void>
 }
 
 export interface IncrementalParams {
@@ -291,6 +296,12 @@ export interface IncrementalParams {
    *  Stellar). When false (default, EVM/hex), holder addresses are lowercased to
    *  unify mixed-case. Must match the casing loadState/writeBack persist with. */
   caseSensitive?: boolean
+  /** When true, compute the candidate state but do NOT call deps.writeBack. Used
+   *  by the re-anchor path, which persists via a separate gated atomic swap
+   *  (apply_reanchor_swap) only after a supply-reconciliation check. Everything
+   *  else (fetch, merge, classify) is identical, so re-anchor reuses this runner
+   *  with a null cursor + empty state (injected via deps) and this flag set. */
+  skipWriteBack?: boolean
 }
 
 export interface IncrementalResult {
@@ -359,14 +370,18 @@ export async function runIncrementalFetchMerge(
 
   // 8b. Persist balances + cursor atomically (see WriteBackPayload). The full
   // merged map (incl. retained zero rows) is written so firstReceipt is durable.
-  await deps.writeBack({
-    productSlug,
-    network,
-    merged,
-    newCursor,
-    classifications,
-    aggregateStats,
-  })
+  // Skipped for re-anchor: the candidate is returned unpersisted, and the caller
+  // swaps it in via the gated apply_reanchor_swap only if it passes the gate.
+  if (!params.skipWriteBack) {
+    await deps.writeBack({
+      productSlug,
+      network,
+      merged,
+      newCursor,
+      classifications,
+      aggregateStats,
+    })
+  }
 
   return {
     productSlug,
@@ -501,6 +516,29 @@ export async function makeSupabaseDeps(
 
       // NOTE: classification/aggregate writes would go here, reusing classify.ts's
       // upsert helpers — intentionally omitted until this layer is wired live.
+    },
+
+    async reanchorSwap(payload) {
+      const supabase = getSupabase()
+      const { productSlug, network, merged, newCursor } = payload
+
+      // Same balance serialization as writeBack (strings for lossless ::numeric),
+      // but routed through the REPLACE-semantics RPC: the candidate REPLACES the
+      // stored rows rather than upserting onto them. Atomic (one PL/pgSQL txn).
+      const balances = Array.from(merged.entries()).map(([address, s]) => ({
+        address,
+        balance: serializeBalance(s.balance),
+        first_receipt: s.firstReceipt === null ? null : unixToIso(s.firstReceipt),
+      }))
+
+      const { error } = await supabase.rpc('apply_reanchor_swap', {
+        p_product_slug: productSlug,
+        p_network: network,
+        p_balances: balances,
+        p_last_tx_timestamp: newCursor?.lastTxTimestamp ?? null,
+        p_boundary_tx_ids: newCursor?.boundaryIds ?? null,
+      })
+      if (error) throw new Error(`apply_reanchor_swap RPC failed (${productSlug}/${network}): ${error.message}`)
     },
   }
 }
