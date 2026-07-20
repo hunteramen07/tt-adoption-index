@@ -58,7 +58,19 @@ Auth, alerts, perps, non-treasury RWAs, mobile app
   own on-chain oracle (Ondo Finance publishes one). USDY and USYC trade on DEXes
   and can use `prices.usd`. Until wired up, refresh `navUsd`/`navAsOf` monthly.
 - **Multi-chain AUM coverage** — the Dune supply query (ID 7696914) tracks
-  Ethereum mainnet only. Ethereum's share of total fund AUM as of 2026-06-11:
-  BUIDL 7.5% (8 chains), OUSG 39.3% (4 chains), USDY 51.2% (11 chains),
-  USTB 8.8% (3 chains), USYC 2.9% (3 chains). Expanding requires per-chain
-  contract verification and Dune query updates for each additional network.
+  Ethereum mainnet only. Expanding requires per-chain contract verification and
+  Dune query updates for each additional network.
+
+  ⚠️ **Ethereum-share figures below are as of 2026-06-11 and known stale — do
+  not cite.** For live per-network values, read
+  `holder_aggregate_stats.market_value_usd` (self-computed = per-network supply
+  from rwa.xyz /v4/assets × NAV, one row per fund×network).
+
+  Original stale figures: BUIDL 7.5% (8 chains), OUSG 39.3% (4 chains),
+  USDY 51.2% (11 chains), USTB 8.8% (3 chains), USYC 2.9% (3 chains).
+
+  The **USTB 8.8% figure was flatly wrong** — current /v4/assets data puts
+  Ethereum at **~98% of tracked USTB AUM** ($659M ETH vs $8.8M Plume vs $2.4M
+  Solana). Recomputed current shares for the three rwa.xyz funds:
+  BUIDL ~11.8% ETH (tracked class only, BUIDL-I excluded), USTB ~98.3% ETH,
+  USYC ~3.1% ETH. OUSG and USDY not re-verified — treat as stale.
