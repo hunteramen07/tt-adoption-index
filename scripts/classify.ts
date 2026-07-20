@@ -88,6 +88,9 @@ import {
 import type { HolderClassification } from '@/src/lib/classify/types'
 import { getSupabase } from '@/src/lib/supabase/client'
 import { makeSupabaseDeps, runIncrementalFetchMerge } from '@/src/lib/rwa/incremental'
+import type { BalanceStateMap } from '@/src/lib/rwa/incremental'
+import { fetchAssetSupplyByToken, sumSupplyForNetwork } from '@/src/lib/rwa/assets'
+import type { TokenSupply } from '@/src/lib/rwa/assets'
 
 // ── Constants ──────────────────────────────────────────────────────────────
 
@@ -398,6 +401,94 @@ function observableNetworks(
   }))
 }
 
+/** Deviation above which the state/aggregate mismatch is reported. */
+const RECONCILE_WARN_PCT = 5
+/**
+ * Notional floor for the deviation check. Dust deployments (USYC Solana is ~$94
+ * of supply) swing wildly in percentage terms on rounding alone, so a percentage
+ * gate there is pure noise. Below the floor the check is skipped — but the skip
+ * is logged, never silent.
+ */
+const RECONCILE_MIN_NOTIONAL_USD = 1_000_000
+
+/** Exact bigint→token conversion; Number(raw) alone loses precision past 2^53. */
+function toTokens(raw: bigint, decimals: number): number {
+  const scale = BigInt(10) ** BigInt(decimals)
+  return Number(raw / scale) + Number(raw % scale) / Number(scale)
+}
+
+/**
+ * Reconciliation tripwire — compares the merged holder state against the
+ * independent /v4/assets aggregate, and flags impossible balances.
+ *
+ * Two independent signals:
+ *  • |Σ positive − aggregate supply| / supply > 5% ⇒ the holder state disagrees
+ *    with the chain-indexed supply, so the metrics derived from it are suspect.
+ *  • any negative balance ⇒ unconditional. A wallet cannot hold less than zero
+ *    on-chain; a negative means transfers landed on mismatched address keys
+ *    (the Solana ATA/owner split does exactly this).
+ *
+ * Warn-only by design — the caller has already sourced a sound weight.
+ */
+function reconcileState(
+  productSlug: string,
+  networkSlug: string,
+  decimals: number,
+  positive: BalanceStateMap,
+  merged: BalanceStateMap,
+  aggregateSupplyTokens: number | null,
+  navUsd: number
+): void {
+  const tag = `${productSlug}:${networkSlug}`
+
+  let positiveRaw = BigInt(0)
+  for (const s of positive.values()) positiveRaw += s.balance
+  const positiveTokens = toTokens(positiveRaw, decimals)
+
+  if (aggregateSupplyTokens == null) {
+    console.warn(`  TRIPWIRE ${tag}: skipped — no aggregate supply to reconcile against`)
+  } else if (aggregateSupplyTokens <= 0) {
+    console.warn(
+      `  TRIPWIRE ${tag}: skipped — aggregate supply is ${aggregateSupplyTokens}, ` +
+      `state holds ${positiveTokens.toLocaleString()} tokens`
+    )
+  } else {
+    const notionalUsd = aggregateSupplyTokens * navUsd
+    const deviation = Math.abs(positiveTokens - aggregateSupplyTokens) / aggregateSupplyTokens
+    const pct = (deviation * 100).toFixed(2)
+    if (notionalUsd < RECONCILE_MIN_NOTIONAL_USD) {
+      console.log(
+        `  tripwire ${tag}: skipped — notional $${Math.round(notionalUsd).toLocaleString()} ` +
+        `below $${RECONCILE_MIN_NOTIONAL_USD.toLocaleString()} floor (deviation would be ${pct}%)`
+      )
+    } else if (deviation * 100 > RECONCILE_WARN_PCT) {
+      console.warn(
+        `  ⚠️  TRIPWIRE ${tag}: holder state disagrees with /v4/assets supply by ${pct}% ` +
+        `(threshold ${RECONCILE_WARN_PCT}%)\n` +
+        `      Σ positive balances : ${positiveTokens.toLocaleString()} tokens\n` +
+        `      /v4/assets supply   : ${aggregateSupplyTokens.toLocaleString()} tokens\n` +
+        `      ratio state/supply  : ${(positiveTokens / aggregateSupplyTokens).toFixed(4)}×\n` +
+        `      market value weight is unaffected (sourced from /v4/assets), but holder_count, ` +
+        `dormancy and concentration for this network derive from the state and are suspect.`
+      )
+    } else {
+      console.log(`  tripwire ${tag}: state within ${pct}% of /v4/assets supply ✓`)
+    }
+  }
+
+  // Negative balances — unconditional, no threshold, no notional floor.
+  const negatives = Array.from(merged.entries()).filter(([, s]) => s.balance < BigInt(0))
+  if (negatives.length > 0) {
+    console.warn(
+      `  ⚠️  TRIPWIRE ${tag}: ${negatives.length} NEGATIVE balance(s) in state — impossible on-chain, ` +
+      `indicates transfers keyed to mismatched addresses:`
+    )
+    for (const [address, s] of negatives) {
+      console.warn(`      ${address} = ${toTokens(s.balance, decimals).toLocaleString()} tokens`)
+    }
+  }
+}
+
 /**
  * Classify one (product, network) via the INCREMENTAL fetch-merge path:
  *   cursor + persisted balances (paginated read) → incremental gte pull +
@@ -410,11 +501,15 @@ function observableNetworks(
  * was timing out CI. Balances + cursor advance atomically (apply_incremental_merge
  * RPC); the per-wallet classifications / aggregate stats are written by the
  * shared tail and are idempotently re-derived from state on any retry.
+ *
+ * @param supplyByToken per-fund /v4/assets supply map (see classifyRwaMultiChain);
+ *                      null when that fetch failed, which omits the market value.
  */
 async function classifyRwaNetworkIncremental(
   product: Product,
   net: { networkId: number; networkSlug: string; addresses: string[]; caseSensitive: boolean; decimals: number },
-  nowTs: number
+  nowTs: number,
+  supplyByToken: Map<string, TokenSupply> | null
 ): Promise<void> {
   const deps = await makeSupabaseDeps({
     assetId: product.rwaAssetId!,
@@ -435,19 +530,48 @@ async function classifyRwaNetworkIncremental(
   )
 
   // Per-network USD market value (supply weight for cross-chain supply-weighted
-  // dormancy, read-layer Phase 2a): self-computed from the merged positive
-  // balances — Σ balance / 10^decimals × NAV — rather than fetched from rwa.xyz
-  // token metadata, so it is always consistent with the holder state just
-  // persisted. Truncating sub-token dust in the bigint division is fine for a
-  // weight. Never null, so the omit-on-null guard downstream is just a safety net.
-  let supplyRaw = BigInt(0)
-  for (const s of res.positive.values()) supplyRaw += s.balance
-  const supplyTokens = Number(supplyRaw / BigInt(10) ** BigInt(net.decimals))
-  const marketValueUsd = supplyTokens * getNavUsd(product)
-  console.log(
-    `  market value (network ${net.networkSlug}): $${marketValueUsd.toLocaleString()}` +
-    ` (${supplyTokens.toLocaleString()} tokens × $${getNavUsd(product)} NAV)`
-  )
+  // dormancy, read-layer Phase 2a): sourced from the /v4/assets per-network
+  // aggregate × NAV.
+  //
+  // It is NOT self-computed from the merged positive balances any more. That
+  // sum derives from /v4/transactions, which on Solana emits every transfer
+  // through two parallel feeds — one keyed by associated token account, one by
+  // owner wallet — with asymmetric mint/burn coverage, so positions double-count
+  // and orphaned mints never net out. /v4/assets is independently chain-indexed
+  // and immune to that. See src/lib/rwa/assets.ts for the full rationale.
+  const nav = getNavUsd(product)
+  const { supplyTokens, missing } = supplyByToken
+    ? sumSupplyForNetwork(supplyByToken, net.addresses, net.decimals, `${product.slug}:${net.networkSlug}`)
+    : { supplyTokens: null, missing: net.addresses }
+
+  let marketValueUsd: number | null = null
+  if (supplyTokens == null) {
+    // Explicit and named — a silent null here would blank dormancy for the whole
+    // fund downstream (Σ(dormancy × mv) needs every network's weight present).
+    console.error(
+      `  ERROR: no /v4/assets supply for ${product.slug}:${net.networkSlug} ` +
+      `(token(s) ${missing.join(', ')}) — market value omitted, fund dormancy will be null`
+    )
+  } else {
+    marketValueUsd = supplyTokens * nav
+    console.log(
+      `  market value (network ${net.networkSlug}): $${marketValueUsd.toLocaleString()}` +
+      ` (${supplyTokens.toLocaleString()} tokens × $${nav} NAV, source: /v4/assets)`
+    )
+    if (missing.length > 0) {
+      console.warn(
+        `  WARNING: ${product.slug}:${net.networkSlug} — no /v4/assets entry for ` +
+        `${missing.length} configured token(s): ${missing.join(', ')}; weight covers the rest only`
+      )
+    }
+  }
+
+  // Reconciliation tripwire. Σ(positive balances) is no longer the weight, but it
+  // is still the state every OTHER metric (holder_count, dormancy, concentration)
+  // is computed from — so its divergence from the independent aggregate is a
+  // direct corruption signal for those metrics. Warn-only: the weight is sound
+  // regardless, and failing the run would block the good networks too.
+  reconcileState(product.slug, net.networkSlug, net.decimals, res.positive, res.merged, supplyTokens, nav)
 
   // Both outputs derive from the same merged state + window the orchestrator used.
   const classifications = res.classifications!
@@ -473,6 +597,22 @@ async function classifyRwaMultiChain(
   const networks = observableNetworks(product)
   console.log(`\n[${product.slug}] multi-chain via rwa.xyz (incremental) — ${networks.length} observable network(s)`)
 
+  // ONE /v4/assets read per fund, threaded through the per-network loop below —
+  // the endpoint returns every network's token in a single response, so fetching
+  // per network would be N redundant requests. A failure here is non-fatal: the
+  // run continues and each network reports its own missing-supply error, rather
+  // than losing the whole fund's classification over a weight lookup.
+  let supplyByToken: Map<string, TokenSupply> | null = null
+  try {
+    supplyByToken = await fetchAssetSupplyByToken(product.rwaAssetId)
+    console.log(`  /v4/assets: supply for ${supplyByToken.size} token(s)`)
+  } catch (err) {
+    console.error(
+      `  ERROR: /v4/assets fetch failed for ${product.slug} — market values omitted this run: ` +
+      `${(err as Error).message}`
+    )
+  }
+
   for (const net of networks) {
     const key = `${product.slug}:${net.networkSlug}`
     if (progress.completedProducts.includes(key)) {
@@ -481,7 +621,7 @@ async function classifyRwaMultiChain(
     }
 
     console.log(`\n[${key}] incremental fetch-merge via rwa.xyz (${net.addresses.length} contract(s))…`)
-    await classifyRwaNetworkIncremental(product, net, nowTs)
+    await classifyRwaNetworkIncremental(product, net, nowTs, supplyByToken)
 
     progress.completedProducts.push(key)
     saveProgress(progress)
