@@ -190,7 +190,12 @@ export const PRODUCTS: Product[] = [
     tokens: [
       { networkId: 1, networkSlug: 'ethereum', address: '0x96f6ef951840721adbf46ac996b59e0235cb985c', behaviorallyObservable: true },
       { networkId: 1, networkSlug: 'ethereum', address: '0xe86845788d6e3e5c2393ade1a051ae617d974c09', behaviorallyObservable: true },
-      { networkId: 2, networkSlug: 'solana', address: 'A1KLoBrKBde8Ty9qtNQUtq3C2ortoC3u7twggz7sEto6', behaviorallyObservable: true },
+      // Per-token decimals REQUIRED before backfilling: the fund-level 18 fallback
+      // would mis-scale Solana by 10^12 and the fetch-time decimals guard would
+      // throw. 6 is probe-confirmed against rwa.xyz's token.decimals (2026-07-20).
+      // Only Solana is set here (the network being backfilled first); the remaining
+      // USDY networks' per-token decimals land in the USDY migration proper.
+      { networkId: 2, networkSlug: 'solana', address: 'A1KLoBrKBde8Ty9qtNQUtq3C2ortoC3u7twggz7sEto6', behaviorallyObservable: true, decimals: 6 },
       { networkId: 9, networkSlug: 'stellar', address: 'USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1', behaviorallyObservable: true },
       { networkId: 11, networkSlug: 'arbitrum', address: '0x35e050d3c0ec2d29d269a8ecea763a183bdf9a9d', behaviorallyObservable: true },
       { networkId: 14, networkSlug: 'noble', address: 'ausdy', behaviorallyObservable: true },

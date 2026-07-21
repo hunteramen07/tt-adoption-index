@@ -1,0 +1,62 @@
+name: Chunked Backfill
+
+# Advances the resumable/chunked first-backfill of networks too big to pull in one
+# shot (USDY Solana ~1.18M txns / ~1,186 pages, >10h of request budget at 120/hr).
+# Each run spends a bounded per-run page budget (~80 pages) across day-bounded
+# windows, persisting balances+cursor after each window; state builds up across
+# runs. No metrics are derived until a network reaches the present.
+#
+# `BACKFILL=all` sweeps every network in BACKFILL_ALLOWED (classify.ts). When none
+# is in progress (all caught up), the run is a cheap no-op: it reads one fetch_cursor
+# row per enabled network and exits. Frequent (3-hourly) so a big network completes
+# in days, not weeks — ~8 runs/day × ~80 pages = ~640 pages/day, well under the
+# 2,880/day ceiling.
+#
+# PREREQUISITE: the migration adding fetch_cursor.backfill_complete must be applied,
+# and a network's per-token decimals set, before it is enabled in BACKFILL_ALLOWED.
+
+on:
+  schedule:
+    - cron: '0 */3 * * *'   # every 3 hours
+  workflow_dispatch:
+    inputs:
+      fund:
+        description: 'Fund to backfill (all | usdy | …)'
+        required: true
+        default: all
+
+# Share the nightly classify concurrency group: backfill, the nightly incremental,
+# and the weekly re-anchor all write the same tables and must never run
+# concurrently. Overlapping firings queue (all are resumable / idempotent).
+concurrency:
+  group: classify
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    # One per-run page budget of windows; bounded work, but give it room for the
+    # ~600ms/page throttle plus retries.
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run chunked backfill
+        run: npm run classify
+        env:
+          BACKFILL: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.fund || 'all' }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+          RWA_API_KEY: ${{ secrets.RWA_API_KEY }}

@@ -88,9 +88,11 @@ import {
 import type { HolderClassification } from '@/src/lib/classify/types'
 import { getSupabase } from '@/src/lib/supabase/client'
 import { makeSupabaseDeps, runIncrementalFetchMerge } from '@/src/lib/rwa/incremental'
-import type { BalanceStateMap, IncrementalDeps } from '@/src/lib/rwa/incremental'
+import { mergeTransfers, computeNewCursor, dedupBoundary } from '@/src/lib/rwa/incremental'
+import type { BalanceStateMap, IncrementalDeps, FetchCursor } from '@/src/lib/rwa/incremental'
 import { fetchAssetSupplyByToken, sumSupplyForNetwork } from '@/src/lib/rwa/assets'
 import type { TokenSupply } from '@/src/lib/rwa/assets'
+import { fetchTransfersWindowRWA, fetchEarliestTxDate } from '@/src/lib/rwa/transfers'
 
 // ── Constants ──────────────────────────────────────────────────────────────
 
@@ -628,6 +630,15 @@ async function classifyRwaMultiChain(
       continue
     }
 
+    // A network mid-chunked-backfill has INCOMPLETE state — the ordinary
+    // incremental path would (a) derive metrics from partial state and (b) do one
+    // unbounded forward pull, defeating the chunking. Skip it; the dedicated
+    // backfill job advances it and flips the flag when it reaches the present.
+    if (await isBackfillInProgress(product.slug, net.networkSlug)) {
+      console.log(`\n[${key}] backfill in progress — skipping incremental (state incomplete)`)
+      continue
+    }
+
     console.log(`\n[${key}] incremental fetch-merge via rwa.xyz (${net.addresses.length} contract(s))…`)
     await classifyRwaNetworkIncremental(product, net, nowTs, supplyByToken)
 
@@ -804,6 +815,229 @@ async function reanchorRwaFund(product: Product, nowTs: number): Promise<void> {
   console.log(`[${product.slug}] re-anchor complete`)
 }
 
+// ── Chunked / resumable first-backfill ──────────────────────────────────────
+// For networks too big to pull in one shot (USDY Solana ~1.18M txns / ~1,186
+// pages, >10h of request budget at 120/hr). Runs the merge over successive
+// day-bounded windows OLDEST→NEWEST, persisting balances+cursor after each window
+// so it survives budget exhaustion / process death, and never derives metrics
+// until it reaches the present. See _local/resumable-backfill-design.md.
+
+/** Networks cleared for chunked backfill. The MECHANISM is general (any fund with
+ *  rwa tokens[]), but networks are enabled explicitly as their config is verified —
+ *  a network's per-token decimals must be set (fund-level fallback would mis-scale)
+ *  and any anomaly resolved (e.g. MANTRA's decimals=1) BEFORE enabling. USDY Solana
+ *  is the first customer (decimals=6, probe-confirmed); everything else stays off
+ *  until vetted. Deliberately independent of RWA_MULTICHAIN_SLUGS: USDY is not in
+ *  that set (its aggregate-mode read branch doesn't exist yet), but backfill only
+ *  builds STATE and never derives metrics, so state-building is safe to run ahead. */
+const BACKFILL_ALLOWED: Record<string, Set<string>> = {
+  usdy: new Set(['solana']),
+}
+
+/** Per-run request budget (pages). Stays under rwa.xyz's 120/hr with headroom for
+ *  the nightly's ~10-15 requests if they land in the same rolling hour. NOTE: this
+ *  is per-NETWORK; only one network is enabled today, so it is also the per-run
+ *  total. Enabling multiple networks at once would need a shared run budget. */
+const BACKFILL_PER_RUN_PAGES = 80
+/** Adaptive window target: size each window toward ~this many pages. */
+const BACKFILL_TARGET_PAGES = 40
+const BACKFILL_MIN_SPAN_DAYS = 1
+const BACKFILL_MAX_SPAN_DAYS = 60
+const BACKFILL_INITIAL_SPAN_DAYS = 30
+
+const clampSpan = (n: number) => Math.max(BACKFILL_MIN_SPAN_DAYS, Math.min(BACKFILL_MAX_SPAN_DAYS, n))
+/** Unix seconds → 'YYYY-MM-DD' (UTC). */
+const toDayStr = (unixSec: number) => new Date(unixSec * 1000).toISOString().slice(0, 10)
+/** Add n days to a 'YYYY-MM-DD' day string (UTC). */
+function addDaysStr(dayStr: string, n: number): string {
+  const d = new Date(`${dayStr}T00:00:00.000Z`)
+  d.setUTCDate(d.getUTCDate() + n)
+  return d.toISOString().slice(0, 10)
+}
+
+/** Backfill lifecycle of a (fund, network): no cursor row ⇒ never started. */
+async function backfillStatus(slug: string, network: string): Promise<'fresh' | 'in_progress' | 'complete'> {
+  const supabase = getSupabase()
+  const { data, error } = await supabase
+    .from('fetch_cursor')
+    .select('backfill_complete')
+    .eq('product_slug', slug)
+    .eq('network', network)
+    .maybeSingle()
+  if (error) {
+    // Column missing (migration not yet applied) or read error: treat as complete
+    // so the nightly is never broken by this check pre-migration.
+    console.warn(`  [backfill] status read failed for ${slug}:${network} (${error.message}) — treating as complete`)
+    return 'complete'
+  }
+  if (!data) return 'fresh'
+  return data.backfill_complete === false ? 'in_progress' : 'complete'
+}
+
+/** True only when a chunked backfill is actively mid-flight for this network. Used
+ *  by the nightly to SKIP a network whose state is still incomplete. Defensive: any
+ *  error (e.g. pre-migration) reports false, so the nightly behaves as before. */
+async function isBackfillInProgress(slug: string, network: string): Promise<boolean> {
+  return (await backfillStatus(slug, network)) === 'in_progress'
+}
+
+async function markBackfillInProgress(slug: string, network: string): Promise<void> {
+  const supabase = getSupabase()
+  // Upsert with ONLY backfill_complete=false: PostgREST leaves payload-absent
+  // columns untouched on conflict, so an existing cursor's last_tx_timestamp /
+  // boundary_tx_ids survive (resume-safe). A fresh row gets null cursor + false.
+  const { error } = await supabase
+    .from('fetch_cursor')
+    .upsert({ product_slug: slug, network, backfill_complete: false }, { onConflict: 'product_slug,network' })
+  if (error) throw new Error(`fetch_cursor backfill-in-progress mark failed (${slug}/${network}): ${error.message}`)
+}
+
+async function markBackfillComplete(slug: string, network: string): Promise<void> {
+  const supabase = getSupabase()
+  const { error } = await supabase
+    .from('fetch_cursor')
+    .update({ backfill_complete: true })
+    .eq('product_slug', slug)
+    .eq('network', network)
+  if (error) throw new Error(`fetch_cursor backfill-complete mark failed (${slug}/${network}): ${error.message}`)
+}
+
+/**
+ * Backfill one (fund, network) by chunked windows until the per-run page budget is
+ * spent or the network catches up to the present. Resumable: all durable progress
+ * is in holder_balance_state + fetch_cursor, so a new run just resumes from the
+ * cursor. Persists balances+cursor only — NO classification/aggregate/behavior
+ * writes while incomplete (partial-state guard).
+ */
+async function backfillRwaNetwork(
+  product: Product,
+  net: { networkId: number; networkSlug: string; addresses: string[]; caseSensitive: boolean; decimals: number },
+  nowTs: number
+): Promise<void> {
+  const tag = `${product.slug}:${net.networkSlug}`
+
+  const status = await backfillStatus(product.slug, net.networkSlug)
+  if (status === 'complete') {
+    console.log(`  ${tag}: backfill already complete — nothing to do`)
+    return
+  }
+
+  const deps = await makeSupabaseDeps({
+    assetId: product.rwaAssetId!,
+    networkId: net.networkId,
+    decimals: net.decimals,
+    tokenAddresses: net.addresses,
+    caseSensitive: net.caseSensitive,
+  })
+
+  // Mark in-progress BEFORE the first persist so apply_incremental_merge preserves
+  // the flag (its cursor upsert doesn't touch backfill_complete) and the nightly
+  // skips this network. Idempotent for a resumed backfill.
+  await markBackfillInProgress(product.slug, net.networkSlug)
+
+  let cursor: FetchCursor | null = await deps.loadCursor(product.slug, net.networkSlug)
+  let state = await deps.loadState(product.slug, net.networkSlug)
+  const todayDay = toDayStr(nowTs)
+
+  let frontierDay: string
+  if (cursor) {
+    frontierDay = cursor.lastTxTimestamp.slice(0, 10)
+    console.log(`  ${tag}: resuming backfill from cursor ${cursor.lastTxTimestamp} (${status})`)
+  } else {
+    const earliest = await fetchEarliestTxDate(product.rwaAssetId!, net.networkId)
+    if (earliest == null) {
+      console.log(`  ${tag}: no transactions on this network — marking complete`)
+      await markBackfillComplete(product.slug, net.networkSlug)
+      return
+    }
+    frontierDay = earliest
+    console.log(`  ${tag}: fresh backfill from earliest tx date ${earliest}`)
+  }
+
+  let spanDays = BACKFILL_INITIAL_SPAN_DAYS
+  let pagesThisRun = 0
+
+  while (pagesThisRun < BACKFILL_PER_RUN_PAGES) {
+    if (frontierDay >= todayDay) {
+      console.log(`  ${tag}: reached present (${frontierDay} ≥ ${todayDay}) — backfill COMPLETE`)
+      await markBackfillComplete(product.slug, net.networkSlug)
+      return
+    }
+    let windowEnd = addDaysStr(frontierDay, spanDays)
+    if (windowEnd > todayDay) windowEnd = todayDay
+
+    const { transfers, pages } = await fetchTransfersWindowRWA(
+      product.rwaAssetId!, net.networkId, net.decimals, net.addresses, frontierDay, windowEnd
+    )
+    pagesThisRun += pages
+
+    // Dedup the inclusive-gte boundary day already processed last window, merge,
+    // and checkpoint. Windows are disjoint [start,end), so this only ever removes
+    // the cursor-day overlap on a resume.
+    const newTransfers = dedupBoundary(transfers, cursor?.boundaryIds ?? null)
+    state = mergeTransfers(state, newTransfers, net.caseSensitive).merged
+
+    const newCursor: FetchCursor = newTransfers.length > 0
+      ? computeNewCursor(newTransfers, cursor)! // non-null: newTransfers non-empty
+      // Empty window (gap) — advance the frontier past it so we don't re-scan the
+      // same empty range forever. Synthetic cursor at windowEnd, no boundary ids.
+      : { lastTxTimestamp: `${windowEnd}T00:00:00.000Z`, boundaryIds: [] }
+
+    // Persist balances + cursor ONLY (apply_incremental_merge). No classifications /
+    // aggregate / behavior writes — partial-state guard (state still incomplete).
+    await deps.writeBack({ productSlug: product.slug, network: net.networkSlug, merged: state, newCursor })
+
+    cursor = newCursor
+    frontierDay = cursor.lastTxTimestamp.slice(0, 10)
+
+    // Adaptive sizing: aim the next window at ~TARGET pages from observed density.
+    // Empty windows carry no density signal, so grow (bounded) to skip sparse gaps.
+    spanDays = pages > 0
+      ? clampSpan(Math.round((BACKFILL_TARGET_PAGES * spanDays) / pages))
+      : clampSpan(spanDays * 2)
+
+    console.log(
+      `  ${tag}: window [${frontierDay}…] done — ${pages}pg, ${newTransfers.length} new, ` +
+      `${state.size} rows; next span ${spanDays}d; run pages ${pagesThisRun}/${BACKFILL_PER_RUN_PAGES}`
+    )
+  }
+
+  console.log(
+    `  ${tag}: per-run page budget reached (${pagesThisRun}/${BACKFILL_PER_RUN_PAGES}) — resumes next run from ${cursor?.lastTxTimestamp}`
+  )
+  console.log(`  ${tag}: tripwire skipped — EXPECTED-partial (backfill in progress, state incomplete by design)`)
+}
+
+/** Backfill every enabled network of a fund. Per-network errors are isolated;
+ *  per-window atomicity means a failure never loses prior chunks. Cleanly no-ops
+ *  when nothing is enabled or everything is already complete. */
+async function backfillRwaFund(product: Product, nowTs: number): Promise<void> {
+  if (product.rwaAssetId == null) {
+    console.error(`[${product.slug}] no rwaAssetId — backfill needs rwa.xyz config. Skipping.`)
+    return
+  }
+  const allowed = BACKFILL_ALLOWED[product.slug]
+  if (!allowed || allowed.size === 0) {
+    console.log(`[${product.slug}] not enabled for chunked backfill — clean no-op.`)
+    return
+  }
+  const networks = observableNetworks(product)
+  console.log(`\n[${product.slug}] BACKFILL (chunked, resumable) — enabled network(s): ${[...allowed].join(', ')}`)
+
+  for (const net of networks) {
+    if (!allowed.has(net.networkSlug)) continue
+    try {
+      await backfillRwaNetwork(product, net, nowTs)
+    } catch (err) {
+      console.error(
+        `  ERROR ${product.slug}:${net.networkSlug} backfill window failed — prior chunks preserved ` +
+        `(per-window atomic); resumes next run: ${(err as Error).message}`
+      )
+    }
+  }
+  console.log(`[${product.slug}] backfill pass complete`)
+}
+
 // ── Main ───────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -844,6 +1078,28 @@ async function main() {
     }
     await reanchorRwaFund(product, nowTs)
     console.log('\n=== re-anchor done ===')
+    return
+  }
+
+  // Backfill mode: BACKFILL=<fund>|all runs the chunked resumable first-backfill for
+  // the enabled networks and exits. `all` sweeps every fund in BACKFILL_ALLOWED; a
+  // named fund does just that one. No-ops cleanly when nothing is in progress.
+  const backfillArg = process.env.BACKFILL?.trim().toLowerCase()
+  if (backfillArg) {
+    console.log(`\n=== BACKFILL mode: ${backfillArg} ===`)
+    const slugs = backfillArg === 'all' ? Object.keys(BACKFILL_ALLOWED) : [backfillArg]
+    if (slugs.length === 0) {
+      console.log('no funds enabled for backfill (BACKFILL_ALLOWED is empty) — clean no-op.')
+    }
+    for (const slug of slugs) {
+      const product = ACTIVE_PRODUCTS.find((p) => p.slug === slug)
+      if (!product) {
+        console.error(`[${slug}] not found in ACTIVE_PRODUCTS. Skipping.`)
+        continue
+      }
+      await backfillRwaFund(product, nowTs)
+    }
+    console.log('\n=== backfill done ===')
     return
   }
 

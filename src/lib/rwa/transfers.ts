@@ -245,3 +245,112 @@ export async function fetchTransfersRWA(
 
   return out
 }
+
+/**
+ * Date-BOUNDED window pull for the chunked backfill — the same paginated fetch as
+ * fetchTransfersRWA, but with BOTH a `gte(date)` lower bound and an `lt(date)`
+ * upper bound (probe-confirmed 2026-07-20: `lt` is accepted, respects both bounds,
+ * and composes with the id-sort). Returns the transfers AND the page count so the
+ * backfill can enforce a per-run request budget and size windows adaptively.
+ *
+ * Windows are day-granular `[gteDate, ltDate)` (both YYYY-MM-DD). Kept SEPARATE
+ * from fetchTransfersRWA so that function — and its parity gate — stay untouched.
+ *
+ * @param gteDate inclusive window start, YYYY-MM-DD (UTC day)
+ * @param ltDate  exclusive window end, YYYY-MM-DD (UTC day)
+ */
+export async function fetchTransfersWindowRWA(
+  assetId: number,
+  networkId: number,
+  decimals: number,
+  tokenAddresses: string[],
+  gteDate: string,
+  ltDate: string
+): Promise<{ transfers: RwaTransfer[]; pages: number }> {
+  const apiKey = process.env.RWA_API_KEY
+  if (!apiKey) throw new Error('RWA_API_KEY environment variable is not set')
+
+  const allowed = new Set(tokenAddresses.map((a) => a.toLowerCase()))
+  const out: RwaTransfer[] = []
+
+  const filters: Array<{ operator: string; field: string; value: string | number }> = [
+    { operator: 'equals', field: 'asset_id', value: assetId },
+    { operator: 'equals', field: 'network_id', value: networkId },
+    { operator: 'gte', field: 'date', value: gteDate },
+    { operator: 'lt', field: 'date', value: ltDate },
+  ]
+
+  let page = 1
+  let pageCount = 1
+  let pagesFetched = 0
+
+  while (page <= pageCount) {
+    const query = {
+      filter: { operator: 'and', filters },
+      // id-sort, same as the unbounded pull: deterministic, non-overlapping
+      // pagination. The date bounds narrow the set; order within is irrelevant
+      // (the merge is order-invariant and the caller dedups the boundary day).
+      sort: { field: 'id', direction: 'asc' },
+      pagination: { page, perPage: PER_PAGE },
+    }
+    const url = `${TRANSACTIONS_URL}?query=${encodeURIComponent(JSON.stringify(query))}`
+
+    const data = await fetchRwaJson<RwaTransactionsResponse>(url, '/v4/transactions', page, apiKey)
+    pageCount = data.pagination.pageCount
+    pagesFetched++
+
+    for (const tx of data.results) {
+      if (!allowed.has(tx.token.address.toLowerCase())) continue
+      if (tx.token.decimals !== decimals) {
+        throw new Error(
+          `rwa.xyz decimals mismatch (network ${networkId}, token ${tx.token.address}): ` +
+          `config ${decimals} vs rwa.xyz ${tx.token.decimals}`
+        )
+      }
+      out.push(normalizeTransaction(tx, decimals))
+    }
+
+    console.log(`[rwa] window [${gteDate},${ltDate}) page ${page}/${pageCount} (${out.length} transfers)`)
+    page++
+    if (page <= pageCount) await sleep(THROTTLE_MS)
+  }
+
+  return { transfers: out, pages: pagesFetched }
+}
+
+/**
+ * Earliest transaction DATE (YYYY-MM-DD, UTC) for an (asset, network), or null if
+ * the network has no transactions. Used to seed a fresh chunked backfill's first
+ * window instead of scanning from a hardcoded epoch.
+ *
+ * This is the one place we sort by `date` rather than `id`. The date-sort timeout
+ * that pushed the main pull to id-sort was a DEEP-pagination problem (page 500+);
+ * this is a single page-1, perPage-1 query — the cheapest possible — so it does not
+ * hit that. No token post-filter: the earliest tx of ANY token on the network is a
+ * safe lower bound (we never miss tracked data by starting a shade early).
+ */
+export async function fetchEarliestTxDate(
+  assetId: number,
+  networkId: number
+): Promise<string | null> {
+  const apiKey = process.env.RWA_API_KEY
+  if (!apiKey) throw new Error('RWA_API_KEY environment variable is not set')
+
+  const query = {
+    filter: {
+      operator: 'and',
+      filters: [
+        { operator: 'equals', field: 'asset_id', value: assetId },
+        { operator: 'equals', field: 'network_id', value: networkId },
+      ],
+    },
+    sort: { field: 'date', direction: 'asc' },
+    pagination: { page: 1, perPage: 1 },
+  }
+  const url = `${TRANSACTIONS_URL}?query=${encodeURIComponent(JSON.stringify(query))}`
+  const data = await fetchRwaJson<RwaTransactionsResponse>(url, '/v4/transactions', 1, apiKey)
+
+  const first = data.results[0]
+  if (!first) return null
+  return first.timestamp.slice(0, 10) // ISO → YYYY-MM-DD (UTC)
+}
