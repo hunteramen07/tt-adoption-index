@@ -20,6 +20,7 @@
 
 import type { ERC20Transfer } from '@/src/lib/etherscan/types'
 import { fetchRwaJson } from '@/src/lib/rwa/http'
+import { resolveAndDedupSolana, SOLANA_NETWORK_ID } from '@/src/lib/rwa/solana-resolve'
 
 const TRANSACTIONS_URL = 'https://api.rwa.xyz/v4/transactions'
 const PER_PAGE = 1000
@@ -243,6 +244,9 @@ export async function fetchTransfersRWA(
     if (page <= pageCount && page <= maxPages) await sleep(THROTTLE_MS)
   }
 
+  // Solana-only: resolve ATA→owner and dedup the dual-feed twins so everything
+  // downstream keys on owner wallets. No-op (byte-identical) for every other chain.
+  if (networkId === SOLANA_NETWORK_ID) return resolveAndDedupSolana(out)
   return out
 }
 
@@ -315,7 +319,10 @@ export async function fetchTransfersWindowRWA(
     if (page <= pageCount) await sleep(THROTTLE_MS)
   }
 
-  return { transfers: out, pages: pagesFetched }
+  // Solana-only: resolve ATA→owner + dedup twins (see fetchTransfersRWA). The page
+  // count is the request count and is unaffected by post-fetch dedup.
+  const transfers = networkId === SOLANA_NETWORK_ID ? await resolveAndDedupSolana(out) : out
+  return { transfers, pages: pagesFetched }
 }
 
 /**

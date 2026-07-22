@@ -15,7 +15,8 @@
     "test:rwa-parity": "tsx --tsconfig tsconfig.json scripts/rwa-parity.ts",
     "test:engine-parity": "tsx --tsconfig tsconfig.json scripts/classify-engine-parity.ts",
     "test:incremental-parity": "tsx --tsconfig tsconfig.json scripts/incremental-merge-parity.ts",
-    "test:incremental-live-parity": "tsx --tsconfig tsconfig.json scripts/incremental-live-parity.ts"
+    "test:incremental-live-parity": "tsx --tsconfig tsconfig.json scripts/incremental-live-parity.ts",
+    "test:solana-resolve": "tsx --tsconfig tsconfig.json scripts/solana-resolve-parity.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.108.1",
