@@ -7,9 +7,17 @@ import type { ERC20Transfer, TransferHistoryData } from './types'
 // Historical transfers are immutable so a 6-hour window is conservative.
 const CACHE_MAX_AGE_MS = 6 * 60 * 60 * 1000
 
-// Etherscan v2 supports up to 10000 results per page; default 100 preserves
-// the original behavior for the debug endpoint. The classify script passes
-// pageSize: 10000 to minimize API round-trips on the initial history fetch.
+// Etherscan v2 free-tier per-page result cap. This DROPPED from 10000 to 1000
+// around 2026-07-16: the API silently returns only `min(offset, cap)` rows with
+// status="1"/"OK" (no error), so requesting offset=10000 now yields 1000. A bare
+// "short page ⇒ last page" break then absorbs that as end-of-history and truncates
+// the fetch to a single oldest page (the USDY/OUSG 07-16 regression). Requesting
+// exactly the cap keeps every non-final page full, so the short-page signal stays
+// meaningful; the end-of-history probe below defends against the NEXT silent drop.
+export const ETHERSCAN_MAX_PAGE_SIZE = 1000
+
+// Debug endpoint default keeps small round-trips; batch callers pass
+// ETHERSCAN_MAX_PAGE_SIZE. Both are ≤ the cap, so neither is silently truncated.
 const DEFAULT_PAGE_SIZE = 100
 
 /**
@@ -79,8 +87,49 @@ export async function fetchTransferHistory(
     )
     if (maxBatchBlock > lastBlock) lastBlock = maxBatchBlock
 
-    if (batch.length < pageSize) break // reached the last page
-    // Full page — advance startblock to continue beyond the 10k limit
+    if (batch.length < pageSize) {
+      // A short page usually means end-of-history — but it ALSO means "Etherscan
+      // capped this page below pageSize", which is indistinguishable at this point
+      // and, absorbed silently, is exactly the 07-16 truncation bug. VERIFY: probe
+      // the next block range. Genuine end returns nothing; rows here mean the page
+      // was capped and we would be truncating — fail loud so the cap change (e.g. a
+      // future 1000→500 drop) is caught, not re-absorbed.
+      //
+      // Bounded retry on a transient probe error: an UNVERIFIED end is the exact
+      // thing this guard must never trust, so a probe that keeps erroring throws
+      // rather than proceeding — it does not get to silently decide the fetch ended.
+      const PROBE_ATTEMPTS = 3
+      let probe: ERC20Transfer[] | null = null
+      for (let attempt = 0; attempt < PROBE_ATTEMPTS; attempt++) {
+        probe = await etherscanGet<ERC20Transfer[]>({
+          module: 'account',
+          action: 'tokentx',
+          contractaddress: product.contractAddress,
+          startblock: (lastBlock + 1).toString(),
+          endblock: '99999999',
+          page: '1',
+          offset: pageSize.toString(),
+          sort: 'asc',
+        })
+        if (probe !== null) break
+        if (attempt < PROBE_ATTEMPTS - 1) await new Promise((r) => setTimeout(r, 500 * (attempt + 1)))
+      }
+      if (probe === null) {
+        throw new Error(
+          `[etherscan] ${product.slug}: could not verify end-of-history — probe past block ${lastBlock} ` +
+          `errored on all ${PROBE_ATTEMPTS} attempts. Refusing to trust an unverified end (risks silent truncation).`
+        )
+      }
+      if (probe.length > 0) {
+        throw new Error(
+          `[etherscan] ${product.slug}: short page (${batch.length} < requested ${pageSize}) but ` +
+          `${probe.length} more transfer(s) exist beyond block ${lastBlock} — suspected Etherscan per-page ` +
+          `cap change (below ${pageSize}). Refusing to silently truncate; lower the batch pageSize to the new cap.`
+        )
+      }
+      break // probe empty ⇒ genuinely the last page
+    }
+    // Full page — advance startblock to continue beyond the per-page cap.
     currentStartBlock = lastBlock + 1
     iterations++
   }

@@ -75,7 +75,7 @@ import path from 'path'
 import { ACTIVE_PRODUCTS, getNavUsd } from '@/src/config/products'
 import type { Product } from '@/src/config/products'
 import { isCaseSensitive } from '@/src/config/networks'
-import { fetchTransferHistory } from '@/src/lib/etherscan/transfers'
+import { fetchTransferHistory, ETHERSCAN_MAX_PAGE_SIZE } from '@/src/lib/etherscan/transfers'
 import { etherscanGet } from '@/src/lib/etherscan/client'
 import { diskCacheRead, diskCacheWrite } from '@/src/lib/cache/disk'
 import { KNOWN_ADDRESSES } from '@/src/lib/etherscan/nameTags'
@@ -1128,7 +1128,9 @@ async function main() {
     }
 
     console.log(`\n[${product.slug}] fetching transfer history…`)
-    const transferData = await fetchTransferHistory(product, { pageSize: 10000 })
+    // pageSize = the Etherscan free-tier per-page cap (1000): requesting more is
+    // silently capped and would truncate to one page (the 07-16 regression).
+    const transferData = await fetchTransferHistory(product, { pageSize: ETHERSCAN_MAX_PAGE_SIZE })
     const { transfers, lastBlock } = transferData
     console.log(`  ${transfers.length} transfers through block ${lastBlock} (fromCache=${transferData.fromCache})`)
 
