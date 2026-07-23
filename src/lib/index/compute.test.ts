@@ -10,24 +10,25 @@ import type { FactorInputs } from './types.js'
 import {
   AUM_GROWTH_RANGE,
   CONCENTRATION_TREND_RANGE,
+  DORMANCY_TREND_RANGE,
   BREADTH_RANGE,
 } from '@/src/config/index-ranges.js'
 
 // ── normalizeScore ────────────────────────────────────────────────────────
 
 describe('normalizeScore — piecewise linear (with neutral)', () => {
-  const range = AUM_GROWTH_RANGE // lo=-0.20, neutral=0, hi=0.40
+  const range = AUM_GROWTH_RANGE // lo=-0.40, neutral=0, hi=0.65
 
   test('neutral value → exactly 50', () => {
     assert.equal(normalizeScore(0, range), 50)
   })
 
   test('lo value → exactly 0', () => {
-    assert.equal(normalizeScore(-0.20, range), 0)
+    assert.equal(normalizeScore(-0.40, range), 0)
   })
 
   test('hi value → exactly 100', () => {
-    assert.equal(normalizeScore(0.40, range), 100)
+    assert.equal(normalizeScore(0.65, range), 100)
   })
 
   test('clamps below lo to 0', () => {
@@ -39,13 +40,13 @@ describe('normalizeScore — piecewise linear (with neutral)', () => {
   })
 
   test('midpoint between lo and neutral → 25', () => {
-    // raw = -0.10 is halfway between lo=-0.20 and neutral=0
-    assert.equal(normalizeScore(-0.10, range), 25)
+    // raw = -0.20 is halfway between lo=-0.40 and neutral=0
+    assert.equal(normalizeScore(-0.20, range), 25)
   })
 
   test('midpoint between neutral and hi → 75', () => {
-    // raw = 0.20 is halfway between neutral=0 and hi=0.40
-    assert.equal(normalizeScore(0.20, range), 75)
+    // raw = 0.325 is halfway between neutral=0 and hi=0.65
+    assert.equal(normalizeScore(0.325, range), 75)
   })
 })
 
@@ -92,7 +93,7 @@ describe('concentration and dormancy sign inversion', () => {
   test('negative concentrationDelta (falling) → high score', () => {
     const r = computeIndexReading({
       readingDate: '2024-01-31',
-      concentrationDelta3m: -0.15, // concentration fell by 15pp (best case)
+      concentrationDelta3m: -CONCENTRATION_TREND_RANGE.hi, // fell to −hi (best case)
     })
     assert.equal(r.factors.concentrationDelta3m!.score, 100)
   })
@@ -100,7 +101,7 @@ describe('concentration and dormancy sign inversion', () => {
   test('positive concentrationDelta (rising) → low score', () => {
     const r = computeIndexReading({
       readingDate: '2024-01-31',
-      concentrationDelta3m: 0.15, // concentration rose by 15pp (worst case)
+      concentrationDelta3m: CONCENTRATION_TREND_RANGE.hi, // rose to hi (worst case)
     })
     assert.equal(r.factors.concentrationDelta3m!.score, 0)
   })
@@ -123,9 +124,11 @@ describe('concentration and dormancy sign inversion', () => {
   })
 
   test('negative dormancyDelta → high score', () => {
+    // Dormancy trend range is ±0.35 (wider than concentration's ±0.15), so a
+    // falling dormancy share saturates to 100 only at −hi.
     const r = computeIndexReading({
       readingDate: '2024-01-31',
-      dormancyDelta3m: -0.15,
+      dormancyDelta3m: -DORMANCY_TREND_RANGE.hi,
     })
     assert.equal(r.factors.dormancyDelta3m!.score, 100)
   })
@@ -133,7 +136,7 @@ describe('concentration and dormancy sign inversion', () => {
   test('positive dormancyDelta → low score', () => {
     const r = computeIndexReading({
       readingDate: '2024-01-31',
-      dormancyDelta3m: CONCENTRATION_TREND_RANGE.hi,
+      dormancyDelta3m: DORMANCY_TREND_RANGE.hi,
     })
     assert.equal(r.factors.dormancyDelta3m!.score, 0)
   })
@@ -177,7 +180,7 @@ describe('missing factor renormalization', () => {
   })
 
   test('two factors missing → composite is weighted mean of remaining four', () => {
-    // aumGrowth3m=0.40 (→100, weight 25%), holderGrowth3m=0 (→50, weight 20%),
+    // aumGrowth3m=0.65 (hi →100, weight 25%), holderGrowth3m=0 (→50, weight 20%),
     // concentrationDelta3m=0 (→50, weight 20%), dormancyDelta3m=0 (→50, weight 15%)
     // Missing: transferActivityRatio (10%), breadth (10%).
     // Total available weight = 0.80. Renorm factors: /0.80 each.
@@ -185,7 +188,7 @@ describe('missing factor renormalization', () => {
     //           = (25 + 10 + 10 + 7.5) / 0.80 = 52.5 / 0.80 = 65.625
     const r = computeIndexReading({
       readingDate: '2024-01-31',
-      aumGrowth3m: 0.40,
+      aumGrowth3m: 0.65,
       holderGrowth3m: 0,
       concentrationDelta3m: 0,
       dormancyDelta3m: 0,
@@ -197,10 +200,10 @@ describe('missing factor renormalization', () => {
   test('all factors at maximum → composite = 100', () => {
     const r = computeIndexReading({
       readingDate: '2024-01-31',
-      aumGrowth3m: 0.40,
+      aumGrowth3m: 0.65,           // hi
       holderGrowth3m: 0.30,
       concentrationDelta3m: -0.15, // best = falling 15pp
-      dormancyDelta3m: -0.15,      // best = falling 15pp
+      dormancyDelta3m: -0.35,      // best = falling 35pp
       transferActivityRatio: 3.0,
       breadth: 6,
     })
@@ -210,10 +213,10 @@ describe('missing factor renormalization', () => {
   test('all factors at minimum → composite = 0', () => {
     const r = computeIndexReading({
       readingDate: '2024-01-31',
-      aumGrowth3m: -0.20,
+      aumGrowth3m: -0.40,          // lo
       holderGrowth3m: -0.10,
       concentrationDelta3m: 0.15, // worst = rising 15pp
-      dormancyDelta3m: 0.15,       // worst = rising 15pp
+      dormancyDelta3m: 0.35,       // worst = rising 35pp
       transferActivityRatio: 0,
       breadth: 1,
     })
@@ -240,7 +243,7 @@ describe('edge cases', () => {
 
   test('methodologyVersion is set correctly', () => {
     const r = computeIndexReading({ readingDate: '2024-01-31', breadth: 3 })
-    assert.equal(r.methodologyVersion, '1.0')
+    assert.equal(r.methodologyVersion, '1.1')
   })
 
   test('factors not in input are absent from output', () => {
