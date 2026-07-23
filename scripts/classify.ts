@@ -852,13 +852,20 @@ async function reanchorRwaFund(product: Product, nowTs: number): Promise<void> {
 /** Networks cleared for chunked backfill. The MECHANISM is general (any fund with
  *  rwa tokens[]), but networks are enabled explicitly as their config is verified —
  *  a network's per-token decimals must be set (fund-level fallback would mis-scale)
- *  and any anomaly resolved (e.g. MANTRA's decimals=1) BEFORE enabling. USDY Solana
- *  is the first customer (decimals=6, probe-confirmed); everything else stays off
- *  until vetted. Deliberately independent of RWA_MULTICHAIN_SLUGS: USDY is not in
- *  that set (its aggregate-mode read branch doesn't exist yet), but backfill only
- *  builds STATE and never derives metrics, so state-building is safe to run ahead. */
+ *  and any anomaly resolved (e.g. MANTRA's decimals=1) BEFORE enabling. All 8 of
+ *  USDY's INCLUDED networks are now vetted (per-token decimals set, probe-confirmed)
+ *  and enabled; the excluded MANTRA/Noble/Sui stay out (see the tokens[] comments).
+ *  Enabling all 8 at once is safe because the shared per-run page pool
+ *  (BACKFILL_PER_RUN_PAGES, sequential-exhaust) caps a BACKFILL=all run at the same
+ *  ~80 pages regardless of network count — one network drains the pool, the rest
+ *  wait for the next 3-hourly slot, so it converges over ~2-3 days without ever
+ *  blowing rwa.xyz's 120/hr. Deliberately independent of RWA_MULTICHAIN_SLUGS: USDY
+ *  is not in that set yet (cutover is separately gated on all 8 having state +
+ *  Ethereum parity), but backfill only builds STATE and never derives metrics, so
+ *  state-building is safe to run ahead of the cutover. Slugs are the merged network
+ *  slugs from observableNetworks — USDY's two Ethereum contracts share 'ethereum'. */
 const BACKFILL_ALLOWED: Record<string, Set<string>> = {
-  usdy: new Set(['solana']),
+  usdy: new Set(['ethereum', 'arbitrum', 'mantle', 'plume', 'sei', 'solana', 'aptos', 'stellar']),
 }
 
 /** Per-run request budget (pages) — a SINGLE shared pool drawn down across every
