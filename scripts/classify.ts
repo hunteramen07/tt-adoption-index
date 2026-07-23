@@ -94,6 +94,13 @@ import type { MultiChainWriters } from '@/src/lib/rwa/multichain-write'
 import { selectWriteMode, writePerWalletResult, writeAggregateResult } from '@/src/lib/rwa/multichain-write'
 import type { RunBudget } from '@/src/lib/rwa/backfill-budget'
 import { runSequentialUntilBudget } from '@/src/lib/rwa/backfill-budget'
+import {
+  BACKFILL_INITIAL_SPAN_DAYS,
+  clampSpan,
+  nextSpanFromDensity,
+  halveSpanOnFailure,
+  capSpanByBudget,
+} from '@/src/lib/rwa/backfill-span'
 import { fetchAssetSupplyByToken, sumSupplyForNetwork } from '@/src/lib/rwa/assets'
 import type { TokenSupply } from '@/src/lib/rwa/assets'
 import { fetchTransfersWindowRWA, fetchEarliestTxDate } from '@/src/lib/rwa/transfers'
@@ -876,19 +883,17 @@ const BACKFILL_ALLOWED: Record<string, Set<string>> = {
  *  two networks share these 80 pages rather than spending 80 each. See
  *  src/lib/rwa/backfill-budget.ts for the sequential-exhaust allocation policy. */
 const BACKFILL_PER_RUN_PAGES = 80
-/** Adaptive window target: size each window toward ~this many pages. */
-const BACKFILL_TARGET_PAGES = 40
-const BACKFILL_MIN_SPAN_DAYS = 1
-const BACKFILL_MAX_SPAN_DAYS = 60
-const BACKFILL_INITIAL_SPAN_DAYS = 30
+// Adaptive window sizing (target pages, span bounds, clamp) + the shrink-on-failure
+// and budget-cap helpers live in src/lib/rwa/backfill-span.ts (imported above) so the
+// math is unit-testable offline. Only the persisted-span I/O (loadBackfillSpanDays /
+// saveBackfillSpanDays) lives here — it's what carries the learned/shrunk span across
+// the 3-hourly slots.
 
 /** A rwa.xyz 429 surfaces as a thrown Error whose message carries `HTTP 429` (the
  *  http layer keeps its `… failed (page N): HTTP <status> — <body>` shape stable and
  *  does NOT retry 429s). A 429 is a global rate-limit signal, so the backfill uses it
  *  to end the whole run — not just the offending network. */
 const isRateLimitError = (err: Error) => /HTTP 429\b/.test(err.message)
-
-const clampSpan = (n: number) => Math.max(BACKFILL_MIN_SPAN_DAYS, Math.min(BACKFILL_MAX_SPAN_DAYS, n))
 /** Unix seconds → 'YYYY-MM-DD' (UTC). */
 const toDayStr = (unixSec: number) => new Date(unixSec * 1000).toISOString().slice(0, 10)
 /** Add n days to a 'YYYY-MM-DD' day string (UTC). */
@@ -943,6 +948,41 @@ async function markBackfillComplete(slug: string, network: string): Promise<void
     .eq('product_slug', slug)
     .eq('network', network)
   if (error) throw new Error(`fetch_cursor backfill-complete mark failed (${slug}/${network}): ${error.message}`)
+}
+
+/** Persisted per-network window span (days). Carries the adaptive sizer's learned
+ *  density AND a shrink-on-failure across the 3-hourly slots — a 429 ends the run, so
+ *  without persistence the span reset to INITIAL every slot and re-opened the same
+ *  too-big window (the USDY Solana freeze). Null (fresh row / column not yet migrated)
+ *  ⇒ caller uses INITIAL. Defensive: any read error returns null so backfill still runs. */
+async function loadBackfillSpanDays(slug: string, network: string): Promise<number | null> {
+  const supabase = getSupabase()
+  const { data, error } = await supabase
+    .from('fetch_cursor')
+    .select('backfill_span_days')
+    .eq('product_slug', slug)
+    .eq('network', network)
+    .maybeSingle()
+  if (error) {
+    console.warn(`  [backfill] span read failed for ${slug}:${network} (${error.message}) — using initial span`)
+    return null
+  }
+  return (data as { backfill_span_days?: number | null } | null)?.backfill_span_days ?? null
+}
+
+/** Persist the next window span for (slug, network). The row already exists (markBackfill-
+ *  InProgress upserts it). Non-fatal on error (pre-migration or transient) — the backfill
+ *  continues, just without cross-slot span memory (i.e. the old INITIAL-every-slot behavior). */
+async function saveBackfillSpanDays(slug: string, network: string, spanDays: number): Promise<void> {
+  const supabase = getSupabase()
+  const { error } = await supabase
+    .from('fetch_cursor')
+    .update({ backfill_span_days: spanDays })
+    .eq('product_slug', slug)
+    .eq('network', network)
+  if (error) {
+    console.warn(`  [backfill] span persist failed for ${slug}:${network} (${error.message}) — not carried to next slot`)
+  }
 }
 
 /**
@@ -1007,8 +1047,17 @@ async function backfillRwaNetwork(
     console.log(`  ${tag}: fresh backfill from earliest tx date ${earliest}`)
   }
 
-  let spanDays = BACKFILL_INITIAL_SPAN_DAYS
+  // Resume span: the density-appropriate span learned & PERSISTED by the last slot (or
+  // halved by a prior window failure), so the sizer adapts ACROSS slots instead of
+  // resetting to INITIAL every slot (which, at the sparse→dense boundary, kept
+  // re-opening a too-big window that 429'd and was discarded). Null (fresh / pre-
+  // migration) ⇒ INITIAL. Clamped in case of a stale/bad stored value.
+  let spanDays = clampSpan((await loadBackfillSpanDays(product.slug, net.networkSlug)) ?? BACKFILL_INITIAL_SPAN_DAYS)
   let pagesThisNetwork = 0
+  // In-run density of the last completed window, for the budget cap below. 0 ⇒ no
+  // signal yet (first window of the slot), so the resumed span opens uncapped.
+  let lastSpanDays = 0
+  let lastPages = 0
 
   // Draw from the SHARED run pool: this network keeps taking windows until the
   // pool (not a per-network budget) is dry or it catches up to the present.
@@ -1018,12 +1067,34 @@ async function backfillRwaNetwork(
       await markBackfillComplete(product.slug, net.networkSlug)
       return
     }
-    let windowEnd = addDaysStr(frontierDay, spanDays)
+
+    // Budget cap: never OPEN a window whose estimated pages exceed min(TARGET,
+    // budget.remaining), using the last completed window's density. Bounds pages
+    // WITHIN a window (the pool otherwise only gates BETWEEN windows). First window of
+    // the slot has no in-run density, so it opens at the resumed span as-is.
+    const openSpan = capSpanByBudget(spanDays, lastSpanDays, lastPages, budget.remaining)
+    let windowEnd = addDaysStr(frontierDay, openSpan)
     if (windowEnd > todayDay) windowEnd = todayDay
 
-    const { transfers, pages } = await fetchTransfersWindowRWA(
-      product.rwaAssetId!, net.networkId, net.decimals, net.addresses, frontierDay, windowEnd
-    )
+    let windowResult
+    try {
+      windowResult = await fetchTransfersWindowRWA(
+        product.rwaAssetId!, net.networkId, net.decimals, net.addresses, frontierDay, windowEnd
+      )
+    } catch (err) {
+      // Shrink-on-failure: this span was too big for the frontier/era (429 or timeout
+      // mid-window). Halve it and PERSIST so the NEXT slot retries a smaller window —
+      // a 429 must still drain the pool and end the run (not an in-run retry). The
+      // window itself was discarded before writeBack, so the cursor is unmoved.
+      const shrunk = halveSpanOnFailure(openSpan)
+      console.warn(
+        `  ${tag}: window [${frontierDay}, +${openSpan}d) failed — halving span to ${shrunk}d for ` +
+        `next slot: ${(err as Error).message.slice(0, 100)}`
+      )
+      await saveBackfillSpanDays(product.slug, net.networkSlug, shrunk)
+      throw err // preserve 429-drains-pool / graceful-end semantics
+    }
+    const { transfers, pages } = windowResult
     pagesThisNetwork += pages
     budget.remaining -= pages
 
@@ -1045,15 +1116,18 @@ async function backfillRwaNetwork(
 
     cursor = newCursor
     frontierDay = cursor.lastTxTimestamp.slice(0, 10)
+    lastSpanDays = openSpan
+    lastPages = pages
 
-    // Adaptive sizing: aim the next window at ~TARGET pages from observed density.
-    // Empty windows carry no density signal, so grow (bounded) to skip sparse gaps.
-    spanDays = pages > 0
-      ? clampSpan(Math.round((BACKFILL_TARGET_PAGES * spanDays) / pages))
-      : clampSpan(spanDays * 2)
+    // Adaptive sizing from THIS window's observed density, aimed at ~TARGET pages
+    // (density signal = the most recently completed window, so it adapts as the dense
+    // era begins). Persist it (budget-independent) so the next slot resumes at the
+    // era-correct span, not INITIAL. The budget cap is re-applied at open time above.
+    spanDays = nextSpanFromDensity(openSpan, pages)
+    await saveBackfillSpanDays(product.slug, net.networkSlug, spanDays)
 
     console.log(
-      `  ${tag}: window [${frontierDay}…] done — ${pages}pg, ${newTransfers.length} new, ` +
+      `  ${tag}: window [${frontierDay}…] done — ${pages}pg (span ${openSpan}d), ${newTransfers.length} new, ` +
       `${state.size} rows; next span ${spanDays}d; net pages ${pagesThisNetwork}; pool ${budget.remaining}/${BACKFILL_PER_RUN_PAGES} left`
     )
   }
