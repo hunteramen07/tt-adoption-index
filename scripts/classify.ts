@@ -89,7 +89,9 @@ import type { HolderClassification } from '@/src/lib/classify/types'
 import { getSupabase } from '@/src/lib/supabase/client'
 import { makeSupabaseDeps, runIncrementalFetchMerge } from '@/src/lib/rwa/incremental'
 import { mergeTransfers, computeNewCursor, dedupBoundary } from '@/src/lib/rwa/incremental'
-import type { BalanceStateMap, IncrementalDeps, FetchCursor } from '@/src/lib/rwa/incremental'
+import type { BalanceStateMap, IncrementalDeps, FetchCursor, IncrementalResult } from '@/src/lib/rwa/incremental'
+import type { MultiChainWriters } from '@/src/lib/rwa/multichain-write'
+import { selectWriteMode, writePerWalletResult, writeAggregateResult } from '@/src/lib/rwa/multichain-write'
 import type { RunBudget } from '@/src/lib/rwa/backfill-budget'
 import { runSequentialUntilBudget } from '@/src/lib/rwa/backfill-budget'
 import { fetchAssetSupplyByToken, sumSupplyForNetwork } from '@/src/lib/rwa/assets'
@@ -290,68 +292,16 @@ async function insertBehaviorHistory(stats: ReturnType<typeof computeAggregateSt
 // ── Classify + write (shared by both fetch paths) ───────────────────────────
 
 /**
- * Name-tag enrich (Ethereum-only gating) + write per-wallet classifications,
- * aggregate stats, and a behavior_history row. Shared tail for both fetch
- * paths: callers arrive with classifications + aggStats already computed —
- * from full history (Etherscan) or from merged incremental state (rwa.xyz).
+ * Real (Supabase/Etherscan-backed) implementations of the multi-chain write
+ * surface. The write tails + mode routing live in src/lib/rwa/multichain-write.ts
+ * (importable/testable offline); this object wires them to the module-level
+ * getSupabase writers and the Etherscan name-tag resolver.
  */
-async function enrichAndWriteClassifications(
-  product: Product,
-  classifications: Map<string, HolderClassification>,
-  aggStats: ReturnType<typeof computeAggregateStats>,
-  network: string,
-  asOfBlock: number,
-  marketValueUsd: number | null = null,
-  // Re-anchor is a REPAIR, not an observation — it re-derives current state and
-  // must NOT append a behavior_history point (the next nightly writes that day's
-  // observation from the repaired state). Default true = normal nightly behavior.
-  writeBehaviorHistory = true
-): Promise<void> {
-  const { mix, dormancySharePct } = aggStats
-  console.log(
-    `  ${classifications.size} holders  dormancyShare=${dormancySharePct.toFixed(1)}%  ` +
-    `mix: A=${mix.accumulating} D=${mix.distributing} Dormant=${mix.dormant} Active=${mix.active}`
-  )
-
-  // Resolve name tags for all holder addresses. Name tags come from Etherscan's
-  // getsourcecode and are meaningless off Ethereum, so skip non-EVM networks and
-  // leave name_tag null / isLabeledCustodian false (the classifyHolders default).
-  if (network === 'ethereum') {
-    console.log(`  resolving name tags for ${classifications.size} addresses…`)
-    const addresses = Array.from(classifications.keys())
-    const tags = await resolveNameTags(addresses)
-
-    // Enrich classifications with name tag data
-    for (const [addr, c] of classifications) {
-      const tag = tags.get(addr.toLowerCase())
-      if (tag) {
-        c.nameTag = tag.nameTag
-        c.isLabeledCustodian = tag.isCustodian
-      }
-    }
-
-    const custodianCount = Array.from(classifications.values()).filter(
-      (c) => c.isLabeledCustodian
-    ).length
-    if (custodianCount > 0) {
-      console.log(`  labeled custodians: ${custodianCount}`)
-    }
-  } else {
-    console.log(`  skipping name tags (network=${network}, non-EVM)`)
-  }
-
-  console.log(`  writing ${classifications.size} rows to Supabase…`)
-  await upsertClassifications(product.slug, classifications, asOfBlock, network)
-
-  // Also write aggregate stats so the dashboard can read from Supabase
-  // without replaying the full transfer history on every request.
-  console.log(`  writing aggregate stats to Supabase…`)
-  await upsertAggregateStats({ ...aggStats, productSlug: product.slug, asOfBlock }, network, marketValueUsd)
-  if (writeBehaviorHistory) {
-    await insertBehaviorHistory({ ...aggStats, productSlug: product.slug }, network)
-  } else {
-    console.log(`  skipping behavior_history append (re-anchor is a repair, not an observation)`)
-  }
+const realWriters: MultiChainWriters = {
+  resolveNameTags,
+  upsertClassifications,
+  upsertAggregateStats,
+  insertBehaviorHistory,
 }
 
 /**
@@ -369,7 +319,7 @@ async function classifyAndWritePerWallet(
   console.log(`  classifying holders…`)
   const classifications = classifyHolders(transfers, nowTs)
   const aggStats = computeAggregateStats(transfers, nowTs)
-  await enrichAndWriteClassifications(product, classifications, aggStats, network, asOfBlock)
+  await writePerWalletResult(realWriters, product, classifications, aggStats, network, asOfBlock)
 }
 
 // ── rwa.xyz multi-chain path (BUIDL) ────────────────────────────────────────
@@ -502,6 +452,65 @@ function reconcileState(
 }
 
 /**
+ * Shared upstream of BOTH multi-chain write paths (per-wallet and aggregate):
+ * derive the per-network USD market-value weight and run the reconciliation +
+ * negative-balance tripwire against the just-merged state. Returns marketValueUsd
+ * (null when supply is unavailable — logged, never thrown). Only the write TAIL
+ * differs between the two paths; this weight+tripwire step is identical, so it
+ * lives here rather than being duplicated per handler.
+ *
+ * Market value is sourced from the /v4/assets per-network aggregate × NAV, NOT
+ * self-computed from merged positive balances: that sum derives from
+ * /v4/transactions, which on Solana emits every transfer through two parallel
+ * feeds (one keyed by associated token account, one by owner wallet) with
+ * asymmetric mint/burn coverage, so positions double-count and orphaned mints
+ * never net out. /v4/assets is independently chain-indexed and immune to that.
+ * See src/lib/rwa/assets.ts for the full rationale.
+ */
+function computeMarketValueAndReconcile(
+  product: Product,
+  net: { networkId: number; networkSlug: string; addresses: string[]; caseSensitive: boolean; decimals: number },
+  res: IncrementalResult,
+  supplyByToken: Map<string, TokenSupply> | null
+): number | null {
+  const nav = getNavUsd(product)
+  const { supplyTokens, missing } = supplyByToken
+    ? sumSupplyForNetwork(supplyByToken, net.addresses, net.decimals, `${product.slug}:${net.networkSlug}`)
+    : { supplyTokens: null, missing: net.addresses }
+
+  let marketValueUsd: number | null = null
+  if (supplyTokens == null) {
+    // Explicit and named — a silent null here would blank dormancy for the whole
+    // fund downstream (Σ(dormancy × mv) needs every network's weight present).
+    console.error(
+      `  ERROR: no /v4/assets supply for ${product.slug}:${net.networkSlug} ` +
+      `(token(s) ${missing.join(', ')}) — market value omitted, fund dormancy will be null`
+    )
+  } else {
+    marketValueUsd = supplyTokens * nav
+    console.log(
+      `  market value (network ${net.networkSlug}): $${marketValueUsd.toLocaleString()}` +
+      ` (${supplyTokens.toLocaleString()} tokens × $${nav} NAV, source: /v4/assets)`
+    )
+    if (missing.length > 0) {
+      console.warn(
+        `  WARNING: ${product.slug}:${net.networkSlug} — no /v4/assets entry for ` +
+        `${missing.length} configured token(s): ${missing.join(', ')}; weight covers the rest only`
+      )
+    }
+  }
+
+  // Reconciliation tripwire. Σ(positive balances) is no longer the weight, but it
+  // is still the state every OTHER metric (holder_count, dormancy, concentration)
+  // is computed from — so its divergence from the independent aggregate is a
+  // direct corruption signal for those metrics. Warn-only: the weight is sound
+  // regardless, and failing the run would block the good networks too.
+  reconcileState(product.slug, net.networkSlug, net.decimals, res.positive, res.merged, supplyTokens, nav)
+
+  return marketValueUsd
+}
+
+/**
  * Classify one (product, network) via the INCREMENTAL fetch-merge path:
  *   cursor + persisted balances (paginated read) → incremental gte pull +
  *   boundary dedup → merge → bounded 90d window pull for behavior → classify via
@@ -541,54 +550,62 @@ async function classifyRwaNetworkIncremental(
     ` (+${res.newCursor?.boundaryIds.length ?? 0} boundary id(s))`
   )
 
-  // Per-network USD market value (supply weight for cross-chain supply-weighted
-  // dormancy, read-layer Phase 2a): sourced from the /v4/assets per-network
-  // aggregate × NAV.
-  //
-  // It is NOT self-computed from the merged positive balances any more. That
-  // sum derives from /v4/transactions, which on Solana emits every transfer
-  // through two parallel feeds — one keyed by associated token account, one by
-  // owner wallet — with asymmetric mint/burn coverage, so positions double-count
-  // and orphaned mints never net out. /v4/assets is independently chain-indexed
-  // and immune to that. See src/lib/rwa/assets.ts for the full rationale.
-  const nav = getNavUsd(product)
-  const { supplyTokens, missing } = supplyByToken
-    ? sumSupplyForNetwork(supplyByToken, net.addresses, net.decimals, `${product.slug}:${net.networkSlug}`)
-    : { supplyTokens: null, missing: net.addresses }
-
-  let marketValueUsd: number | null = null
-  if (supplyTokens == null) {
-    // Explicit and named — a silent null here would blank dormancy for the whole
-    // fund downstream (Σ(dormancy × mv) needs every network's weight present).
-    console.error(
-      `  ERROR: no /v4/assets supply for ${product.slug}:${net.networkSlug} ` +
-      `(token(s) ${missing.join(', ')}) — market value omitted, fund dormancy will be null`
-    )
-  } else {
-    marketValueUsd = supplyTokens * nav
-    console.log(
-      `  market value (network ${net.networkSlug}): $${marketValueUsd.toLocaleString()}` +
-      ` (${supplyTokens.toLocaleString()} tokens × $${nav} NAV, source: /v4/assets)`
-    )
-    if (missing.length > 0) {
-      console.warn(
-        `  WARNING: ${product.slug}:${net.networkSlug} — no /v4/assets entry for ` +
-        `${missing.length} configured token(s): ${missing.join(', ')}; weight covers the rest only`
-      )
-    }
-  }
-
-  // Reconciliation tripwire. Σ(positive balances) is no longer the weight, but it
-  // is still the state every OTHER metric (holder_count, dormancy, concentration)
-  // is computed from — so its divergence from the independent aggregate is a
-  // direct corruption signal for those metrics. Warn-only: the weight is sound
-  // regardless, and failing the run would block the good networks too.
-  reconcileState(product.slug, net.networkSlug, net.decimals, res.positive, res.merged, supplyTokens, nav)
+  // Per-network USD market-value weight + reconciliation tripwire — shared with
+  // the aggregate path (see computeMarketValueAndReconcile for the sourcing note).
+  const marketValueUsd = computeMarketValueAndReconcile(product, net, res, supplyByToken)
 
   // Both outputs derive from the same merged state + window the orchestrator used.
   const classifications = res.classifications!
   const aggStats = computeAggregateStatsFromState(res.positive, res.windowTransfers, nowTs, net.caseSensitive)
-  await enrichAndWriteClassifications(product, classifications, aggStats, net.networkSlug, 0, marketValueUsd)
+  await writePerWalletResult(realWriters, product, classifications, aggStats, net.networkSlug, 0, marketValueUsd)
+}
+
+/**
+ * Classify one (product, network) via the AGGREGATE multi-chain path — the sibling
+ * of classifyRwaNetworkIncremental for aggregateFlowsOnly funds (USDY). Everything
+ * upstream is IDENTICAL and shared: fetch/merge/persist (balances + cursor still
+ * written via apply_incremental_merge — needed for incremental resume and to source
+ * the aggregate metrics), casing, decimals guard, ATA resolution, and the market
+ * value + tripwire step. Only the WRITE TAIL differs:
+ *   • runIncrementalFetchMerge runs in mode:'aggregate' — it returns res.aggregateStats
+ *     (computed from state) and leaves res.classifications undefined.
+ *   • Writes ONLY holder_aggregate_stats (with the market_value_usd weight) and a
+ *     behavior_history row. NO per-wallet holder_classifications rows, NO name-tag
+ *     resolution (no rows to tag), NO stale-delete against holder_classifications.
+ * Mirrors the Etherscan aggregate branch in main() (computeAggregateStats →
+ * upsertAggregateStats → insertBehaviorHistory), sourced from merged rwa state.
+ */
+async function classifyRwaNetworkAggregate(
+  product: Product,
+  net: { networkId: number; networkSlug: string; addresses: string[]; caseSensitive: boolean; decimals: number },
+  nowTs: number,
+  supplyByToken: Map<string, TokenSupply> | null
+): Promise<void> {
+  const deps = await makeSupabaseDeps({
+    assetId: product.rwaAssetId!,
+    networkId: net.networkId,
+    decimals: net.decimals,
+    tokenAddresses: net.addresses,
+    caseSensitive: net.caseSensitive,
+  })
+
+  const res = await runIncrementalFetchMerge(
+    { productSlug: product.slug, network: net.networkSlug, mode: 'aggregate', nowTs, caseSensitive: net.caseSensitive },
+    deps
+  )
+  console.log(
+    `  fetched ${res.fetchedCount} (dedup-dropped ${res.dedupedBoundaryCount} boundary, ${res.newCount} new), ` +
+    `persisted ${res.merged.size} balance rows, cursor → ${res.newCursor?.lastTxTimestamp ?? '(unchanged)'}` +
+    ` (+${res.newCursor?.boundaryIds.length ?? 0} boundary id(s))`
+  )
+
+  const marketValueUsd = computeMarketValueAndReconcile(product, net, res, supplyByToken)
+
+  // Aggregate write tail. res.aggregateStats is computed by runIncrementalFetchMerge
+  // in aggregate mode (from the same positive state + window); classifications is
+  // undefined here by design. writeAggregateResult does the two writes only — no
+  // per-wallet rows, no name tags — see src/lib/rwa/multichain-write.ts.
+  await writeAggregateResult(realWriters, product, res.aggregateStats!, net.networkSlug, marketValueUsd)
 }
 
 /**
@@ -642,7 +659,15 @@ async function classifyRwaMultiChain(
     }
 
     console.log(`\n[${key}] incremental fetch-merge via rwa.xyz (${net.addresses.length} contract(s))…`)
-    await classifyRwaNetworkIncremental(product, net, nowTs, supplyByToken)
+    // Same fetch/merge/persist upstream; the write tail forks on the fund's mode
+    // (selectWriteMode). aggregateFlowsOnly (USDY) → aggregate stats + behavior
+    // only, no per-wallet rows. The backfill-in-progress guard above sits upstream
+    // of BOTH forks, so a network with incomplete state is skipped identically.
+    if (selectWriteMode(product) === 'aggregate') {
+      await classifyRwaNetworkAggregate(product, net, nowTs, supplyByToken)
+    } else {
+      await classifyRwaNetworkIncremental(product, net, nowTs, supplyByToken)
+    }
 
     progress.completedProducts.push(key)
     saveProgress(progress)
@@ -773,7 +798,7 @@ async function reanchorRwaNetwork(
   const marketValueUsd = aggSupply * nav
   const classifications = res.classifications!
   const aggStats = computeAggregateStatsFromState(res.positive, res.windowTransfers, nowTs, net.caseSensitive)
-  await enrichAndWriteClassifications(product, classifications, aggStats, net.networkSlug, 0, marketValueUsd, false)
+  await writePerWalletResult(realWriters, product, classifications, aggStats, net.networkSlug, 0, marketValueUsd, false)
 
   // Tripwire on the freshly-swapped state (now clean, except any source-side
   // corruption that reproduces — expected no-op on Solana until B3).

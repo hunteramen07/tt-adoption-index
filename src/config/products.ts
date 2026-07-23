@@ -189,24 +189,37 @@ export const PRODUCTS: Product[] = [
     rwaAssetId: 60,
     // USDY has TWO Ethereum tokens — native + "Certificate" (purchased-but-not-
     // -fully-unlocked USDY). Same fund/economic exposure; both kept (not collapsed).
+    //
+    // Per-token decimals are set explicitly for every INCLUDED network so the
+    // fetch-time decimals guard is a real assertion (a config↔rwa.xyz mismatch
+    // throws at fetch, not silently at 10^n scale) instead of the fund-level 18
+    // fallback. Probe-confirmed against rwa.xyz token.decimals. Both Ethereum tokens
+    // must share decimals (observableNetworks throws otherwise). 8 included networks;
+    // mantra/noble/sui are behaviorallyObservable:false and omit decimals — they
+    // never fetch, so USDY's fund-level rollup honestly spans only the 8 covered.
     tokens: [
-      { networkId: 1, networkSlug: 'ethereum', address: '0x96f6ef951840721adbf46ac996b59e0235cb985c', behaviorallyObservable: true },
-      { networkId: 1, networkSlug: 'ethereum', address: '0xe86845788d6e3e5c2393ade1a051ae617d974c09', behaviorallyObservable: true },
-      // Per-token decimals REQUIRED before backfilling: the fund-level 18 fallback
-      // would mis-scale Solana by 10^12 and the fetch-time decimals guard would
-      // throw. 6 is probe-confirmed against rwa.xyz's token.decimals (2026-07-20).
-      // Only Solana is set here (the network being backfilled first); the remaining
-      // USDY networks' per-token decimals land in the USDY migration proper.
+      { networkId: 1, networkSlug: 'ethereum', address: '0x96f6ef951840721adbf46ac996b59e0235cb985c', behaviorallyObservable: true, decimals: 18 },
+      { networkId: 1, networkSlug: 'ethereum', address: '0xe86845788d6e3e5c2393ade1a051ae617d974c09', behaviorallyObservable: true, decimals: 18 },
       { networkId: 2, networkSlug: 'solana', address: 'A1KLoBrKBde8Ty9qtNQUtq3C2ortoC3u7twggz7sEto6', behaviorallyObservable: true, decimals: 6 },
-      { networkId: 9, networkSlug: 'stellar', address: 'USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1', behaviorallyObservable: true },
-      { networkId: 11, networkSlug: 'arbitrum', address: '0x35e050d3c0ec2d29d269a8ecea763a183bdf9a9d', behaviorallyObservable: true },
-      { networkId: 14, networkSlug: 'noble', address: 'ausdy', behaviorallyObservable: true },
-      { networkId: 33, networkSlug: 'mantle', address: '0x5be26527e817998a7206475496fde1e68957c5a6', behaviorallyObservable: true },
-      { networkId: 37, networkSlug: 'sui', address: '0x960b531667636f39e85867775f52f6b1f220a058c4de786905bdf761e06a56bb::usdy::USDY', behaviorallyObservable: true },
-      { networkId: 38, networkSlug: 'aptos', address: '0xf0876baf6f8c37723f0e9d9c1bbad1ccb49324c228bcc906e2f1f5a9e139eda1', behaviorallyObservable: true },
-      { networkId: 42, networkSlug: 'mantra', address: 'ibc/6749D16BC09F419C090C330FC751FFF1C96143DB7A4D2FCAEC2F348A3E17618A', behaviorallyObservable: true },
-      { networkId: 48, networkSlug: 'plume', address: '0xd2b65e851be3d80d3c2ce795eb2e78f16cb088b2', behaviorallyObservable: true },
-      { networkId: 70, networkSlug: 'sei', address: '0x54cd901491aef397084453f4372b93c33260e2a6', behaviorallyObservable: true },
+      { networkId: 9, networkSlug: 'stellar', address: 'USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1', behaviorallyObservable: true, decimals: 7 },
+      { networkId: 11, networkSlug: 'arbitrum', address: '0x35e050d3c0ec2d29d269a8ecea763a183bdf9a9d', behaviorallyObservable: true, decimals: 18 },
+      // Noble — EXCLUDED: rwa.xyz returns zero data; zero-reporting would falsely
+      // claim coverage (zero rwa data ≠ zero holders — it means the network is
+      // uncovered). Marked not-observable; revisit if rwa ever indexes it.
+      { networkId: 14, networkSlug: 'noble', address: 'ausdy', behaviorallyObservable: false },
+      { networkId: 33, networkSlug: 'mantle', address: '0x5be26527e817998a7206475496fde1e68957c5a6', behaviorallyObservable: true, decimals: 18 },
+      // Sui — EXCLUDED: rwa.xyz returns zero data; zero-reporting would falsely
+      // claim coverage (zero rwa data ≠ zero holders — it means the network is
+      // uncovered). Marked not-observable; revisit if rwa ever indexes it.
+      { networkId: 37, networkSlug: 'sui', address: '0x960b531667636f39e85867775f52f6b1f220a058c4de786905bdf761e06a56bb::usdy::USDY', behaviorallyObservable: false },
+      { networkId: 38, networkSlug: 'aptos', address: '0xf0876baf6f8c37723f0e9d9c1bbad1ccb49324c228bcc906e2f1f5a9e139eda1', behaviorallyObservable: true, decimals: 6 },
+      // MANTRA — EXCLUDED: rwa.xyz reports decimals=1 but amounts carry ~14 dp — a
+      // broken/ambiguous upstream scale. The fetch-time decimals guard would
+      // (correctly) throw. Exclude until rwa fixes it or the true scale is confirmed
+      // on-chain (design Q5); no decimals set so it can't be fetched by accident.
+      { networkId: 42, networkSlug: 'mantra', address: 'ibc/6749D16BC09F419C090C330FC751FFF1C96143DB7A4D2FCAEC2F348A3E17618A', behaviorallyObservable: false },
+      { networkId: 48, networkSlug: 'plume', address: '0xd2b65e851be3d80d3c2ce795eb2e78f16cb088b2', behaviorallyObservable: true, decimals: 18 },
+      { networkId: 70, networkSlug: 'sei', address: '0x54cd901491aef397084453f4372b93c33260e2a6', behaviorallyObservable: true, decimals: 18 },
     ],
   },
   {
