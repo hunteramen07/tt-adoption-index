@@ -133,7 +133,7 @@ export const PRODUCTS: Product[] = [
     issuer: 'BlackRock',
     contractAddress: '0x7712c34205737192402172409a8F7ccef8aA2AEC',
     decimals: 6,
-    navUsd: 1.00,
+    navUsd: 1.00, // stable $1, re-verified 2026-07-22
     rwaAssetId: 2331,
     // Distributed class only. BUIDL-I (0x6a9da2...c89041, ~6 holders) is the
     // excluded restricted institutional class — deliberately NOT listed here.
@@ -151,7 +151,8 @@ export const PRODUCTS: Product[] = [
   {
     // Ondo US Government Bond — institutional, KYC-gated.
     // Token launched at $100 NAV (Jan 2023) and accrues T-bill yield.
-    // The navUsd below was read from Etherscan on 2026-06-11 — update monthly.
+    // The navUsd below was read from CoinGecko / rwa.xyz on 2026-07-22 — update
+    // monthly. Accrual-consistent with the prior 115.53 (2026-06-11).
     // NOTE: this address tracks Ethereum mainnet only (~39% of total OUSG AUM).
     // OUSG is also on XRP Ledger, Solana, and Polygon; multi-chain coverage TBD.
     slug: 'ousg',
@@ -160,8 +161,8 @@ export const PRODUCTS: Product[] = [
     issuer: 'Ondo Finance',
     contractAddress: '0x1B19C19393e2d034D8Ff31ff34c81252FcBbee92',
     decimals: 18,
-    navUsd: 115.53,
-    navAsOf: '2026-06-11',
+    navUsd: 115.96,
+    navAsOf: '2026-07-22',
     rwaAssetId: 57,
     tokens: [
       { networkId: 1, networkSlug: 'ethereum', address: '0x1b19c19393e2d034d8ff31ff34c81252fcbbee92', behaviorallyObservable: true, decimals: 18 },
@@ -173,7 +174,8 @@ export const PRODUCTS: Product[] = [
   {
     // Ondo US Dollar Yield — higher holder count than other products.
     // Per METHODOLOGY.md: aggregate flow stats only, no per-wallet classification.
-    // Token price accrues from $1; navUsd read from Etherscan on 2026-06-11.
+    // Token price accrues from $1; navUsd read from ondo.finance (issuer-direct)
+    // on 2026-07-22 — update monthly.
     // NOTE: Ethereum mainnet is ~45% of total USDY AUM (11 chains total).
     slug: 'usdy',
     name: 'Ondo US Dollar Yield',
@@ -181,8 +183,8 @@ export const PRODUCTS: Product[] = [
     issuer: 'Ondo Finance',
     contractAddress: '0x96F6eF951840721AdBF46Ac996b59E0235CB985C',
     decimals: 18,
-    navUsd: 1.13,
-    navAsOf: '2026-06-11',
+    navUsd: 1.1403,
+    navAsOf: '2026-07-22',
     aggregateFlowsOnly: true,
     rwaAssetId: 60,
     // USDY has TWO Ethereum tokens — native + "Certificate" (purchased-but-not-
@@ -226,8 +228,8 @@ export const PRODUCTS: Product[] = [
     // Invesco Short Duration US Government Securities Fund.
     // Managed by Invesco; tokenized on Superstate's platform (manager and
     // tokenization provider are now distinct — see tokenizationPlatform).
-    // Accumulating fund — token price accrues from $1; NAV ~$11.08 verified
-    // 2026-06-16 (rwa.xyz $11.06, CoinGecko $11.10, AUM÷supply $11.06).
+    // Accumulating fund — token price accrues from $1; NAV ~$11.13 verified
+    // 2026-07-22 (rwa.xyz NAV, accrual-consistent from the 2026-06-16 $11.08).
     slug: 'ustb',
     name: 'Invesco Short Duration US Government Securities Fund',
     symbol: 'USTB',
@@ -235,8 +237,8 @@ export const PRODUCTS: Product[] = [
     tokenizationPlatform: 'Superstate',
     contractAddress: '0x43415eB6ff9DB7E26A15b704e7A3eDCe97d31C4e',
     decimals: 6,
-    navUsd: 11.08,
-    navAsOf: '2026-06-16',
+    navUsd: 11.13,
+    navAsOf: '2026-07-22',
     rwaAssetId: 1385,
     tokens: [
       { networkId: 1, networkSlug: 'ethereum', address: '0x43415eb6ff9db7e26a15b704e7a3edce97d31c4e', behaviorallyObservable: true, decimals: 6 },
@@ -248,7 +250,8 @@ export const PRODUCTS: Product[] = [
     // Hashnote US Yield Coin.
     // Primary issuer is now Circle (Circle acquired Hashnote, which originated
     // it); Hashnote recorded as the originating platform — see tokenizationPlatform.
-    // Token price accrues from $1; navUsd read from Etherscan on 2026-06-11.
+    // Token price accrues from $1; navUsd from the Hashnote issuer price API
+    // (usyc.hashnote.com/api/price, roundId 474) on 2026-07-22 — update monthly.
     // NOTE: Ethereum mainnet is ~2.9% of total USYC AUM (Solana + BNB hold the rest).
     slug: 'usyc',
     name: 'Hashnote US Yield Coin',
@@ -257,8 +260,8 @@ export const PRODUCTS: Product[] = [
     tokenizationPlatform: 'Hashnote',
     contractAddress: '0x136471a34f6ef19fE571EFFC1CA711fdb8E49f2b',
     decimals: 6,
-    navUsd: 1.13,
-    navAsOf: '2026-06-11',
+    navUsd: 1.1318,
+    navAsOf: '2026-07-22',
     rwaAssetId: 51,
     tokens: [
       { networkId: 1, networkSlug: 'ethereum', address: '0x136471a34f6ef19fe571effc1ca711fdb8e49f2b', behaviorallyObservable: true, decimals: 6 },
