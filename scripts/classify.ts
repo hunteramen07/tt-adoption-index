@@ -90,6 +90,8 @@ import { getSupabase } from '@/src/lib/supabase/client'
 import { makeSupabaseDeps, runIncrementalFetchMerge } from '@/src/lib/rwa/incremental'
 import { mergeTransfers, computeNewCursor, dedupBoundary } from '@/src/lib/rwa/incremental'
 import type { BalanceStateMap, IncrementalDeps, FetchCursor } from '@/src/lib/rwa/incremental'
+import type { RunBudget } from '@/src/lib/rwa/backfill-budget'
+import { runSequentialUntilBudget } from '@/src/lib/rwa/backfill-budget'
 import { fetchAssetSupplyByToken, sumSupplyForNetwork } from '@/src/lib/rwa/assets'
 import type { TokenSupply } from '@/src/lib/rwa/assets'
 import { fetchTransfersWindowRWA, fetchEarliestTxDate } from '@/src/lib/rwa/transfers'
@@ -834,16 +836,25 @@ const BACKFILL_ALLOWED: Record<string, Set<string>> = {
   usdy: new Set(['solana']),
 }
 
-/** Per-run request budget (pages). Stays under rwa.xyz's 120/hr with headroom for
- *  the nightly's ~10-15 requests if they land in the same rolling hour. NOTE: this
- *  is per-NETWORK; only one network is enabled today, so it is also the per-run
- *  total. Enabling multiple networks at once would need a shared run budget. */
+/** Per-run request budget (pages) — a SINGLE shared pool drawn down across every
+ *  in-progress (fund, network) in the run, not one budget per network. Stays under
+ *  rwa.xyz's 120/hr with headroom for the nightly's ~10-15 requests if they land in
+ *  the same rolling hour: even a worst-case backfill+nightly overlap (80 + ~15) sits
+ *  under 120, and the shared pool means adding networks does NOT scale the spend —
+ *  two networks share these 80 pages rather than spending 80 each. See
+ *  src/lib/rwa/backfill-budget.ts for the sequential-exhaust allocation policy. */
 const BACKFILL_PER_RUN_PAGES = 80
 /** Adaptive window target: size each window toward ~this many pages. */
 const BACKFILL_TARGET_PAGES = 40
 const BACKFILL_MIN_SPAN_DAYS = 1
 const BACKFILL_MAX_SPAN_DAYS = 60
 const BACKFILL_INITIAL_SPAN_DAYS = 30
+
+/** A rwa.xyz 429 surfaces as a thrown Error whose message carries `HTTP 429` (the
+ *  http layer keeps its `… failed (page N): HTTP <status> — <body>` shape stable and
+ *  does NOT retry 429s). A 429 is a global rate-limit signal, so the backfill uses it
+ *  to end the whole run — not just the offending network. */
+const isRateLimitError = (err: Error) => /HTTP 429\b/.test(err.message)
 
 const clampSpan = (n: number) => Math.max(BACKFILL_MIN_SPAN_DAYS, Math.min(BACKFILL_MAX_SPAN_DAYS, n))
 /** Unix seconds → 'YYYY-MM-DD' (UTC). */
@@ -912,13 +923,23 @@ async function markBackfillComplete(slug: string, network: string): Promise<void
 async function backfillRwaNetwork(
   product: Product,
   net: { networkId: number; networkSlug: string; addresses: string[]; caseSensitive: boolean; decimals: number },
-  nowTs: number
+  nowTs: number,
+  budget: RunBudget
 ): Promise<void> {
   const tag = `${product.slug}:${net.networkSlug}`
 
   const status = await backfillStatus(product.slug, net.networkSlug)
   if (status === 'complete') {
     console.log(`  ${tag}: backfill already complete — nothing to do`)
+    return
+  }
+
+  // Sequential-exhaust: if the shared pool is already dry, do NOTHING here — no
+  // in-progress mark, no state load — and leave this network for the next slot.
+  // (A no-op window loop would still mark a fresh network in-progress with zero
+  // rows, so gate before any side effect.)
+  if (budget.remaining <= 0) {
+    console.log(`  ${tag}: run page pool exhausted — deferring to next slot`)
     return
   }
 
@@ -955,9 +976,11 @@ async function backfillRwaNetwork(
   }
 
   let spanDays = BACKFILL_INITIAL_SPAN_DAYS
-  let pagesThisRun = 0
+  let pagesThisNetwork = 0
 
-  while (pagesThisRun < BACKFILL_PER_RUN_PAGES) {
+  // Draw from the SHARED run pool: this network keeps taking windows until the
+  // pool (not a per-network budget) is dry or it catches up to the present.
+  while (budget.remaining > 0) {
     if (frontierDay >= todayDay) {
       console.log(`  ${tag}: reached present (${frontierDay} ≥ ${todayDay}) — backfill COMPLETE`)
       await markBackfillComplete(product.slug, net.networkSlug)
@@ -969,7 +992,8 @@ async function backfillRwaNetwork(
     const { transfers, pages } = await fetchTransfersWindowRWA(
       product.rwaAssetId!, net.networkId, net.decimals, net.addresses, frontierDay, windowEnd
     )
-    pagesThisRun += pages
+    pagesThisNetwork += pages
+    budget.remaining -= pages
 
     // Dedup the inclusive-gte boundary day already processed last window, merge,
     // and checkpoint. Windows are disjoint [start,end), so this only ever removes
@@ -998,20 +1022,21 @@ async function backfillRwaNetwork(
 
     console.log(
       `  ${tag}: window [${frontierDay}…] done — ${pages}pg, ${newTransfers.length} new, ` +
-      `${state.size} rows; next span ${spanDays}d; run pages ${pagesThisRun}/${BACKFILL_PER_RUN_PAGES}`
+      `${state.size} rows; next span ${spanDays}d; net pages ${pagesThisNetwork}; pool ${budget.remaining}/${BACKFILL_PER_RUN_PAGES} left`
     )
   }
 
   console.log(
-    `  ${tag}: per-run page budget reached (${pagesThisRun}/${BACKFILL_PER_RUN_PAGES}) — resumes next run from ${cursor?.lastTxTimestamp}`
+    `  ${tag}: shared run pool exhausted (this network took ${pagesThisNetwork}pg) — resumes next run from ${cursor?.lastTxTimestamp}`
   )
   console.log(`  ${tag}: tripwire skipped — EXPECTED-partial (backfill in progress, state incomplete by design)`)
 }
 
-/** Backfill every enabled network of a fund. Per-network errors are isolated;
- *  per-window atomicity means a failure never loses prior chunks. Cleanly no-ops
- *  when nothing is enabled or everything is already complete. */
-async function backfillRwaFund(product: Product, nowTs: number): Promise<void> {
+/** Backfill every enabled network of a fund, drawing from the shared run `budget`
+ *  (sequential-exhaust, config order). Non-429 per-network errors are isolated; a
+ *  429 drains the pool to end the run. Per-window atomicity means a failure never
+ *  loses prior chunks. Cleanly no-ops when nothing is enabled or already complete. */
+async function backfillRwaFund(product: Product, nowTs: number, budget: RunBudget): Promise<void> {
   if (product.rwaAssetId == null) {
     console.error(`[${product.slug}] no rwaAssetId — backfill needs rwa.xyz config. Skipping.`)
     return
@@ -1021,20 +1046,37 @@ async function backfillRwaFund(product: Product, nowTs: number): Promise<void> {
     console.log(`[${product.slug}] not enabled for chunked backfill — clean no-op.`)
     return
   }
-  const networks = observableNetworks(product)
+  const networks = observableNetworks(product).filter((net) => allowed.has(net.networkSlug))
   console.log(`\n[${product.slug}] BACKFILL (chunked, resumable) — enabled network(s): ${[...allowed].join(', ')}`)
 
-  for (const net of networks) {
-    if (!allowed.has(net.networkSlug)) continue
+  // Sequential-exhaust across this fund's networks (config order), all drawing
+  // from the shared run pool; once it is dry, the remaining networks wait for the
+  // next slot. Per-window atomicity means any failure never loses prior chunks, so
+  // the run always ends gracefully with everything checkpointed. Error handling:
+  //   • a 429 is a GLOBAL rate-limit signal — draining the pool to zero ends the
+  //     whole run (this fund's remaining networks AND later funds share the pool),
+  //     so we stop instead of hammering the API network-by-network while limited;
+  //   • any other per-network error stays ISOLATED (log, next network continues),
+  //     preserving the original "one bad network never aborts the fund" behaviour.
+  await runSequentialUntilBudget(networks, budget, async (net) => {
     try {
-      await backfillRwaNetwork(product, net, nowTs)
+      await backfillRwaNetwork(product, net, nowTs, budget)
     } catch (err) {
-      console.error(
-        `  ERROR ${product.slug}:${net.networkSlug} backfill window failed — prior chunks preserved ` +
-        `(per-window atomic); resumes next run: ${(err as Error).message}`
-      )
+      const e = err as Error
+      if (isRateLimitError(e)) {
+        console.error(
+          `  ${product.slug}:${net.networkSlug} hit rwa.xyz rate limit (429) — ending run gracefully; ` +
+          `prior chunks checkpointed, resumes next slot: ${e.message}`
+        )
+        budget.remaining = 0 // stop all remaining networks/funds via the pool guard
+      } else {
+        console.error(
+          `  ERROR ${product.slug}:${net.networkSlug} backfill window failed — prior chunks preserved ` +
+          `(per-window atomic); resumes next run: ${e.message}`
+        )
+      }
     }
-  }
+  })
   console.log(`[${product.slug}] backfill pass complete`)
 }
 
@@ -1091,15 +1133,19 @@ async function main() {
     if (slugs.length === 0) {
       console.log('no funds enabled for backfill (BACKFILL_ALLOWED is empty) — clean no-op.')
     }
-    for (const slug of slugs) {
-      const product = ACTIVE_PRODUCTS.find((p) => p.slug === slug)
-      if (!product) {
-        console.error(`[${slug}] not found in ACTIVE_PRODUCTS. Skipping.`)
-        continue
-      }
-      await backfillRwaFund(product, nowTs)
-    }
-    console.log('\n=== backfill done ===')
+    // ONE shared page pool for the whole run, drawn down across every fund and
+    // network in config order (sequential-exhaust). This — not a per-network
+    // budget — is what keeps a multi-network run under rwa.xyz's 120/hr.
+    const budget: RunBudget = { remaining: BACKFILL_PER_RUN_PAGES }
+    const products = slugs
+      .map((slug) => {
+        const product = ACTIVE_PRODUCTS.find((p) => p.slug === slug)
+        if (!product) console.error(`[${slug}] not found in ACTIVE_PRODUCTS. Skipping.`)
+        return product
+      })
+      .filter((p): p is Product => p != null)
+    await runSequentialUntilBudget(products, budget, (product) => backfillRwaFund(product, nowTs, budget))
+    console.log(`\n=== backfill done (${BACKFILL_PER_RUN_PAGES - budget.remaining}/${BACKFILL_PER_RUN_PAGES} pool pages spent) ===`)
     return
   }
 
