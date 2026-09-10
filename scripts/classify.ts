@@ -894,6 +894,24 @@ const BACKFILL_PER_RUN_PAGES = 80
  *  does NOT retry 429s). A 429 is a global rate-limit signal, so the backfill uses it
  *  to end the whole run — not just the offending network. */
 const isRateLimitError = (err: Error) => /HTTP 429\b/.test(err.message)
+
+/**
+ * Is this failure evidence the WINDOW WAS TOO BIG, i.e. should the adaptive span
+ * shrink? Only transport-shaped failures qualify: a 429 (rate limit), a per-request
+ * timeout, or an exhausted 5xx retry — all of which a smaller window plausibly avoids.
+ *
+ * Everything else is DETERMINISTIC: a decimals mismatch, a null counterparty on a
+ * non-mint/burn, an unresolvable Solana address. Re-opening a half-sized window cannot
+ * fix any of them, and halving on them is actively harmful — it drives the span to the
+ * 1-day floor and then re-opens the identical failing window every slot, forever. That
+ * is exactly how USDY Solana sat frozen at [2025-11-13, +1d) for seven weeks: the
+ * closed-ATA guard fired, the span shrank, and the next slot re-derived the same
+ * window. See _local/solana-ata-resolution-design.md §A7.
+ */
+const isWindowSizeFailure = (err: Error) =>
+  isRateLimitError(err) ||
+  /timed out \(page \d+\)/.test(err.message) ||
+  /HTTP 5\d\d\b/.test(err.message)
 /** Unix seconds → 'YYYY-MM-DD' (UTC). */
 const toDayStr = (unixSec: number) => new Date(unixSec * 1000).toISOString().slice(0, 10)
 /** Add n days to a 'YYYY-MM-DD' day string (UTC). */
@@ -1082,16 +1100,27 @@ async function backfillRwaNetwork(
         product.rwaAssetId!, net.networkId, net.decimals, net.addresses, frontierDay, windowEnd
       )
     } catch (err) {
-      // Shrink-on-failure: this span was too big for the frontier/era (429 or timeout
-      // mid-window). Halve it and PERSIST so the NEXT slot retries a smaller window —
-      // a 429 must still drain the pool and end the run (not an in-run retry). The
-      // window itself was discarded before writeBack, so the cursor is unmoved.
-      const shrunk = halveSpanOnFailure(openSpan)
-      console.warn(
-        `  ${tag}: window [${frontierDay}, +${openSpan}d) failed — halving span to ${shrunk}d for ` +
-        `next slot: ${(err as Error).message.slice(0, 100)}`
-      )
-      await saveBackfillSpanDays(product.slug, net.networkSlug, shrunk)
+      const e = err as Error
+      if (isWindowSizeFailure(e)) {
+        // Shrink-on-failure: this span was too big for the frontier/era (429 or timeout
+        // mid-window). Halve it and PERSIST so the NEXT slot retries a smaller window —
+        // a 429 must still drain the pool and end the run (not an in-run retry). The
+        // window itself was discarded before writeBack, so the cursor is unmoved.
+        const shrunk = halveSpanOnFailure(openSpan)
+        console.warn(
+          `  ${tag}: window [${frontierDay}, +${openSpan}d) failed — halving span to ${shrunk}d for ` +
+          `next slot: ${e.message.slice(0, 100)}`
+        )
+        await saveBackfillSpanDays(product.slug, net.networkSlug, shrunk)
+      } else {
+        // Deterministic failure — a smaller window re-derives it identically, so the
+        // span is left ALONE (shrinking it here is what froze USDY Solana). Surface it
+        // in full: these errors name what to fix.
+        console.error(
+          `  ${tag}: window [${frontierDay}, +${openSpan}d) failed DETERMINISTICALLY — span left at ` +
+          `${openSpan}d (a smaller window would fail identically). Needs a fix, not a retry:\n${e.message}`
+        )
+      }
       throw err // preserve 429-drains-pool / graceful-end semantics
     }
     const { transfers, pages } = windowResult

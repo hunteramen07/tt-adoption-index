@@ -21,10 +21,26 @@
 import type { ERC20Transfer } from '@/src/lib/etherscan/types'
 import { fetchRwaJson } from '@/src/lib/rwa/http'
 import { resolveAndDedupSolana, SOLANA_NETWORK_ID } from '@/src/lib/rwa/solana-resolve'
+import type { EscalationFetch, ResolveOptions } from '@/src/lib/rwa/solana-resolve'
+import { makeSupabaseAtaOwnerStore } from '@/src/lib/rwa/ata-owner-store'
 
 const TRANSACTIONS_URL = 'https://api.rwa.xyz/v4/transactions'
 const PER_PAGE = 1000
 const THROTTLE_MS = 600
+
+// ── Cross-window escalation bounds ──────────────────────────────────────────
+// A closed ATA with no twin inside the fetched window is rare (~1 per dash-era day
+// window, probe 2026-09-10) but must not stall the backfill, so we widen the pairing
+// corpus with a couple of extra requests. Every bound below is a hard cap: escalation
+// exists to unstick a boundary artifact, never to become a second crawler.
+/** Addresses escalated per call. Beyond this, something systemic is wrong — the rest
+ *  fail loud rather than being papered over by an unbounded fan-out. */
+const ESCALATION_MAX_ADDRESSES = 100
+/** Transaction hashes probed for twins (a handful of records per address suffices). */
+const ESCALATION_MAX_HASHES = 100
+/** Total pages one escalation may spend, across BOTH of its queries. */
+const ESCALATION_MAX_PAGES = 4
+
 // Mint/burn counterparty marker — matches the zero-address string EVM uses, so
 // the classify engine treats coerced Solana mints/burns identically to EVM ones.
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
@@ -156,6 +172,145 @@ export function normalizeTransaction(tx: RwaTransaction, decimals: number): RwaT
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
 
 /**
+ * Post-filter one page to the allowed token address(es), assert the configured
+ * decimals, and normalize into RwaTransfer. Shared by every puller so the token
+ * filter (Finding #2, excludes BUIDL-I) and the decimals guard cannot drift apart.
+ */
+function collectResults(
+  results: readonly RwaTransaction[],
+  allowed: Set<string>,
+  decimals: number,
+  networkId: number,
+  out: RwaTransfer[]
+): void {
+  for (const tx of results) {
+    // Post-filter to the allowed token address(es) — excludes BUIDL-I etc.
+    if (!allowed.has(tx.token.address.toLowerCase())) continue
+    // Guard: the configured decimals MUST match what rwa.xyz reports for this token,
+    // or toRawUnits would silently mis-scale raw balances by a power of ten.
+    if (tx.token.decimals !== decimals) {
+      throw new Error(
+        `rwa.xyz decimals mismatch (network ${networkId}, token ${tx.token.address}): ` +
+        `config ${decimals} vs rwa.xyz ${tx.token.decimals}`
+      )
+    }
+    out.push(normalizeTransaction(tx, decimals))
+  }
+}
+
+/** Build the `query` URL for one /v4/transactions page. */
+function transactionsUrl(
+  filters: ReadonlyArray<Record<string, unknown>>,
+  page: number,
+  perPage: number
+): string {
+  const query = {
+    filter: { operator: 'and', filters },
+    // id-sort: deterministic, non-overlapping pagination (date-sort caused
+    // progressive page timeouts). The engine is order-invariant.
+    sort: { field: 'id', direction: 'asc' },
+    pagination: { page, perPage },
+  }
+  return `${TRANSACTIONS_URL}?query=${encodeURIComponent(JSON.stringify(query))}`
+}
+
+/**
+ * Cross-window escalation for the Solana resolver (ladder rung 5).
+ *
+ * Given closed ATAs that no twin in the fetched window could resolve, pull enough
+ * extra records to pair them from elsewhere in history — in TWO queries for the whole
+ * set, not per address:
+ *
+ *   1. every record naming any unresolved address (`in` on to_address / from_address),
+ *      which yields that address's dash records and their transaction hashes;
+ *   2. every record of those hashes, which brings in the underscore twins — they carry
+ *      DIFFERENT addresses by construction, so query 1 cannot return them.
+ *
+ * The caller's `pageCounter` accumulates pages spent so the backfill's per-run request
+ * budget still sees them; escalation is never free of the 120/hr ceiling.
+ *
+ * Returns [] (rather than throwing) when nothing useful comes back — the resolver then
+ * fails loud with its own, far more diagnosable message.
+ */
+export function makeEscalationFetch(
+  assetId: number,
+  networkId: number,
+  decimals: number,
+  tokenAddresses: string[],
+  apiKey: string,
+  pageCounter?: { pages: number }
+): EscalationFetch {
+  const allowed = new Set(tokenAddresses.map((a) => a.toLowerCase()))
+  const base = [
+    { operator: 'equals', field: 'asset_id', value: assetId },
+    { operator: 'equals', field: 'network_id', value: networkId },
+  ]
+
+  return async (addresses: string[]): Promise<RwaTransfer[]> => {
+    const targets = addresses.slice(0, ESCALATION_MAX_ADDRESSES)
+    if (targets.length === 0) return []
+    let pagesLeft = ESCALATION_MAX_PAGES
+    const out: RwaTransfer[] = []
+
+    const spend = async (filters: ReadonlyArray<Record<string, unknown>>, label: string) => {
+      let page = 1
+      let pageCount = 1
+      while (page <= pageCount && pagesLeft > 0) {
+        const data = await fetchRwaJson<RwaTransactionsResponse>(
+          transactionsUrl(filters, page, PER_PAGE), '/v4/transactions', page, apiKey
+        )
+        pageCount = data.pagination.pageCount
+        pagesLeft--
+        if (pageCounter) pageCounter.pages++
+        collectResults(data.results, allowed, decimals, networkId, out)
+        console.log(`[solana-resolve] escalation ${label} page ${page}/${pageCount} (${out.length} records)`)
+        page++
+        if (page <= pageCount && pagesLeft > 0) await sleep(THROTTLE_MS)
+      }
+    }
+
+    console.log(`[solana-resolve] escalating ${targets.length} unresolved closed ATA(s) — up to ${ESCALATION_MAX_PAGES} extra page(s)`)
+    await spend(
+      [...base, { operator: 'or', filters: [
+        { operator: 'in', field: 'to_address', value: targets },
+        { operator: 'in', field: 'from_address', value: targets },
+      ] }],
+      'by-address'
+    )
+
+    // Only the dash records need twins; take their hashes (bounded), then pull every
+    // record of those transactions so the underscore side comes with them.
+    const hashes = [...new Set(out.filter((t) => !t.id.includes('_')).map((t) => t.hash))]
+      .slice(0, ESCALATION_MAX_HASHES)
+    if (hashes.length > 0 && pagesLeft > 0) {
+      await sleep(THROTTLE_MS)
+      await spend([...base, { operator: 'in', field: 'transaction_hash', value: hashes }], 'by-hash')
+    }
+    return out
+  }
+}
+
+/**
+ * Default Solana resolve options: the on-chain lookup (built in), the persisted
+ * ATA→owner map, and cross-window escalation. Callers that pass their own
+ * `options.resolve` get it verbatim — that is the offline/test override path, and it
+ * deliberately does NOT merge, so a test can prove behaviour with escalation absent.
+ */
+function defaultResolveOptions(
+  assetId: number,
+  networkId: number,
+  decimals: number,
+  tokenAddresses: string[],
+  apiKey: string,
+  pageCounter?: { pages: number }
+): ResolveOptions {
+  return {
+    store: makeSupabaseAtaOwnerStore(),
+    escalate: makeEscalationFetch(assetId, networkId, decimals, tokenAddresses, apiKey, pageCounter),
+  }
+}
+
+/**
  * Fetch + normalize all transactions for one (asset, network), paginating
  * rwa.xyz /v4/transactions and post-filtering to the allowed token addresses.
  *
@@ -182,7 +337,7 @@ export async function fetchTransfersRWA(
   networkId: number,
   decimals: number,
   tokenAddresses: string[],
-  options: { maxPages?: number; sinceDate?: string } = {}
+  options: { maxPages?: number; sinceDate?: string; resolve?: ResolveOptions } = {}
 ): Promise<RwaTransfer[]> {
   const apiKey = process.env.RWA_API_KEY
   if (!apiKey) throw new Error('RWA_API_KEY environment variable is not set')
@@ -204,39 +359,13 @@ export async function fetchTransfersRWA(
   let pageCount = 1 // updated from the first response
 
   while (page <= pageCount && page <= maxPages) {
-    const query = {
-      filter: {
-        operator: 'and',
-        filters,
-      },
-      // Sort on the stable `id` key, not `date`: gives deterministic,
-      // non-overlapping pagination cheaply (date-sort caused progressive page
-      // timeouts). The classify engine is order-invariant, so id-order is fine.
-      sort: { field: 'id', direction: 'asc' },
-      pagination: { page, perPage: PER_PAGE },
-    }
-
-    // rwa.xyz /v4 takes the query object as a single URL-encoded `query` param.
-    const url = `${TRANSACTIONS_URL}?query=${encodeURIComponent(JSON.stringify(query))}`
-
-    // Fetch with per-request timeout + transient-failure retry (shared helper).
-    const data = await fetchRwaJson<RwaTransactionsResponse>(url, '/v4/transactions', page, apiKey)
+    // Per-request timeout + transient-failure retry (shared helper).
+    const data = await fetchRwaJson<RwaTransactionsResponse>(
+      transactionsUrl(filters, page, PER_PAGE), '/v4/transactions', page, apiKey
+    )
     pageCount = data.pagination.pageCount
 
-    for (const tx of data.results) {
-      // Post-filter to the allowed token address(es) — excludes BUIDL-I etc.
-      if (!allowed.has(tx.token.address.toLowerCase())) continue
-      // Guard: the configured decimals MUST match what rwa.xyz reports for this
-      // token, or toRawUnits would silently mis-scale raw balances by a power of
-      // ten. Fires for every rwa-path network (confirms fund-level fallbacks too).
-      if (tx.token.decimals !== decimals) {
-        throw new Error(
-          `rwa.xyz decimals mismatch (network ${networkId}, token ${tx.token.address}): ` +
-          `config ${decimals} vs rwa.xyz ${tx.token.decimals}`
-        )
-      }
-      out.push(normalizeTransaction(tx, decimals))
-    }
+    collectResults(data.results, allowed, decimals, networkId, out)
 
     console.log(`[rwa] fetched page ${page}/${pageCount} (${out.length} transfers so far)`)
 
@@ -246,7 +375,12 @@ export async function fetchTransfersRWA(
 
   // Solana-only: resolve ATA→owner and dedup the dual-feed twins so everything
   // downstream keys on owner wallets. No-op (byte-identical) for every other chain.
-  if (networkId === SOLANA_NETWORK_ID) return resolveAndDedupSolana(out)
+  if (networkId === SOLANA_NETWORK_ID) {
+    return resolveAndDedupSolana(
+      out,
+      options.resolve ?? defaultResolveOptions(assetId, networkId, decimals, tokenAddresses, apiKey)
+    )
+  }
   return out
 }
 
@@ -269,7 +403,8 @@ export async function fetchTransfersWindowRWA(
   decimals: number,
   tokenAddresses: string[],
   gteDate: string,
-  ltDate: string
+  ltDate: string,
+  options: { resolve?: ResolveOptions } = {}
 ): Promise<{ transfers: RwaTransfer[]; pages: number }> {
   const apiKey = process.env.RWA_API_KEY
   if (!apiKey) throw new Error('RWA_API_KEY environment variable is not set')
@@ -289,40 +424,38 @@ export async function fetchTransfersWindowRWA(
   let pagesFetched = 0
 
   while (page <= pageCount) {
-    const query = {
-      filter: { operator: 'and', filters },
-      // id-sort, same as the unbounded pull: deterministic, non-overlapping
-      // pagination. The date bounds narrow the set; order within is irrelevant
-      // (the merge is order-invariant and the caller dedups the boundary day).
-      sort: { field: 'id', direction: 'asc' },
-      pagination: { page, perPage: PER_PAGE },
-    }
-    const url = `${TRANSACTIONS_URL}?query=${encodeURIComponent(JSON.stringify(query))}`
-
-    const data = await fetchRwaJson<RwaTransactionsResponse>(url, '/v4/transactions', page, apiKey)
+    // id-sort, same as the unbounded pull: deterministic, non-overlapping
+    // pagination. The date bounds narrow the set; order within is irrelevant
+    // (the merge is order-invariant and the caller dedups the boundary day).
+    const data = await fetchRwaJson<RwaTransactionsResponse>(
+      transactionsUrl(filters, page, PER_PAGE), '/v4/transactions', page, apiKey
+    )
     pageCount = data.pagination.pageCount
     pagesFetched++
 
-    for (const tx of data.results) {
-      if (!allowed.has(tx.token.address.toLowerCase())) continue
-      if (tx.token.decimals !== decimals) {
-        throw new Error(
-          `rwa.xyz decimals mismatch (network ${networkId}, token ${tx.token.address}): ` +
-          `config ${decimals} vs rwa.xyz ${tx.token.decimals}`
-        )
-      }
-      out.push(normalizeTransaction(tx, decimals))
-    }
+    collectResults(data.results, allowed, decimals, networkId, out)
 
     console.log(`[rwa] window [${gteDate},${ltDate}) page ${page}/${pageCount} (${out.length} transfers)`)
     page++
     if (page <= pageCount) await sleep(THROTTLE_MS)
   }
 
-  // Solana-only: resolve ATA→owner + dedup twins (see fetchTransfersRWA). The page
-  // count is the request count and is unaffected by post-fetch dedup.
-  const transfers = networkId === SOLANA_NETWORK_ID ? await resolveAndDedupSolana(out) : out
-  return { transfers, pages: pagesFetched }
+  // Solana-only: resolve ATA→owner + dedup twins (see fetchTransfersRWA). Pages spent
+  // on a cross-window escalation are counted into the returned total so the backfill's
+  // per-run pool sees every request this window cost. Post-fetch dedup does not affect
+  // the count — it is a request count, not a record count. (If resolution THROWS, the
+  // ≤4 escalation pages go unbilled: the caller discards the window and this network's
+  // run ends, so the pool only under-counts by that bounded amount for the run's other
+  // networks. Accepted rather than restructured — see design doc §A4.)
+  if (networkId !== SOLANA_NETWORK_ID) return { transfers: out, pages: pagesFetched }
+
+  const escalationPages = { pages: 0 }
+  const transfers = await resolveAndDedupSolana(
+    out,
+    options.resolve ??
+      defaultResolveOptions(assetId, networkId, decimals, tokenAddresses, apiKey, escalationPages)
+  )
+  return { transfers, pages: pagesFetched + escalationPages.pages }
 }
 
 /**
