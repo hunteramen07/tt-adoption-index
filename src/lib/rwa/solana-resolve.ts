@@ -49,6 +49,7 @@
  */
 
 import type { RwaTransfer } from '@/src/lib/rwa/transfers'
+import { getMultipleAccounts, rpcEndpoints } from '@/src/lib/rwa/solana-rpc'
 
 /** rwa.xyz network_id for Solana — the only dual-feed chain. */
 export const SOLANA_NETWORK_ID = 2
@@ -64,22 +65,6 @@ const TOKEN_PROGRAM_IDS = new Set([
   'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
   'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
 ])
-
-const DEFAULT_RPC_ENDPOINTS = [
-  'https://api.mainnet-beta.solana.com',
-  'https://solana-rpc.publicnode.com',
-  'https://solana.drpc.org',
-]
-
-/** RPC endpoints, overridable via SOLANA_RPC_URLS (comma-separated). */
-function rpcEndpoints(): string[] {
-  const env = process.env.SOLANA_RPC_URLS
-  if (env) {
-    const list = env.split(',').map((s) => s.trim()).filter(Boolean)
-    if (list.length > 0) return list
-  }
-  return DEFAULT_RPC_ENDPOINTS
-}
 
 /**
  * Low-level account→owner lookup. For each address returns:
@@ -122,58 +107,6 @@ export interface ResolveOptions {
   store?: AtaOwnerStore
   /** Cross-window escalation. Omit to fail loud as soon as in-window pairing misses. */
   escalate?: EscalationFetch
-}
-
-interface ParsedAccount {
-  owner: string
-  data?: { parsed?: { type?: string; info?: { owner?: string } } }
-}
-
-const RPC_TIMEOUT_MS = 30_000
-const RPC_ATTEMPTS_PER_ENDPOINT = 2
-
-/** One getMultipleAccounts call (≤100 addresses) with endpoint fallback + retry.
- *  Throws if EVERY endpoint fails — resolution never guesses on RPC failure. */
-async function getMultipleAccounts(addresses: string[], endpoints: string[]): Promise<(ParsedAccount | null)[]> {
-  const body = JSON.stringify({
-    jsonrpc: '2.0',
-    id: 1,
-    method: 'getMultipleAccounts',
-    params: [addresses, { encoding: 'jsonParsed' }],
-  })
-  let lastErr: Error | null = null
-  for (const url of endpoints) {
-    for (let attempt = 0; attempt < RPC_ATTEMPTS_PER_ENDPOINT; attempt++) {
-      const controller = new AbortController()
-      const timeout = setTimeout(() => controller.abort(), RPC_TIMEOUT_MS)
-      try {
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body,
-          signal: controller.signal,
-        })
-        if (!res.ok) {
-          lastErr = new Error(`HTTP ${res.status} from ${url}`)
-          continue
-        }
-        const j = (await res.json()) as { result?: { value?: (ParsedAccount | null)[] }; error?: unknown }
-        if (j.error) {
-          lastErr = new Error(`RPC error from ${url}: ${JSON.stringify(j.error)}`)
-          continue
-        }
-        if (j.result?.value) return j.result.value
-        lastErr = new Error(`malformed getMultipleAccounts response from ${url}`)
-      } catch (err) {
-        lastErr = controller.signal.aborted ? new Error(`timeout after ${RPC_TIMEOUT_MS}ms from ${url}`) : (err as Error)
-      } finally {
-        clearTimeout(timeout)
-      }
-    }
-  }
-  throw new Error(
-    `[solana-resolve] getMultipleAccounts failed on all ${endpoints.length} endpoint(s): ${lastErr?.message ?? 'unknown'}`
-  )
 }
 
 /** Default lookup: batched getMultipleAccounts, token account → owner, else self,
