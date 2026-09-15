@@ -1164,8 +1164,34 @@ async function backfillRwaNetwork(
   } else {
     const earliest = await fetchEarliestTxDate(product.rwaAssetId!, net.networkId)
     if (earliest == null) {
-      console.log(`  ${tag}: no transactions on this network — marking complete`)
-      await markBackfillComplete(product.slug, net.networkSlug)
+      // NEVER mark complete here. Completion requires a persisted cursor (≥1 window
+      // written); an empty first answer is not proof there is nothing to fill.
+      // usdy:aptos was flagged complete with 0 rows / null cursor on 2026-07-25 by
+      // exactly this rung, while rwa.xyz holds ~12k Aptos transactions (its feed was
+      // evidently mid-re-index — the count later SHRANK from ~24k to 11.8k). The row
+      // stays in_progress (marked above) and this rung re-checks next slot at the
+      // cost of one request. /v4/assets is the cross-check: supply on a network with
+      // no transactions is an rwa.xyz feed gap; null/0 supply is a config decision
+      // (behaviorallyObservable:false), never something the backfill decides alone.
+      let supply: number | null = null
+      let supplyErr: string | null = null
+      try {
+        const byToken = await fetchAssetSupplyByToken(product.rwaAssetId!)
+        supply = sumSupplyForNetwork(byToken, net.addresses, net.decimals, tag).supplyTokens
+      } catch (err) {
+        supplyErr = (err as Error).message
+      }
+      if (supplyErr != null) {
+        console.warn(`  ${tag}: no transactions on this network and /v4/assets cross-check failed (${supplyErr}) — leaving in_progress, will re-check next slot`)
+      } else if (supply != null && supply > 0) {
+        console.warn(`  ${tag}: rwa.xyz has supply (${supply.toLocaleString()} tokens) but no transactions — feed gap, leaving in_progress`)
+      } else {
+        console.warn(
+          `  ${tag}: no transactions AND /v4/assets supply is ${supply == null ? 'null' : supply} — NOT auto-completing. ` +
+          `If this network is genuinely unobservable, set behaviorallyObservable:false in products.ts (config decision); ` +
+          `it stays in_progress until then.`
+        )
+      }
       return
     }
     frontierDay = earliest
