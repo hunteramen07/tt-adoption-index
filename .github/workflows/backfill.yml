@@ -35,9 +35,14 @@ concurrency:
 jobs:
   backfill:
     runs-on: ubuntu-latest
-    # One per-run page budget of windows; bounded work, but give it room for the
-    # ~600ms/page throttle plus retries.
-    timeout-minutes: 30
+    # One per-run page budget of windows. Measured 2026-09-15: a /v4/transactions page
+    # takes ~8-16 s (not the 600 ms throttle), with occasional 524s and >90 s replies,
+    # so 80 pages is ~20-28 min and a single 60-day window at a density jump (97 pages
+    # at usdy:solana's 2024-09-25 cursor) cannot finish in 30. A timeout kill is a
+    # SIGTERM, which bypasses shrink-on-failure, so the identical window re-opened
+    # every slot. 90 min gives the worst-case window room; the page pool still bounds
+    # the rwa.xyz spend per run.
+    timeout-minutes: 90
 
     steps:
       - name: Check out repository
