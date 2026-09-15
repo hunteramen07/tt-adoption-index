@@ -101,14 +101,15 @@ import type { RunBudget } from '@/src/lib/rwa/backfill-budget'
 import { runSequentialUntilBudget } from '@/src/lib/rwa/backfill-budget'
 import {
   BACKFILL_INITIAL_SPAN_DAYS,
+  BACKFILL_TARGET_PAGES,
   clampSpan,
   nextSpanFromDensity,
   halveSpanOnFailure,
-  capSpanByBudget,
+  sizeWindowByPreflight,
 } from '@/src/lib/rwa/backfill-span'
 import { fetchAssetSupplyByToken, sumSupplyForNetwork } from '@/src/lib/rwa/assets'
 import type { TokenSupply } from '@/src/lib/rwa/assets'
-import { fetchTransfersWindowRWA, fetchEarliestTxDate } from '@/src/lib/rwa/transfers'
+import { fetchTransfersWindowRWA, fetchEarliestTxDate, countTransfersWindowPagesRWA } from '@/src/lib/rwa/transfers'
 import { fetchChainSupply, toTokens } from '@/src/lib/rwa/chain-supply'
 import type { ChainSupply } from '@/src/lib/rwa/chain-supply'
 import {
@@ -963,7 +964,12 @@ async function reanchorRwaFund(product: Product, nowTs: number): Promise<void> {
 // so it survives budget exhaustion / process death, and never derives metrics
 // until it reaches the present. See _local/resumable-backfill-design.md.
 
-/** Networks cleared for chunked backfill. The MECHANISM is general (any fund with
+/** Networks cleared for chunked backfill, in PRIORITY order (the order they draw from
+ *  the shared pool within a run — NOT products.ts tokens[] order). Smallest expected
+ *  remaining work first, so a network needing a few pages is never starved for weeks
+ *  behind one needing ~1,000: on 2026-09-15 the six re-opened USDY networks (~173
+ *  pages total) sat behind usdy:solana (~983 pages, making zero progress) purely
+ *  because tokens[] lists solana second. The MECHANISM is general (any fund with
  *  rwa tokens[]), but networks are enabled explicitly as their config is verified —
  *  a network's per-token decimals must be set (fund-level fallback would mis-scale)
  *  and any anomaly resolved (e.g. MANTRA's decimals=1) BEFORE enabling. All 8 of
@@ -978,8 +984,8 @@ async function reanchorRwaFund(product: Product, nowTs: number): Promise<void> {
  *  Ethereum parity), but backfill only builds STATE and never derives metrics, so
  *  state-building is safe to run ahead of the cutover. Slugs are the merged network
  *  slugs from observableNetworks — USDY's two Ethereum contracts share 'ethereum'. */
-const BACKFILL_ALLOWED: Record<string, Set<string>> = {
-  usdy: new Set(['ethereum', 'arbitrum', 'mantle', 'plume', 'sei', 'solana', 'aptos', 'stellar']),
+const BACKFILL_ALLOWED: Record<string, readonly string[]> = {
+  usdy: ['ethereum', 'arbitrum', 'mantle', 'plume', 'aptos', 'sei', 'stellar', 'solana'],
 }
 
 /** Per-run request budget (pages) — a SINGLE shared pool drawn down across every
@@ -990,17 +996,31 @@ const BACKFILL_ALLOWED: Record<string, Set<string>> = {
  *  two networks share these 80 pages rather than spending 80 each. See
  *  src/lib/rwa/backfill-budget.ts for the sequential-exhaust allocation policy. */
 const BACKFILL_PER_RUN_PAGES = 80
-// Adaptive window sizing (target pages, span bounds, clamp) + the shrink-on-failure
-// and budget-cap helpers live in src/lib/rwa/backfill-span.ts (imported above) so the
-// math is unit-testable offline. Only the persisted-span I/O (loadBackfillSpanDays /
-// saveBackfillSpanDays) lives here — it's what carries the learned/shrunk span across
-// the 3-hourly slots.
+// Window sizing (exact-count preflight, span bounds, clamp) + the shrink-on-failure
+// helper live in src/lib/rwa/backfill-span.ts (imported above) so the math is
+// unit-testable offline. Only the persisted-span I/O (loadBackfillSpanDays /
+// saveBackfillSpanDays) lives here — it's what carries the learned/halved span across
+// the 3-hourly slots. NOTE the pool is a REQUEST budget, not a time budget: a page
+// takes ~8-16 s (measured 2026-09-15), so 80 pages is ~20-28 min of wall-clock; the
+// workflow's timeout-minutes must leave room for that plus the worst window.
 
 /** A rwa.xyz 429 surfaces as a thrown Error whose message carries `HTTP 429` (the
- *  http layer keeps its `… failed (page N): HTTP <status> — <body>` shape stable and
- *  does NOT retry 429s). A 429 is a global rate-limit signal, so the backfill uses it
- *  to end the whole run — not just the offending network. */
-const isRateLimitError = (err: Error) => /HTTP 429\b/.test(err.message)
+ *  http layer keeps its `rwa.xyz <endpoint> failed (page N): HTTP <status> — <body>`
+ *  shape stable and does NOT retry 429s). A 429 is a global rate-limit signal, so the
+ *  backfill uses it to end the whole run — not just the offending network.
+ *
+ *  The `rwa.xyz` prefix is REQUIRED. A Solana RPC 429 ("HTTP 429 from https://…",
+ *  wrapped by json-rpc.ts as "… failed on all N endpoint(s): …") used to match a bare
+ *  /HTTP 429/ and end the whole run as if rwa.xyz had rate-limited — and with two of
+ *  the three default endpoints dead (see solana-rpc.ts) that is one endpoint's
+ *  rate limit ending every network's slot. */
+const isRateLimitError = (err: Error) => /^rwa\.xyz .*HTTP 429\b/.test(err.message)
+
+/** A chain-RPC failure: json-rpc.ts tried every endpoint and all failed (429, 5xx,
+ *  timeout, malformed). Transient, and its likelihood scales with the window (more
+ *  addresses ⇒ more getMultipleAccounts batches), so it is a window-SIZE failure:
+ *  halve and isolate this network — never end the run, it says nothing about rwa.xyz. */
+const isChainRpcFailure = (err: Error) => /failed on all \d+ endpoint\(s\)/.test(err.message)
 
 /**
  * Is this failure evidence the WINDOW WAS TOO BIG, i.e. should the adaptive span
@@ -1017,16 +1037,11 @@ const isRateLimitError = (err: Error) => /HTTP 429\b/.test(err.message)
  */
 const isWindowSizeFailure = (err: Error) =>
   isRateLimitError(err) ||
+  isChainRpcFailure(err) ||
   /timed out \(page \d+\)/.test(err.message) ||
   /HTTP 5\d\d\b/.test(err.message)
 /** Unix seconds → 'YYYY-MM-DD' (UTC). */
 const toDayStr = (unixSec: number) => new Date(unixSec * 1000).toISOString().slice(0, 10)
-/** Add n days to a 'YYYY-MM-DD' day string (UTC). */
-function addDaysStr(dayStr: string, n: number): string {
-  const d = new Date(`${dayStr}T00:00:00.000Z`)
-  d.setUTCDate(d.getUTCDate() + n)
-  return d.toISOString().slice(0, 10)
-}
 
 /** Backfill lifecycle of a (fund, network): no cursor row ⇒ never started. */
 async function backfillStatus(slug: string, network: string): Promise<'fresh' | 'in_progress' | 'complete'> {
@@ -1198,17 +1213,14 @@ async function backfillRwaNetwork(
     console.log(`  ${tag}: fresh backfill from earliest tx date ${earliest}`)
   }
 
-  // Resume span: the density-appropriate span learned & PERSISTED by the last slot (or
-  // halved by a prior window failure), so the sizer adapts ACROSS slots instead of
-  // resetting to INITIAL every slot (which, at the sparse→dense boundary, kept
-  // re-opening a too-big window that 429'd and was discarded). Null (fresh / pre-
-  // migration) ⇒ INITIAL. Clamped in case of a stale/bad stored value.
+  // Resume CANDIDATE span: the density-appropriate span learned & PERSISTED by the
+  // last slot, or halved by a prior window failure / job kill (the halved value is
+  // written BEFORE every window opens — see below). Null (fresh / pre-migration) ⇒
+  // INITIAL. Clamped in case of a stale/bad stored value. It is only a candidate:
+  // every window is sized from an EXACT count before it opens, so the candidate can
+  // never open an oversized window at a sparse→dense boundary.
   let spanDays = clampSpan((await loadBackfillSpanDays(product.slug, net.networkSlug)) ?? BACKFILL_INITIAL_SPAN_DAYS)
   let pagesThisNetwork = 0
-  // In-run density of the last completed window, for the budget cap below. 0 ⇒ no
-  // signal yet (first window of the slot), so the resumed span opens uncapped.
-  let lastSpanDays = 0
-  let lastPages = 0
 
   // Draw from the SHARED run pool: this network keeps taking windows until the
   // pool (not a per-network budget) is dry or it catches up to the present.
@@ -1219,13 +1231,46 @@ async function backfillRwaNetwork(
       return
     }
 
-    // Budget cap: never OPEN a window whose estimated pages exceed min(TARGET,
-    // budget.remaining), using the last completed window's density. Bounds pages
-    // WITHIN a window (the pool otherwise only gates BETWEEN windows). First window of
-    // the slot has no in-run density, so it opens at the resumed span as-is.
-    const openSpan = capSpanByBudget(spanDays, lastSpanDays, lastPages, budget.remaining)
-    let windowEnd = addDaysStr(frontierDay, openSpan)
-    if (windowEnd > todayDay) windowEnd = todayDay
+    // Preflight: size this window from an EXACT count (one perPage=1 request per
+    // probe), capped at min(TARGET, pool remaining), so the window's cost is known
+    // before a single page is fetched. This bounds pages WITHIN a window (the pool only
+    // gates BETWEEN windows) and replaces density extrapolation, which at a sparse→
+    // dense boundary opened a 97-page window that could never finish in the job
+    // timeout. Probes are real requests: charged to the pool like pages.
+    const pageCap = Math.min(BACKFILL_TARGET_PAGES, budget.remaining)
+    const preflight = await sizeWindowByPreflight({
+      frontierDay,
+      todayDay,
+      candidateSpanDays: spanDays,
+      pageCap,
+      countPages: async (gte, lt) =>
+        (await countTransfersWindowPagesRWA(product.rwaAssetId!, net.networkId, gte, lt)).pages,
+    })
+    pagesThisNetwork += preflight.probes
+    budget.remaining -= preflight.probes
+    const openSpan = preflight.spanDays
+    const windowEnd = preflight.windowEnd
+    if (preflight.overCap) {
+      console.warn(
+        `  ${tag}: window [${frontierDay}, ${windowEnd}) counts ${preflight.pages}pg — over the ${pageCap}pg cap ` +
+        `at ${openSpan}d after ${preflight.probes} probe(s); opening anyway (progress over stall — the job ` +
+        `timeout is the backstop)`
+      )
+    } else {
+      console.log(
+        `  ${tag}: preflight sized window [${frontierDay}, ${windowEnd}) at ${openSpan}d = ${preflight.pages}pg ` +
+        `(${preflight.probes} probe(s), cap ${pageCap})`
+      )
+    }
+
+    // Kill-safety: persist the HALVED span BEFORE the fetch. A job-timeout kill is a
+    // SIGTERM — no catch block runs — so without this the span survived a kill intact
+    // and the identical window was re-opened every slot. Now a kill leaves half the
+    // span behind. A completed window overwrites this with the learned span below; a
+    // deterministic failure restores the candidate (halving cannot fix those and drives
+    // the span to the floor — design doc §A7); a size failure keeps it.
+    const halved = halveSpanOnFailure(openSpan)
+    await saveBackfillSpanDays(product.slug, net.networkSlug, halved)
 
     let windowResult
     try {
@@ -1235,23 +1280,23 @@ async function backfillRwaNetwork(
     } catch (err) {
       const e = err as Error
       if (isWindowSizeFailure(e)) {
-        // Shrink-on-failure: this span was too big for the frontier/era (429 or timeout
-        // mid-window). Halve it and PERSIST so the NEXT slot retries a smaller window —
-        // a 429 must still drain the pool and end the run (not an in-run retry). The
-        // window itself was discarded before writeBack, so the cursor is unmoved.
-        const shrunk = halveSpanOnFailure(openSpan)
+        // Shrink-on-failure: this span was too big for the frontier/era (429, timeout,
+        // or a chain-RPC outage mid-window). The halved span is ALREADY persisted, so
+        // the NEXT slot retries a smaller window — a rwa.xyz 429 must still drain the
+        // pool and end the run (not an in-run retry). The window itself was discarded
+        // before writeBack, so the cursor is unmoved.
         console.warn(
-          `  ${tag}: window [${frontierDay}, +${openSpan}d) failed — halving span to ${shrunk}d for ` +
+          `  ${tag}: window [${frontierDay}, ${windowEnd}) failed — span halved to ${halved}d for ` +
           `next slot: ${e.message.slice(0, 100)}`
         )
-        await saveBackfillSpanDays(product.slug, net.networkSlug, shrunk)
       } else {
         // Deterministic failure — a smaller window re-derives it identically, so the
-        // span is left ALONE (shrinking it here is what froze USDY Solana). Surface it
-        // in full: these errors name what to fix.
+        // candidate is RESTORED (shrinking on these is what froze USDY Solana). Surface
+        // it in full: these errors name what to fix.
+        await saveBackfillSpanDays(product.slug, net.networkSlug, spanDays)
         console.error(
-          `  ${tag}: window [${frontierDay}, +${openSpan}d) failed DETERMINISTICALLY — span left at ` +
-          `${openSpan}d (a smaller window would fail identically). Needs a fix, not a retry:\n${e.message}`
+          `  ${tag}: window [${frontierDay}, ${windowEnd}) failed DETERMINISTICALLY — span restored to ` +
+          `${spanDays}d (a smaller window would fail identically). Needs a fix, not a retry:\n${e.message}`
         )
       }
       throw err // preserve 429-drains-pool / graceful-end semantics
@@ -1278,13 +1323,11 @@ async function backfillRwaNetwork(
 
     cursor = newCursor
     frontierDay = cursor.lastTxTimestamp.slice(0, 10)
-    lastSpanDays = openSpan
-    lastPages = pages
 
-    // Adaptive sizing from THIS window's observed density, aimed at ~TARGET pages
-    // (density signal = the most recently completed window, so it adapts as the dense
-    // era begins). Persist it (budget-independent) so the next slot resumes at the
-    // era-correct span, not INITIAL. The budget cap is re-applied at open time above.
+    // Next CANDIDATE from THIS window's exact density, aimed at ~TARGET pages. Persist
+    // it (overwriting the pre-fetch halved value) so the next slot resumes at the
+    // era-correct span, not INITIAL. Growing into a denser era is safe: the preflight
+    // above re-counts the candidate before it opens.
     spanDays = nextSpanFromDensity(openSpan, pages)
     await saveBackfillSpanDays(product.slug, net.networkSlug, spanDays)
 
@@ -1310,14 +1353,18 @@ async function backfillRwaFund(product: Product, nowTs: number, budget: RunBudge
     return
   }
   const allowed = BACKFILL_ALLOWED[product.slug]
-  if (!allowed || allowed.size === 0) {
+  if (!allowed || allowed.length === 0) {
     console.log(`[${product.slug}] not enabled for chunked backfill — clean no-op.`)
     return
   }
-  const networks = observableNetworks(product).filter((net) => allowed.has(net.networkSlug))
-  console.log(`\n[${product.slug}] BACKFILL (chunked, resumable) — enabled network(s): ${[...allowed].join(', ')}`)
+  // Priority order is BACKFILL_ALLOWED's list order, not tokens[] order.
+  const priority = new Map(allowed.map((slug, i) => [slug, i] as const))
+  const networks = observableNetworks(product)
+    .filter((net) => priority.has(net.networkSlug))
+    .sort((a, b) => priority.get(a.networkSlug)! - priority.get(b.networkSlug)!)
+  console.log(`\n[${product.slug}] BACKFILL (chunked, resumable) — enabled network(s), priority order: ${allowed.join(', ')}`)
 
-  // Sequential-exhaust across this fund's networks (config order), all drawing
+  // Sequential-exhaust across this fund's networks (priority order), all drawing
   // from the shared run pool; once it is dry, the remaining networks wait for the
   // next slot. Per-window atomicity means any failure never loses prior chunks, so
   // the run always ends gracefully with everything checkpointed. Error handling:

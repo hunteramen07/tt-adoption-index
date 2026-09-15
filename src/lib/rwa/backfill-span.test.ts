@@ -1,5 +1,6 @@
 /**
- * Unit tests for the backfill window-span sizing (shrink-on-failure, adaptive, budget cap).
+ * Unit tests for the backfill window-span sizing (shrink-on-failure, adaptive candidate,
+ * exact-count preflight).
  * Run with: npm run test:backfill-span
  */
 
@@ -11,7 +12,10 @@ import {
   clampSpan,
   nextSpanFromDensity,
   halveSpanOnFailure,
-  capSpanByBudget,
+  fitSpanToPages,
+  sizeWindowByPreflight,
+  addDaysStr,
+  daysBetween,
 } from './backfill-span.js'
 
 describe('halveSpanOnFailure — shrink-on-failure (fail → halve → floor)', () => {
@@ -58,29 +62,98 @@ describe('nextSpanFromDensity — adaptive sizing toward TARGET', () => {
   })
 })
 
-describe('capSpanByBudget — never open more than min(TARGET, budget) pages', () => {
-  test('ample budget caps at the TARGET-equivalent span (density 3/day)', () => {
-    // candidate 20d (~60pg), budget 80 → cap min(40,80)=40pg → floor(40/3)=13d
-    assert.equal(capSpanByBudget(20, 15, 45, 80), 13)
+describe('fitSpanToPages — proportional shrink to an exact count', () => {
+  test('a window within the cap is left untouched', () => {
+    assert.equal(fitSpanToPages(60, 40, 40), 60)
+    assert.equal(fitSpanToPages(60, 6, 40), 60)
   })
 
-  test('low remaining budget tightens the cap below TARGET', () => {
-    // density 3/day, budget 9 → cap min(40,9)=9pg → floor(9/3)=3d
-    assert.equal(capSpanByBudget(20, 15, 45, 9), 3)
+  test('shrinks proportionally, floored (60d @ 97pg → cap 40 → 24d)', () => {
+    assert.equal(fitSpanToPages(60, 97, 40), 24) // floor(60*40/97)
   })
 
-  test('a candidate already within budget is left untouched', () => {
-    // density 3/day, candidate 5d (~15pg) ≤ 40pg cap → stays 5
-    assert.equal(capSpanByBudget(5, 15, 45, 80), 5)
+  test('a low pool cap tightens further (60d @ 97pg → cap 9 → 5d)', () => {
+    assert.equal(fitSpanToPages(60, 97, 9), 5) // floor(60*9/97)
   })
 
-  test('no density signal yet (first / empty prior window) → candidate unchanged', () => {
-    assert.equal(capSpanByBudget(30, 0, 0, 80), 30)
+  test('always strictly smaller when over the cap, never below MIN', () => {
+    assert.equal(fitSpanToPages(2, 3, 2), 1)   // floor(1.33)=1
+    assert.equal(fitSpanToPages(3, 4, 3), 2)   // floor(2.25)=2
+    assert.equal(fitSpanToPages(1, 50, 40), BACKFILL_MIN_SPAN_DAYS)
+    assert.equal(fitSpanToPages(10, 11, 10), 9) // floor(9.09)=9 < 10
+  })
+})
+
+describe('sizeWindowByPreflight — exact-count window sizing', () => {
+  /** Fake count over a piecewise-constant pages/day history (the usdy:solana boundary:
+   *  ~0.2 pg/day before 2024-09-25, ~1.6 pg/day after). */
+  const tenthsPerDay = (day: string) => (day < '2024-09-25' ? 2 : 16) // integer tenths of a page
+  const countPages = async (gte: string, lt: string) => {
+    let tenths = 0
+    for (let d = gte; d < lt; d = addDaysStr(d, 1)) tenths += tenthsPerDay(d)
+    return Math.ceil(tenths / 10)
+  }
+  const today = '2026-09-15'
+
+  test('the 2024-09-25 boundary: a 60d candidate (97pg) is shrunk until it fits 40', async () => {
+    const r = await sizeWindowByPreflight({ frontierDay: '2024-09-25', todayDay: today, candidateSpanDays: 60, pageCap: 40, countPages })
+    assert.ok(r.pages <= 40, `opened ${r.pages} pages`)
+    assert.equal(r.overCap, false)
+    assert.equal(r.spanDays, 25)                // 60d=96pg → floor(60*40/96)=25 → 25d=40pg ✓
+    assert.equal(r.windowEnd, addDaysStr('2024-09-25', r.spanDays))
+    assert.ok(r.probes >= 2 && r.probes <= 4, `probes ${r.probes}`)
   })
 
-  test('floors at 1 day even when the pool is nearly dry', () => {
-    // density 3/day, budget 1 → cap 1pg → floor(1/3)=0 → MIN
-    assert.equal(capSpanByBudget(20, 15, 45, 1), BACKFILL_MIN_SPAN_DAYS)
+  test('a sparse window opens at the candidate in ONE probe', async () => {
+    const r = await sizeWindowByPreflight({ frontierDay: '2024-08-27', todayDay: today, candidateSpanDays: 29, pageCap: 40, countPages })
+    assert.deepEqual({ span: r.spanDays, pages: r.pages, probes: r.probes, over: r.overCap }, { span: 29, pages: 6, probes: 1, over: false })
+  })
+
+  test('the pool cap (min(TARGET, remaining)) is honoured, not just TARGET', async () => {
+    const r = await sizeWindowByPreflight({ frontierDay: '2024-09-25', todayDay: today, candidateSpanDays: 60, pageCap: 9, countPages })
+    assert.ok(r.pages <= 9, `opened ${r.pages} pages`)
+    assert.equal(r.overCap, false)
+  })
+
+  test('truncates at today and scales from the days actually covered', async () => {
+    const r = await sizeWindowByPreflight({ frontierDay: '2026-09-10', todayDay: today, candidateSpanDays: 60, pageCap: 40, countPages })
+    assert.equal(r.windowEnd, today)
+    assert.equal(r.spanDays, 5)
+    assert.equal(r.probes, 1)
+  })
+
+  test('a single day over the cap is still opened (progress guaranteed), flagged overCap', async () => {
+    const dense = async () => 120
+    const r = await sizeWindowByPreflight({ frontierDay: '2025-01-01', todayDay: today, candidateSpanDays: 8, pageCap: 40, countPages: dense })
+    assert.equal(r.spanDays, BACKFILL_MIN_SPAN_DAYS)
+    assert.equal(r.overCap, true)
+    assert.equal(r.windowEnd, '2025-01-02')
+  })
+
+  test('stops after maxProbes and opens the last probed span, flagged overCap', async () => {
+    let calls = 0
+    const stubborn = async () => { calls++; return 1000 } // never fits
+    const r = await sizeWindowByPreflight({ frontierDay: '2025-01-01', todayDay: today, candidateSpanDays: 60, pageCap: 40, countPages: stubborn, maxProbes: 3 })
+    assert.equal(calls, 3)
+    assert.equal(r.probes, 3)
+    assert.equal(r.overCap, true)
+    assert.ok(r.spanDays < 60 && r.spanDays >= BACKFILL_MIN_SPAN_DAYS)
+  })
+
+  test('the candidate is clamped to [MIN, MAX] before the first probe', async () => {
+    const seen: string[] = []
+    const count = async (gte: string, lt: string) => { seen.push(`${gte}|${lt}`); return 1 }
+    await sizeWindowByPreflight({ frontierDay: '2025-01-01', todayDay: today, candidateSpanDays: 500, pageCap: 40, countPages: count })
+    assert.deepEqual(seen, [`2025-01-01|${addDaysStr('2025-01-01', BACKFILL_MAX_SPAN_DAYS)}`])
+  })
+})
+
+describe('daysBetween / addDaysStr', () => {
+  test('round-trip across a month boundary and a leap day', () => {
+    assert.equal(addDaysStr('2024-02-28', 2), '2024-03-01')
+    assert.equal(daysBetween('2024-02-28', '2024-03-01'), 2)
+    assert.equal(daysBetween('2024-09-25', '2024-11-24'), 60)
+    assert.equal(daysBetween('2026-09-15', '2026-09-10'), -5)
   })
 })
 

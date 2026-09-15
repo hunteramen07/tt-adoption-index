@@ -459,6 +459,40 @@ export async function fetchTransfersWindowRWA(
 }
 
 /**
+ * Exact page count of the day-bounded window [gteDate, ltDate) for an (asset, network):
+ * the preflight behind the backfill's window sizing. ONE perPage=1 request — rwa.xyz
+ * returns the filtered result count in `pagination`, so the window's cost is known
+ * before it is opened, instead of extrapolated from the previous window's density.
+ *
+ * Pages are counted at the fetch page size on the UNFILTERED feed (the token post-
+ * filter and the Solana twin dedup happen after fetch and cannot reduce requests), so
+ * this is precisely what fetchTransfersWindowRWA will spend, minus any escalation.
+ * Same `date` filter and id-sort as the fetch, so the two queries see the same set.
+ */
+export async function countTransfersWindowPagesRWA(
+  assetId: number,
+  networkId: number,
+  gteDate: string,
+  ltDate: string
+): Promise<{ records: number; pages: number }> {
+  const apiKey = process.env.RWA_API_KEY
+  if (!apiKey) throw new Error('RWA_API_KEY environment variable is not set')
+
+  const filters = [
+    { operator: 'equals', field: 'asset_id', value: assetId },
+    { operator: 'equals', field: 'network_id', value: networkId },
+    { operator: 'gte', field: 'date', value: gteDate },
+    { operator: 'lt', field: 'date', value: ltDate },
+  ]
+  const data = await fetchRwaJson<RwaTransactionsResponse>(
+    transactionsUrl(filters, 1, 1), '/v4/transactions', 1, apiKey
+  )
+  // With perPage=1, pageCount == resultCount; prefer the explicit count when present.
+  const records = data.pagination.resultCount ?? data.pagination.pageCount
+  return { records, pages: Math.ceil(records / PER_PAGE) }
+}
+
+/**
  * Earliest transaction DATE (YYYY-MM-DD, UTC) for an (asset, network), or null if
  * the network has no transactions. Used to seed a fresh chunked backfill's first
  * window instead of scanning from a hardcoded epoch.

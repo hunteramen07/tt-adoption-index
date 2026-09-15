@@ -12,6 +12,14 @@
 
 import { jsonRpc, endpointsFromEnv } from '@/src/lib/rwa/json-rpc'
 
+// ⚠ Fragile in practice (probed 2026-09-15 with the resolver's real 100-address
+// getMultipleAccounts batch): only api.mainnet-beta answers. publicnode returns 403
+// "Request blocked" for any batch above ~10 addresses (it accepts 10, blocks 25), and
+// drpc answers "chain is not available on free plan". So there is effectively ONE
+// endpoint; if it rate-limits, the whole resolution fails (the backfill treats that as
+// a window-size failure and halves the span — it does NOT end the run, see
+// isChainRpcFailure in scripts/classify.ts). Set SOLANA_RPC_URLS (comma-separated, e.g.
+// a keyed Helius/QuickNode/Alchemy URL first) as a workflow secret to add real fallback.
 const DEFAULT_RPC_ENDPOINTS = [
   'https://api.mainnet-beta.solana.com',
   'https://solana-rpc.publicnode.com',
