@@ -19,7 +19,8 @@
     "test:incremental-parity": "tsx --tsconfig tsconfig.json scripts/incremental-merge-parity.ts",
     "test:multichain-route": "tsx --tsconfig tsconfig.json scripts/multichain-route-parity.ts",
     "test:incremental-live-parity": "tsx --tsconfig tsconfig.json scripts/incremental-live-parity.ts",
-    "test:solana-resolve": "tsx --tsconfig tsconfig.json scripts/solana-resolve-parity.ts"
+    "test:solana-resolve": "tsx --tsconfig tsconfig.json scripts/solana-resolve-parity.ts",
+    "test:reconciliation": "tsx --tsconfig tsconfig.json --test src/lib/rwa/reconciliation.test.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.108.1",

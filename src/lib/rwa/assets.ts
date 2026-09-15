@@ -8,9 +8,24 @@
  * feeds — one keyed by associated token account, one by owner wallet — with
  * asymmetric mint/burn coverage. Positions therefore double-count, and orphaned
  * mints never net out (USYC Solana summed 26.9M tokens against a real mint supply
- * of 101). /v4/assets is independently chain-indexed, not derived from that feed,
- * so it is immune to the duplication. Verified against chain totalSupply /
- * getTokenSupply: within 0.03–0.74% on the material networks.
+ * of 101). /v4/assets is an AGGREGATE figure, so it carries none of that
+ * per-position keying hazard — which is what makes it a sound weight.
+ *
+ * WHAT IT IS NOT: an independent reference. This header used to claim /v4/assets
+ * is "independently chain-indexed, not derived from that feed". On Solana that is
+ * FALSE (read-only probe 2026-09-10): a net replay of /v4/transactions matches
+ * /v4/assets to 1e-6 on both buidl:solana (946,212,811.19 vs 946,212,811.1899993)
+ * and ustb:solana (198,105.787922 vs 198,105.78792199987) — both endpoints are
+ * served from the same rwa.xyz ledger. Meanwhile chain getTokenSupply read
+ * 992,508,734.52 (BUIDL 4.66% ABOVE rwa) and 174,247.82 (USTB 13.69% BELOW rwa).
+ * The earlier "within 0.03–0.74% of chain" figure was measured on the EVM networks
+ * and does not hold on Solana. Consequently:
+ *   • the market-value WEIGHT still comes from here (it is the supply rwa.xyz
+ *     reports and the dashboard already shows), but
+ *   • the reconciliation TRIPWIRE does NOT reconcile against it — checking a
+ *     replay of rwa's feed against rwa's aggregate is tautological. It reconciles
+ *     against on-chain supply (src/lib/rwa/chain-supply.ts) and reports the
+ *     assets-vs-chain delta as an informational measure of rwa.xyz's own gap.
  *
  * TWO SHAPE HAZARDS this module exists to absorb:
  *

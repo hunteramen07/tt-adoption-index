@@ -62,6 +62,11 @@
  *   PRIMARY KEY (product_slug, network, recorded_at)
  * );  -- see supabase/migrations/20260616024608_create_behavior_history.sql
  *
+ * CREATE TABLE reconciliation_history ( -- append-only supply-tripwire log, one row
+ *   ...                                 -- per (product, network) per run, skips included
+ * );  -- see supabase/migrations/20260914120000_create_reconciliation_history.sql
+ *     -- (applied by hand; a missing table downgrades to a warning, never fails a run)
+ *
  * Disable RLS on all tables (or grant INSERT/UPDATE to the anon role) if
  * you do not have a SUPABASE_SERVICE_ROLE_KEY in .env.local.
  * ─────────────────────────────────────────────────────────────────────────
@@ -104,6 +109,16 @@ import {
 import { fetchAssetSupplyByToken, sumSupplyForNetwork } from '@/src/lib/rwa/assets'
 import type { TokenSupply } from '@/src/lib/rwa/assets'
 import { fetchTransfersWindowRWA, fetchEarliestTxDate } from '@/src/lib/rwa/transfers'
+import { fetchChainSupply, toTokens } from '@/src/lib/rwa/chain-supply'
+import type { ChainSupply } from '@/src/lib/rwa/chain-supply'
+import {
+  evaluateReconciliation,
+  insertReconciliationHistory,
+  isReconcileStrict,
+  RECONCILE_WARN_PCT,
+  RECONCILE_MIN_NOTIONAL_USD,
+} from '@/src/lib/rwa/reconciliation'
+import type { ReconciliationHistoryRow } from '@/src/lib/rwa/reconciliation'
 
 // ── Constants ──────────────────────────────────────────────────────────────
 
@@ -370,83 +385,111 @@ function observableNetworks(
   }))
 }
 
-/** Deviation above which the state/aggregate mismatch is reported. */
-const RECONCILE_WARN_PCT = 5
 /**
- * Notional floor for the deviation check. Dust deployments (USYC Solana is ~$94
- * of supply) swing wildly in percentage terms on rounding alone, so a percentage
- * gate there is pure noise. Below the floor the check is skipped — but the skip
- * is logged, never silent.
- */
-const RECONCILE_MIN_NOTIONAL_USD = 1_000_000
-
-/** Exact bigint→token conversion; Number(raw) alone loses precision past 2^53. */
-function toTokens(raw: bigint, decimals: number): number {
-  const scale = BigInt(10) ** BigInt(decimals)
-  return Number(raw / scale) + Number(raw % scale) / Number(scale)
-}
-
-/**
- * Reconciliation tripwire — compares the merged holder state against the
- * independent /v4/assets aggregate, and flags impossible balances.
+ * Reconciliation tripwire — compares the merged holder state against ON-CHAIN
+ * supply, and flags impossible balances. Every outcome is logged AND persisted to
+ * reconciliation_history: a passing check that writes nothing and a failing one
+ * that scrolls off a CI log are equally invisible a week later. The outcome set,
+ * the 3% threshold, the $1M floor, and why the reference is chain rather than
+ * /v4/assets all live in src/lib/rwa/reconciliation.ts.
  *
  * Two independent signals:
- *  • |Σ positive − aggregate supply| / supply > 5% ⇒ the holder state disagrees
- *    with the chain-indexed supply, so the metrics derived from it are suspect.
- *  • any negative balance ⇒ unconditional. A wallet cannot hold less than zero
- *    on-chain; a negative means transfers landed on mismatched address keys
- *    (the Solana ATA/owner split does exactly this).
+ *  • |Σ positive − chain supply| / chain supply > 3% ⇒ the holder state disagrees
+ *    with the chain, so the metrics derived from it are suspect. Warn-only unless
+ *    RECONCILE_STRICT=1, which throws: the caller has not yet written this
+ *    network's classifications/aggregate, so a strict failure withholds suspect
+ *    metrics from the dashboard while the already-persisted state+cursor resume
+ *    normally next run.
+ *  • any negative balance ⇒ unconditional, never strict-fatal. A wallet cannot hold
+ *    less than zero on-chain; a negative means transfers landed on mismatched
+ *    address keys, or an rwa.xyz source hole (the known residuals).
  *
- * Warn-only by design — the caller has already sourced a sound weight.
+ * A network with NO chain reference is SKIPPED — never checked against /v4/assets
+ * instead. Plus one informational line, zero threshold: /v4/assets vs chain,
+ * rwa.xyz's own indexing gap, independent of our state.
  */
-function reconcileState(
+async function reconcileState(
   productSlug: string,
   networkSlug: string,
   decimals: number,
   positive: BalanceStateMap,
   merged: BalanceStateMap,
-  aggregateSupplyTokens: number | null,
-  navUsd: number
-): void {
+  chain: ChainSupply | null,
+  chainError: string | null,
+  assetsSupplyTokens: number | null,
+  navUsd: number,
+  context: 'classify' | 'reanchor'
+): Promise<void> {
   const tag = `${productSlug}:${networkSlug}`
 
   let positiveRaw = BigInt(0)
   for (const s of positive.values()) positiveRaw += s.balance
   const positiveTokens = toTokens(positiveRaw, decimals)
+  const negatives = Array.from(merged.entries()).filter(([, s]) => s.balance < BigInt(0))
 
-  if (aggregateSupplyTokens == null) {
-    console.warn(`  TRIPWIRE ${tag}: skipped — no aggregate supply to reconcile against`)
-  } else if (aggregateSupplyTokens <= 0) {
-    console.warn(
-      `  TRIPWIRE ${tag}: skipped — aggregate supply is ${aggregateSupplyTokens}, ` +
-      `state holds ${positiveTokens.toLocaleString()} tokens`
-    )
-  } else {
-    const notionalUsd = aggregateSupplyTokens * navUsd
-    const deviation = Math.abs(positiveTokens - aggregateSupplyTokens) / aggregateSupplyTokens
-    const pct = (deviation * 100).toFixed(2)
-    if (notionalUsd < RECONCILE_MIN_NOTIONAL_USD) {
+  const r = evaluateReconciliation({
+    stateTokens: positiveTokens,
+    holderCount: positive.size,
+    negativeCount: negatives.length,
+    chain,
+    chainError,
+    assetsSupplyTokens,
+    navUsd,
+  })
+  const strict = isReconcileStrict()
+  const pct = r.deviationPct == null ? null : r.deviationPct.toFixed(2)
+  const ref = chain?.reference ?? 'chain'
+
+  switch (r.outcome) {
+    case 'skipped_no_reference':
+      console.log(`  tripwire ${tag}: skipped — no chain reference for this network (not falling back to /v4/assets)`)
+      break
+    case 'skipped_reference_failed':
+      console.warn(`  TRIPWIRE ${tag}: skipped — chain reference unavailable this run: ${chainError}`)
+      break
+    case 'skipped_degenerate':
+      console.warn(
+        `  TRIPWIRE ${tag}: skipped — chain supply is ${chain!.supplyTokens}, ` +
+        `state holds ${positiveTokens.toLocaleString()} tokens`
+      )
+      break
+    case 'skipped_dust':
       console.log(
-        `  tripwire ${tag}: skipped — notional $${Math.round(notionalUsd).toLocaleString()} ` +
+        `  tripwire ${tag}: skipped — notional $${Math.round(r.notionalUsd!).toLocaleString()} ` +
         `below $${RECONCILE_MIN_NOTIONAL_USD.toLocaleString()} floor (deviation would be ${pct}%)`
       )
-    } else if (deviation * 100 > RECONCILE_WARN_PCT) {
+      break
+    case 'warn':
       console.warn(
-        `  ⚠️  TRIPWIRE ${tag}: holder state disagrees with /v4/assets supply by ${pct}% ` +
-        `(threshold ${RECONCILE_WARN_PCT}%)\n` +
+        `  ⚠️  TRIPWIRE ${tag}: holder state disagrees with on-chain supply by ${pct}% ` +
+        `(threshold ${RECONCILE_WARN_PCT}%${strict ? ', STRICT' : ''})\n` +
         `      Σ positive balances : ${positiveTokens.toLocaleString()} tokens\n` +
-        `      /v4/assets supply   : ${aggregateSupplyTokens.toLocaleString()} tokens\n` +
-        `      ratio state/supply  : ${(positiveTokens / aggregateSupplyTokens).toFixed(4)}×\n` +
+        `      chain supply        : ${chain!.supplyTokens.toLocaleString()} tokens (${ref})\n` +
+        `      ratio state/chain   : ${r.ratio!.toFixed(4)}×\n` +
         `      market value weight is unaffected (sourced from /v4/assets), but holder_count, ` +
         `dormancy and concentration for this network derive from the state and are suspect.`
       )
+      break
+    case 'pass':
+      console.log(`  tripwire ${tag}: state within ${pct}% of on-chain supply ✓ (${ref})`)
+      break
+  }
+
+  // Informational: rwa.xyz vs chain. Zero threshold, never changes the outcome —
+  // this is the number the data-quality list in _local/STATUS.md is built from.
+  if (chain && r.outcome !== 'skipped_degenerate') {
+    if (r.assetsDeltaPct == null) {
+      console.log(`  info ${tag}: /v4/assets unavailable — assets-vs-chain delta not computed`)
     } else {
-      console.log(`  tripwire ${tag}: state within ${pct}% of /v4/assets supply ✓`)
+      const sign = r.assetsDeltaPct >= 0 ? '+' : ''
+      console.log(
+        `  info ${tag}: /v4/assets ${assetsSupplyTokens!.toLocaleString()} vs chain ` +
+        `${chain.supplyTokens.toLocaleString()} tokens → rwa.xyz ${sign}${r.assetsDeltaPct.toFixed(2)}% vs chain (informational)`
+      )
     }
   }
 
   // Negative balances — unconditional, no threshold, no notional floor.
-  const negatives = Array.from(merged.entries()).filter(([, s]) => s.balance < BigInt(0))
   if (negatives.length > 0) {
     console.warn(
       `  ⚠️  TRIPWIRE ${tag}: ${negatives.length} NEGATIVE balance(s) in state — impossible on-chain, ` +
@@ -455,6 +498,56 @@ function reconcileState(
     for (const [address, s] of negatives) {
       console.warn(`      ${address} = ${toTokens(s.balance, decimals).toLocaleString()} tokens`)
     }
+  }
+
+  // Persist EVERY evaluation, skips included. Failure here is a warning, not an
+  // abort: the table is applied by hand and may not exist yet.
+  const row: ReconciliationHistoryRow = {
+    product_slug: productSlug,
+    network: networkSlug,
+    context,
+    outcome: r.outcome,
+    reference: chain?.reference ?? null,
+    state_tokens: positiveTokens,
+    holder_count: positive.size,
+    negative_count: negatives.length,
+    chain_supply_tokens: chain?.supplyTokens ?? null,
+    assets_supply_tokens: assetsSupplyTokens,
+    deviation_pct: r.deviationPct,
+    assets_delta_pct: r.assetsDeltaPct,
+    notional_usd: r.notionalUsd,
+    threshold_pct: r.thresholdPct,
+    strict,
+  }
+  try {
+    await insertReconciliationHistory(row)
+  } catch (err) {
+    console.warn(`  reconciliation_history write failed (${(err as Error).message}) — row not persisted`)
+  }
+
+  if (strict && r.outcome === 'warn') {
+    throw new Error(
+      `[${tag}] RECONCILE_STRICT=1: holder state deviates ${pct}% from on-chain supply ` +
+      `(threshold ${RECONCILE_WARN_PCT}%) — withholding this network's metrics`
+    )
+  }
+}
+
+/**
+ * Read the tripwire's on-chain reference for one network. A throw (RPC down,
+ * decimals mismatch) becomes `chainError` and the tripwire records a
+ * skipped_reference_failed row — it never substitutes /v4/assets for a reference
+ * it could not read.
+ */
+async function readChainReference(
+  product: Product,
+  net: { networkId: number; addresses: string[]; decimals: number; networkSlug: string }
+): Promise<{ chain: ChainSupply | null; chainError: string | null }> {
+  try {
+    const chain = await fetchChainSupply(net.networkId, net.addresses, net.decimals, `${product.slug}:${net.networkSlug}`)
+    return { chain, chainError: null }
+  } catch (err) {
+    return { chain: null, chainError: (err as Error).message }
   }
 }
 
@@ -466,20 +559,22 @@ function reconcileState(
  * differs between the two paths; this weight+tripwire step is identical, so it
  * lives here rather than being duplicated per handler.
  *
- * Market value is sourced from the /v4/assets per-network aggregate × NAV, NOT
- * self-computed from merged positive balances: that sum derives from
- * /v4/transactions, which on Solana emits every transfer through two parallel
- * feeds (one keyed by associated token account, one by owner wallet) with
- * asymmetric mint/burn coverage, so positions double-count and orphaned mints
- * never net out. /v4/assets is independently chain-indexed and immune to that.
- * See src/lib/rwa/assets.ts for the full rationale.
+ * Two different references, deliberately:
+ *  • The WEIGHT is /v4/assets × NAV — an aggregate figure, so it carries none of
+ *    the per-position keying hazards a Σ(positive balances) would (the Solana
+ *    dual-feed double-count), and it is the supply the dashboard already reports.
+ *  • The TRIPWIRE reference is ON-CHAIN supply. /v4/assets is NOT independent of
+ *    the state under test — both are served from rwa.xyz's ledger and agree to
+ *    1e-6 on Solana — so checking state against it can only ever catch our own
+ *    replay bugs, never rwa.xyz's indexing gaps. See src/lib/rwa/assets.ts and
+ *    src/lib/rwa/chain-supply.ts.
  */
-function computeMarketValueAndReconcile(
+async function computeMarketValueAndReconcile(
   product: Product,
   net: { networkId: number; networkSlug: string; addresses: string[]; caseSensitive: boolean; decimals: number },
   res: IncrementalResult,
   supplyByToken: Map<string, TokenSupply> | null
-): number | null {
+): Promise<number | null> {
   const nav = getNavUsd(product)
   const { supplyTokens, missing } = supplyByToken
     ? sumSupplyForNetwork(supplyByToken, net.addresses, net.decimals, `${product.slug}:${net.networkSlug}`)
@@ -509,10 +604,15 @@ function computeMarketValueAndReconcile(
 
   // Reconciliation tripwire. Σ(positive balances) is no longer the weight, but it
   // is still the state every OTHER metric (holder_count, dormancy, concentration)
-  // is computed from — so its divergence from the independent aggregate is a
-  // direct corruption signal for those metrics. Warn-only: the weight is sound
-  // regardless, and failing the run would block the good networks too.
-  reconcileState(product.slug, net.networkSlug, net.decimals, res.positive, res.merged, supplyTokens, nav)
+  // is computed from — so its divergence from the INDEPENDENT on-chain supply is a
+  // direct corruption signal for those metrics. Warn-only by default: the weight
+  // is sound regardless, and failing the run would block the good networks too
+  // (RECONCILE_STRICT=1 opts into fail-fast for this network — see reconcileState).
+  const { chain, chainError } = await readChainReference(product, net)
+  await reconcileState(
+    product.slug, net.networkSlug, net.decimals, res.positive, res.merged,
+    chain, chainError, supplyTokens, nav, 'classify'
+  )
 
   return marketValueUsd
 }
@@ -559,7 +659,7 @@ async function classifyRwaNetworkIncremental(
 
   // Per-network USD market-value weight + reconciliation tripwire — shared with
   // the aggregate path (see computeMarketValueAndReconcile for the sourcing note).
-  const marketValueUsd = computeMarketValueAndReconcile(product, net, res, supplyByToken)
+  const marketValueUsd = await computeMarketValueAndReconcile(product, net, res, supplyByToken)
 
   // Both outputs derive from the same merged state + window the orchestrator used.
   const classifications = res.classifications!
@@ -606,7 +706,7 @@ async function classifyRwaNetworkAggregate(
     ` (+${res.newCursor?.boundaryIds.length ?? 0} boundary id(s))`
   )
 
-  const marketValueUsd = computeMarketValueAndReconcile(product, net, res, supplyByToken)
+  const marketValueUsd = await computeMarketValueAndReconcile(product, net, res, supplyByToken)
 
   // Aggregate write tail. res.aggregateStats is computed by runIncrementalFetchMerge
   // in aggregate mode (from the same positive state + window); classifications is
@@ -807,9 +907,16 @@ async function reanchorRwaNetwork(
   const aggStats = computeAggregateStatsFromState(res.positive, res.windowTransfers, nowTs, net.caseSensitive)
   await writePerWalletResult(realWriters, product, classifications, aggStats, net.networkSlug, 0, marketValueUsd, false)
 
-  // Tripwire on the freshly-swapped state (now clean, except any source-side
-  // corruption that reproduces — expected no-op on Solana until B3).
-  reconcileState(product.slug, net.networkSlug, net.decimals, res.positive, res.merged, aggSupply, nav)
+  // Tripwire on the freshly-swapped state, against ON-CHAIN supply (the gate above
+  // is a relative candidate-vs-stored comparison and stays on /v4/assets; this is
+  // the absolute check). A rebuild reproduces any rwa.xyz source-side gap
+  // identically, so a warn here after a clean swap is an rwa-vs-chain finding,
+  // not a swap failure. Persisted with context 'reanchor'.
+  const { chain, chainError } = await readChainReference(product, net)
+  await reconcileState(
+    product.slug, net.networkSlug, net.decimals, res.positive, res.merged,
+    chain, chainError, aggSupply, nav, 'reanchor'
+  )
 }
 
 /**
