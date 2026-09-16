@@ -22,7 +22,8 @@
     "test:solana-resolve": "tsx --tsconfig tsconfig.json scripts/solana-resolve-parity.ts",
     "test:reconciliation": "tsx --tsconfig tsconfig.json --test src/lib/rwa/reconciliation.test.ts",
     "test:json-rpc": "tsx --tsconfig tsconfig.json --test src/lib/rwa/json-rpc.test.ts",
-    "test:xrpl-normalize": "tsx --tsconfig tsconfig.json scripts/xrpl-normalize-parity.ts"
+    "test:xrpl-normalize": "tsx --tsconfig tsconfig.json scripts/xrpl-normalize-parity.ts",
+    "test:stellar-normalize": "tsx --tsconfig tsconfig.json scripts/stellar-normalize-parity.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.108.1",

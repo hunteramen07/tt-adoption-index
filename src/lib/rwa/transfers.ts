@@ -23,6 +23,7 @@ import { fetchRwaJson } from '@/src/lib/rwa/http'
 import { resolveAndDedupSolana, SOLANA_NETWORK_ID } from '@/src/lib/rwa/solana-resolve'
 import type { EscalationFetch, ResolveOptions } from '@/src/lib/rwa/solana-resolve'
 import { makeSupabaseAtaOwnerStore } from '@/src/lib/rwa/ata-owner-store'
+import { issuerOf } from '@/src/config/networks'
 
 const TRANSACTIONS_URL = 'https://api.rwa.xyz/v4/transactions'
 const PER_PAGE = 1000
@@ -101,11 +102,17 @@ export interface RwaTransaction {
    */
   transaction_type: { slug: string } | null
   /**
+   * rwa.xyz network id of the transaction. Present on every record; optional in the
+   * type only so hand-built test records need not carry it (normalizeTransaction then
+   * falls back to token.network_id, and without either applies no issuer rule).
+   */
+  network_id?: number
+  /**
    * Carries the on-chain token contract (used to post-filter, Finding #2) and the
    * token's decimals (`amount` is decimal-adjusted to this — the figure the config
-   * value is asserted against at fetch time).
+   * value is asserted against at fetch time). `network_id` mirrors the top-level one.
    */
-  token: { address: string; decimals: number }
+  token: { address: string; decimals: number; network_id?: number }
 }
 
 interface RwaTransactionsResponse {
@@ -119,31 +126,53 @@ interface RwaTransactionsResponse {
  * placeholder (and blockNumber "0" — rwa.xyz transactions have no block number,
  * and the engine never reads it).
  *
- * Mint/burn counterparties come in THREE feed conventions (probed across every
- * configured network, 2026-09-16), all of which must collapse to the zero-address
- * string the engine keys mints/burns on:
+ * Mint/burn counterparties come in FOUR feed conventions (probed across every
+ * configured network's full history or latest 400 records, 2026-09-16), all of which
+ * must collapse to the zero-address string the engine keys mints/burns on:
  *   • EVM chains       — the zero-address string already (pass-through)
  *   • Solana, Aptos    — null (from on a mint, to on a burn)
- *   • XRP Ledger       — the ISSUER account, which is also the configured token
- *                        address (9/9 OUSG mints from it, 15/15 burns to it)
- * The coercion is SLUG-GUARDED and closed: only a transaction_type that says mint
- * (resp. burn) is eligible, and only a value that is null, the zero address, or the
- * token address is replaced. Anything else throws — a "mint" from a third party or a
- * null on a plain transfer is a feed we do not understand, and guessing is exactly
- * how an issuer ends up persisted at −(total supply) (the pre-fix usdy:stellar state
- * shows what that looks like; Stellar's issuance is a separate, unlabeled case).
+ *   • XRP Ledger       — the ISSUER account on both sides; it is also the configured
+ *                        token address (9/9 OUSG mints from it, 15/15 burns to it)
+ *   • Stellar          — the ISSUER account as `from` on mints (17/17 USDY mints),
+ *                        null `to` on burns; the token address is `CODE-ISSUER-N`,
+ *                        so the issuer must be DERIVED (issuerOf), not string-matched
+ * Two rules, applied in order:
+ *   1. Issuer-ledger rule (Stellar, XRPL — see ISSUER_OF_TOKEN_ADDRESS): a counterparty
+ *      equal to the issuer is the sentinel REGARDLESS of slug, because on those
+ *      ledgers a payment from/to the issuer is issuance/redemption by construction and
+ *      the issuer cannot hold its own IOU. Every observed case is also labeled; an
+ *      unlabeled hit is logged so a feed change is visible, never silent.
+ *   2. Slug-guarded coercion, closed: only a transaction_type that says mint (resp.
+ *      burn) is eligible, and only a value that is null, the zero address, the token
+ *      address, or the issuer is replaced. Anything else throws — a "mint" from a third
+ *      party or a null on a plain transfer is a feed we do not understand, and
+ *      guessing is exactly how an issuer ends up persisted at −(total supply)
+ *      (usdy:stellar sat at −467.5M tokens under the null-only version of this rule).
  */
 export function normalizeTransaction(tx: RwaTransaction, decimals: number): RwaTransfer {
   const slug = tx.transaction_type?.slug ?? ''
   const tokenAddress = tx.token.address.toLowerCase()
+  const networkId = tx.network_id ?? tx.token.network_id
+  const issuer = networkId == null ? null : issuerOf(networkId, tx.token.address)
 
   /** Zero-address coercion for the side a mint/burn writes off-ledger. */
   const coerce = (side: 'from' | 'to', value: string | null, kind: 'mint' | 'burn'): string => {
+    // Rule 1 — issuer-ledger: the issuer account is the sentinel whatever the label.
+    if (issuer != null && value === issuer) {
+      if (!slug.includes(kind)) {
+        console.warn(
+          `[rwa] ${side}_address is the issuer on a non-${kind} record (slug=${slug}) — coercing by ` +
+          `issuer-ledger semantics: hash=${tx.transaction_hash}`
+        )
+      }
+      return ZERO_ADDRESS
+    }
+    // Rule 2 — slug-guarded, closed set.
     if (slug.includes(kind)) {
       if (value == null || value === ZERO_ADDRESS || value.toLowerCase() === tokenAddress) return ZERO_ADDRESS
       throw new Error(
-        `${side}_address on a ${slug} is neither null, the zero address, nor the token address ` +
-        `(${value}) — refusing to guess: hash=${tx.transaction_hash}`
+        `${side}_address on a ${slug} is neither null, the zero address, the token address` +
+        `${issuer ? ', nor the issuer' : ''} (${value}) — refusing to guess: hash=${tx.transaction_hash}`
       )
     }
     if (value == null) {

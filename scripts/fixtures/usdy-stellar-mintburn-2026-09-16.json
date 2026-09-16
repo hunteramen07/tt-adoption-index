@@ -1,0 +1,4705 @@
+{
+ "capturedAt": "2026-09-16T23:29:42.504Z",
+ "source": "rwa.xyz /v4/transactions asset_id=60 network_id=9 (USDY on Stellar): ALL records with transaction_type_id=1 (mint) and =2 (burn) as of capture, plus the first 200 records by id (transfers). Full history at capture: 440,863 records, earliest 2025-08-28.",
+ "assets": {
+  "total_supply_token": 467502185.64116895,
+  "decimals": 7,
+  "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+  "issuer": "GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6",
+  "holding_addresses_count": 1296
+ },
+ "counts": {
+  "mint": 17,
+  "burn": 6,
+  "transfer": 440840
+ },
+ "mints": [
+  {
+   "id": "9-279aeea585018960908c62d3322c688e9db81d9e3991e993e8f2e2f18cb4b60a-0-0",
+   "timestamp": "2026-02-06T00:27:42.000Z",
+   "date": "2026-02-06T00:00:00.000Z",
+   "transaction_hash": "279aeea585018960908c62d3322c688e9db81d9e3991e993e8f2e2f18cb4b60a",
+   "amount": 0.8911823034286499,
+   "from_address": "GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6",
+   "to_address": "GC5T3RH2VK3G44FIHMOZY5UGN56L52UYFGHKFUX6X2HNIGEZ2PFXMI23",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 1,
+    "slug": "token-mint"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-2eae5076d7e3c61d81b8e6cd86b9439941b1669b22d3e6ac8380bbdabe590836-0-0",
+   "timestamp": "2026-05-29T19:45:37.000Z",
+   "date": "2026-05-29T00:00:00.000Z",
+   "transaction_hash": "2eae5076d7e3c61d81b8e6cd86b9439941b1669b22d3e6ac8380bbdabe590836",
+   "amount": 353217184,
+   "from_address": "GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6",
+   "to_address": "GC5T3RH2VK3G44FIHMOZY5UGN56L52UYFGHKFUX6X2HNIGEZ2PFXMI23",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 1,
+    "slug": "token-mint"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-3c9f9d42cd4a4e36809ef65b3d4e2046f5b61ae0a857a6632a87e138687aba3b-0-0",
+   "timestamp": "2025-09-15T23:22:14.000Z",
+   "date": "2025-09-15T00:00:00.000Z",
+   "transaction_hash": "3c9f9d42cd4a4e36809ef65b3d4e2046f5b61ae0a857a6632a87e138687aba3b",
+   "amount": 559800,
+   "from_address": "GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6",
+   "to_address": "GC5T3RH2VK3G44FIHMOZY5UGN56L52UYFGHKFUX6X2HNIGEZ2PFXMI23",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 1,
+    "slug": "token-mint"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-50851d916b9a344e4a819d628cb1cc65a1902a47b4dc75ffe08f98961ca66753-0-0",
+   "timestamp": "2026-07-15T21:16:26.000Z",
+   "date": "2026-07-15T00:00:00.000Z",
+   "transaction_hash": "50851d916b9a344e4a819d628cb1cc65a1902a47b4dc75ffe08f98961ca66753",
+   "amount": 307150.9375,
+   "from_address": "GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6",
+   "to_address": "GC5T3RH2VK3G44FIHMOZY5UGN56L52UYFGHKFUX6X2HNIGEZ2PFXMI23",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 1,
+    "slug": "token-mint"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-64850fa6b899d881c7e05d4aa3febc49824d917840fa522cd3fe100d8f0df32a-0-0",
+   "timestamp": "2025-09-15T20:55:07.000Z",
+   "date": "2025-09-15T00:00:00.000Z",
+   "transaction_hash": "64850fa6b899d881c7e05d4aa3febc49824d917840fa522cd3fe100d8f0df32a",
+   "amount": 11,
+   "from_address": "GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6",
+   "to_address": "GC5T3RH2VK3G44FIHMOZY5UGN56L52UYFGHKFUX6X2HNIGEZ2PFXMI23",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 1,
+    "slug": "token-mint"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-67354b8f21fc4cf79416462f4713a204687f32a045882ee12bdd2122ac54a180-0-0",
+   "timestamp": "2026-02-19T21:19:26.000Z",
+   "date": "2026-02-19T00:00:00.000Z",
+   "transaction_hash": "67354b8f21fc4cf79416462f4713a204687f32a045882ee12bdd2122ac54a180",
+   "amount": 5339434,
+   "from_address": "GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6",
+   "to_address": "GC5T3RH2VK3G44FIHMOZY5UGN56L52UYFGHKFUX6X2HNIGEZ2PFXMI23",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 1,
+    "slug": "token-mint"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-6aa4e3bf32e8624575e532a4c85b6b3af86bceb4827666f1fb0bed5d9f29ed3a-0-0",
+   "timestamp": "2025-08-28T00:22:54.000Z",
+   "date": "2025-08-28T00:00:00.000Z",
+   "transaction_hash": "6aa4e3bf32e8624575e532a4c85b6b3af86bceb4827666f1fb0bed5d9f29ed3a",
+   "amount": 10,
+   "from_address": "GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6",
+   "to_address": "GC5T3RH2VK3G44FIHMOZY5UGN56L52UYFGHKFUX6X2HNIGEZ2PFXMI23",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 1,
+    "slug": "token-mint"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-705f652e5b2bcde70388ddc62fba5cf46b63161027a84624e7ff7d02a84b1ee2-0-0",
+   "timestamp": "2026-05-29T18:31:14.000Z",
+   "date": "2026-05-29T00:00:00.000Z",
+   "transaction_hash": "705f652e5b2bcde70388ddc62fba5cf46b63161027a84624e7ff7d02a84b1ee2",
+   "amount": 1,
+   "from_address": "GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6",
+   "to_address": "GC5T3RH2VK3G44FIHMOZY5UGN56L52UYFGHKFUX6X2HNIGEZ2PFXMI23",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 1,
+    "slug": "token-mint"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-711587e46a3e242355219176fe3df72d14ba68a5647022580832378793c82347-0-0",
+   "timestamp": "2026-02-06T22:04:18.000Z",
+   "date": "2026-02-06T00:00:00.000Z",
+   "transaction_hash": "711587e46a3e242355219176fe3df72d14ba68a5647022580832378793c82347",
+   "amount": 296707,
+   "from_address": "GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6",
+   "to_address": "GC5T3RH2VK3G44FIHMOZY5UGN56L52UYFGHKFUX6X2HNIGEZ2PFXMI23",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 1,
+    "slug": "token-mint"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-72a5aed612eb3f7157f9889b5280614c3ec0bee43d4ba62e53872943c94c78c1-0-0",
+   "timestamp": "2026-01-20T21:05:50.000Z",
+   "date": "2026-01-20T00:00:00.000Z",
+   "transaction_hash": "72a5aed612eb3f7157f9889b5280614c3ec0bee43d4ba62e53872943c94c78c1",
+   "amount": 10,
+   "from_address": "GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6",
+   "to_address": "GC5T3RH2VK3G44FIHMOZY5UGN56L52UYFGHKFUX6X2HNIGEZ2PFXMI23",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 1,
+    "slug": "token-mint"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-7a416a307802d556eb08805f99c8518bfd9dfdfbad1c58bbefb9b79b966b6d1d-0-0",
+   "timestamp": "2026-01-20T21:53:02.000Z",
+   "date": "2026-01-20T00:00:00.000Z",
+   "transaction_hash": "7a416a307802d556eb08805f99c8518bfd9dfdfbad1c58bbefb9b79b966b6d1d",
+   "amount": 8966258,
+   "from_address": "GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6",
+   "to_address": "GC5T3RH2VK3G44FIHMOZY5UGN56L52UYFGHKFUX6X2HNIGEZ2PFXMI23",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 1,
+    "slug": "token-mint"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-86f3865c4f537a3fa8b67f7da23b3b229b6350f3de39bab055f159c0036733b0-0-0",
+   "timestamp": "2026-02-06T22:10:15.000Z",
+   "date": "2026-02-06T00:00:00.000Z",
+   "transaction_hash": "86f3865c4f537a3fa8b67f7da23b3b229b6350f3de39bab055f159c0036733b0",
+   "amount": 55500876,
+   "from_address": "GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6",
+   "to_address": "GC5T3RH2VK3G44FIHMOZY5UGN56L52UYFGHKFUX6X2HNIGEZ2PFXMI23",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 1,
+    "slug": "token-mint"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-d0a3d2717696fc93ba9d3c7ff7c321ef3d9843b5c36c64ef21c9c75f55af41ac-0-0",
+   "timestamp": "2026-06-22T21:43:05.000Z",
+   "date": "2026-06-22T00:00:00.000Z",
+   "transaction_hash": "d0a3d2717696fc93ba9d3c7ff7c321ef3d9843b5c36c64ef21c9c75f55af41ac",
+   "amount": 2639525,
+   "from_address": "GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6",
+   "to_address": "GC5T3RH2VK3G44FIHMOZY5UGN56L52UYFGHKFUX6X2HNIGEZ2PFXMI23",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 1,
+    "slug": "token-mint"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-dae3f2376b18eec134e2fc3b053b2434507dd46852d7957d511bba5e7568c15e-0-0",
+   "timestamp": "2026-02-13T21:10:05.000Z",
+   "date": "2026-02-13T00:00:00.000Z",
+   "transaction_hash": "dae3f2376b18eec134e2fc3b053b2434507dd46852d7957d511bba5e7568c15e",
+   "amount": 38571692,
+   "from_address": "GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6",
+   "to_address": "GC5T3RH2VK3G44FIHMOZY5UGN56L52UYFGHKFUX6X2HNIGEZ2PFXMI23",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 1,
+    "slug": "token-mint"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-dfd13a5f80f6c56d3b31393c28e982336c1fc2a0d5ba9e464b87feccfe8d0049-0-0",
+   "timestamp": "2026-07-07T22:32:54.000Z",
+   "date": "2026-07-07T00:00:00.000Z",
+   "transaction_hash": "dfd13a5f80f6c56d3b31393c28e982336c1fc2a0d5ba9e464b87feccfe8d0049",
+   "amount": 1756140.375,
+   "from_address": "GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6",
+   "to_address": "GC5T3RH2VK3G44FIHMOZY5UGN56L52UYFGHKFUX6X2HNIGEZ2PFXMI23",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 1,
+    "slug": "token-mint"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-dfee09ab6513f26bf8514db8aeade4c4bb52e2a6a9bd3d4ea496a99fca59f1d1-0-0",
+   "timestamp": "2025-10-08T18:04:44.000Z",
+   "date": "2025-10-08T00:00:00.000Z",
+   "transaction_hash": "dfee09ab6513f26bf8514db8aeade4c4bb52e2a6a9bd3d4ea496a99fca59f1d1",
+   "amount": 347395.4375,
+   "from_address": "GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6",
+   "to_address": "GC5T3RH2VK3G44FIHMOZY5UGN56L52UYFGHKFUX6X2HNIGEZ2PFXMI23",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 1,
+    "slug": "token-mint"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-ef406efaaa41cef46fd442869f4eaa8a6c6f8e7413839cee723eb91b8904cd23-0-0",
+   "timestamp": "2025-09-11T15:22:57.000Z",
+   "date": "2025-09-11T00:00:00.000Z",
+   "transaction_hash": "ef406efaaa41cef46fd442869f4eaa8a6c6f8e7413839cee723eb91b8904cd23",
+   "amount": 100,
+   "from_address": "GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6",
+   "to_address": "GC5T3RH2VK3G44FIHMOZY5UGN56L52UYFGHKFUX6X2HNIGEZ2PFXMI23",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 1,
+    "slug": "token-mint"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  }
+ ],
+ "burns": [
+  {
+   "id": "9-0bbf73e98e7bf6d6ee5410da5f100bc1e4a6bbedc41cc5b1e055076ab3e8f94d-0-0",
+   "timestamp": "2026-07-07T00:35:23.000Z",
+   "date": "2026-07-07T00:00:00.000Z",
+   "transaction_hash": "0bbf73e98e7bf6d6ee5410da5f100bc1e4a6bbedc41cc5b1e055076ab3e8f94d",
+   "amount": 1.0000000116860974e-07,
+   "from_address": "GCYNWLQMXE47WAD6SKG4HLIKSAY47NJSSMQLVKEZR6EZQUT5EDX2EKWO",
+   "to_address": null,
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 2,
+    "slug": "token-burn"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-1c1caf29f7c86bfe029ab758ce14c1df988ffb0ffe60d91e99adcaca36aa684a-0-0",
+   "timestamp": "2025-08-28T00:40:58.000Z",
+   "date": "2025-08-28T00:00:00.000Z",
+   "transaction_hash": "1c1caf29f7c86bfe029ab758ce14c1df988ffb0ffe60d91e99adcaca36aa684a",
+   "amount": 3,
+   "from_address": "GC5T3RH2VK3G44FIHMOZY5UGN56L52UYFGHKFUX6X2HNIGEZ2PFXMI23",
+   "to_address": null,
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 2,
+    "slug": "token-burn"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-8074493b537b7e9ffcc817e405c6c56591c76cd3651053dec19acd4700d3181d-0-0",
+   "timestamp": "2026-06-18T22:53:38.000Z",
+   "date": "2026-06-18T00:00:00.000Z",
+   "transaction_hash": "8074493b537b7e9ffcc817e405c6c56591c76cd3651053dec19acd4700d3181d",
+   "amount": 1.3099999705445953e-05,
+   "from_address": "GC2SCWJFKVOLWBMW3M2ZL4SQE6O42EC76EQEO63NQACEQU3B5WHDLT2W",
+   "to_address": null,
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 2,
+    "slug": "token-burn"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-b3821a430084d328c23e1a1bc07e2103ba1ae81adcba516b670cde9ee956a1b5-0-0",
+   "timestamp": "2025-09-15T21:02:01.000Z",
+   "date": "2025-09-15T00:00:00.000Z",
+   "transaction_hash": "b3821a430084d328c23e1a1bc07e2103ba1ae81adcba516b670cde9ee956a1b5",
+   "amount": 100,
+   "from_address": "GC5T3RH2VK3G44FIHMOZY5UGN56L52UYFGHKFUX6X2HNIGEZ2PFXMI23",
+   "to_address": null,
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 2,
+    "slug": "token-burn"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-d1cc3b01159c49b2b374a421912d2d58212a6d9a5a61bb2939475b59f4e0750e-0-0",
+   "timestamp": "2025-08-28T00:56:04.000Z",
+   "date": "2025-08-28T00:00:00.000Z",
+   "transaction_hash": "d1cc3b01159c49b2b374a421912d2d58212a6d9a5a61bb2939475b59f4e0750e",
+   "amount": 7,
+   "from_address": "GC5T3RH2VK3G44FIHMOZY5UGN56L52UYFGHKFUX6X2HNIGEZ2PFXMI23",
+   "to_address": null,
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 2,
+    "slug": "token-burn"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-ff323e72f76fedabefb459395a4f7fc4afe2f22dd5a37944fa838b6df1a63ca0-0-0",
+   "timestamp": "2026-01-02T05:15:50.000Z",
+   "date": "2026-01-02T00:00:00.000Z",
+   "transaction_hash": "ff323e72f76fedabefb459395a4f7fc4afe2f22dd5a37944fa838b6df1a63ca0",
+   "amount": 1.0000000116860974e-07,
+   "from_address": "GC5H67VFLDPNWHSCX3AEZKLSXJGGIJ32NREYTTX67U7XZB5DRQ2KQVYG",
+   "to_address": null,
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 2,
+    "slug": "token-burn"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  }
+ ],
+ "transfersSample": [
+  {
+   "id": "9-00002dc64918173e1b82aa18aad208b9e1e01b0d8aac191afc7b2ca83a070c16-0-1",
+   "timestamp": "2026-08-06T11:23:20.000Z",
+   "date": "2026-08-06T00:00:00.000Z",
+   "transaction_hash": "00002dc64918173e1b82aa18aad208b9e1e01b0d8aac191afc7b2ca83a070c16",
+   "amount": 0.0027089000213891268,
+   "from_address": "LCHQDJZEBVXFIK6PCQL3PAWODA5VJONYEVWC5TXSQI2B3HLZKQEGU5DB",
+   "to_address": "GDBV4M4BPRQGZAAUED2UR3DVBW3R73P3XNNLDLRTH2RWBABUK2MIZ2VU",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00002dc64918173e1b82aa18aad208b9e1e01b0d8aac191afc7b2ca83a070c16-0-2",
+   "timestamp": "2026-08-06T11:23:20.000Z",
+   "date": "2026-08-06T00:00:00.000Z",
+   "transaction_hash": "00002dc64918173e1b82aa18aad208b9e1e01b0d8aac191afc7b2ca83a070c16",
+   "amount": 0.0027089000213891268,
+   "from_address": "GDBV4M4BPRQGZAAUED2UR3DVBW3R73P3XNNLDLRTH2RWBABUK2MIZ2VU",
+   "to_address": "LAFILDKD72KSX2YKLLVCSDOQI5UJOMOSPRNGUFHCDTSR2TO2BKZI57KZ",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00005f681e55fb06b5386c3af5a337825ec1a4072bee6500e1e01f78d605a90c-0-0",
+   "timestamp": "2026-03-19T17:39:39.000Z",
+   "date": "2026-03-19T00:00:00.000Z",
+   "transaction_hash": "00005f681e55fb06b5386c3af5a337825ec1a4072bee6500e1e01f78d605a90c",
+   "amount": 7.183778285980225,
+   "from_address": "GAQ6KSJNJUH4SCQPWWLUAYCCE7D5ZPZT4ZKWNJNDPWVLOEPKCU4QZVF2",
+   "to_address": "GCJPHBZEZHGBDO2UAGJM43YJ3AXF2WRJG6VPOGX5N2DTSFPPDIB2HSF3",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-000097d9b9553ed2e2c3d8724159fc176110eeeca8256f343bda9649624a8ae5-0-1",
+   "timestamp": "2026-03-07T14:59:14.000Z",
+   "date": "2026-03-07T00:00:00.000Z",
+   "transaction_hash": "000097d9b9553ed2e2c3d8724159fc176110eeeca8256f343bda9649624a8ae5",
+   "amount": 0.013906699605286121,
+   "from_address": "GALLON2PUETE265477AJ3AVZYVPCR7HYJ2OEPYELP2DZLCRYQPW6OVRQ",
+   "to_address": "GDB3RGT23S4CZLOWXDG63WLVW3MQJJ2ADPC2JPWW46EZDNKNU3XVBARS",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-000097d9b9553ed2e2c3d8724159fc176110eeeca8256f343bda9649624a8ae5-0-2",
+   "timestamp": "2026-03-07T14:59:14.000Z",
+   "date": "2026-03-07T00:00:00.000Z",
+   "transaction_hash": "000097d9b9553ed2e2c3d8724159fc176110eeeca8256f343bda9649624a8ae5",
+   "amount": 0.013906699605286121,
+   "from_address": "GDB3RGT23S4CZLOWXDG63WLVW3MQJJ2ADPC2JPWW46EZDNKNU3XVBARS",
+   "to_address": "GCJPHBZEZHGBDO2UAGJM43YJ3AXF2WRJG6VPOGX5N2DTSFPPDIB2HSF3",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0001ea11ab01ddc4e435dfbee83546f28978e29e2b89cb47a09f3b4b089411ff-0-3",
+   "timestamp": "2025-09-30T05:05:49.000Z",
+   "date": "2025-09-30T00:00:00.000Z",
+   "transaction_hash": "0001ea11ab01ddc4e435dfbee83546f28978e29e2b89cb47a09f3b4b089411ff",
+   "amount": 0.0001829999964684248,
+   "from_address": "LA5IEX6DTLNTFWDUB7RNME66AGKCDGY62BO3GGEIK7JCCHBJ6QVPY5SN",
+   "to_address": "GBLVLKGRDU66WLWY4XRORJXCC4LDZ347AQTUYBEPBABIZTVITW2OAGIP",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0001ea11ab01ddc4e435dfbee83546f28978e29e2b89cb47a09f3b4b089411ff-0-4",
+   "timestamp": "2025-09-30T05:05:49.000Z",
+   "date": "2025-09-30T00:00:00.000Z",
+   "transaction_hash": "0001ea11ab01ddc4e435dfbee83546f28978e29e2b89cb47a09f3b4b089411ff",
+   "amount": 0.0001829999964684248,
+   "from_address": "GBLVLKGRDU66WLWY4XRORJXCC4LDZ347AQTUYBEPBABIZTVITW2OAGIP",
+   "to_address": "LDPVYYBDPQRK3XSC5G623VWI2JTHQW6E4VQE6ZX7MQS2LJ6FRR7OARCO",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0001f430ee99a9d578d5edf5b2fd7a25fea8a142f198d20468c993107cf85e6d-2-3",
+   "timestamp": "2026-09-07T06:03:18.000Z",
+   "date": "2026-09-07T00:00:00.000Z",
+   "transaction_hash": "0001f430ee99a9d578d5edf5b2fd7a25fea8a142f198d20468c993107cf85e6d",
+   "amount": 0.0010966999689117074,
+   "from_address": "LDPVYYBDPQRK3XSC5G623VWI2JTHQW6E4VQE6ZX7MQS2LJ6FRR7OARCO",
+   "to_address": "GBGGTFO2B46XM4YGP3H3IEC7PXFEFKUYKRTI747P2ZT2PNYRBHYDC5LQ",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0001f430ee99a9d578d5edf5b2fd7a25fea8a142f198d20468c993107cf85e6d-2-4",
+   "timestamp": "2026-09-07T06:03:18.000Z",
+   "date": "2026-09-07T00:00:00.000Z",
+   "transaction_hash": "0001f430ee99a9d578d5edf5b2fd7a25fea8a142f198d20468c993107cf85e6d",
+   "amount": 0.0010966999689117074,
+   "from_address": "GBGGTFO2B46XM4YGP3H3IEC7PXFEFKUYKRTI747P2ZT2PNYRBHYDC5LQ",
+   "to_address": "LBVJKIY7CCHW6ILHY4ESNSLKYEN3TH7C5P4GDXY3EQE5IAOXRYGTVCGT",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0003d359f1101ca3adf263294a8486f2d9c5de2dc4ef28614cef8c72c2306ceb-0-3",
+   "timestamp": "2026-06-30T15:43:19.000Z",
+   "date": "2026-06-30T00:00:00.000Z",
+   "transaction_hash": "0003d359f1101ca3adf263294a8486f2d9c5de2dc4ef28614cef8c72c2306ceb",
+   "amount": 0.004535399843007326,
+   "from_address": "LAXCZHFLKAOF3TODXCVJU4YM5C2F5FTG55EGZEMDTBA2T5HMZWDEZKW4",
+   "to_address": "GCO45COWIBDZEGJ3DRGDGCCCJXK777F2S6D6HXQKXVB3EKQVCQU7B2WA",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0003d359f1101ca3adf263294a8486f2d9c5de2dc4ef28614cef8c72c2306ceb-0-4",
+   "timestamp": "2026-06-30T15:43:19.000Z",
+   "date": "2026-06-30T00:00:00.000Z",
+   "transaction_hash": "0003d359f1101ca3adf263294a8486f2d9c5de2dc4ef28614cef8c72c2306ceb",
+   "amount": 0.004535399843007326,
+   "from_address": "GCO45COWIBDZEGJ3DRGDGCCCJXK777F2S6D6HXQKXVB3EKQVCQU7B2WA",
+   "to_address": "LBVJKIY7CCHW6ILHY4ESNSLKYEN3TH7C5P4GDXY3EQE5IAOXRYGTVCGT",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0003de56f60d203cbcb7f50fde41151e4a3f9f13376ce8d6db9db76999018321-0-1",
+   "timestamp": "2026-04-13T20:32:30.000Z",
+   "date": "2026-04-13T00:00:00.000Z",
+   "transaction_hash": "0003de56f60d203cbcb7f50fde41151e4a3f9f13376ce8d6db9db76999018321",
+   "amount": 0.0005016999784857035,
+   "from_address": "LCI56YNJUFZG47DN6U4TIK5XKOAHKY4IOWAQFOG6OESCE2NXSM65CKNW",
+   "to_address": "GBTURFUGAY73ILKT2D5HIDBTRQRLGH6AWOSWLY6OQAC3WDMJ7KFZLIAD",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0003de56f60d203cbcb7f50fde41151e4a3f9f13376ce8d6db9db76999018321-0-2",
+   "timestamp": "2026-04-13T20:32:30.000Z",
+   "date": "2026-04-13T00:00:00.000Z",
+   "transaction_hash": "0003de56f60d203cbcb7f50fde41151e4a3f9f13376ce8d6db9db76999018321",
+   "amount": 0.0005016999784857035,
+   "from_address": "GBTURFUGAY73ILKT2D5HIDBTRQRLGH6AWOSWLY6OQAC3WDMJ7KFZLIAD",
+   "to_address": "LDGW2E2JMK44PRJ6Q5W3UUXNDEHT25ULUS3RFP2TYZPLGOBEQU5M4WBY",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-000409312a6638e5d3f10315975f4a6ae325711bc624ec583ef223e9326a553a-0-7",
+   "timestamp": "2025-11-25T21:02:28.000Z",
+   "date": "2025-11-25T00:00:00.000Z",
+   "transaction_hash": "000409312a6638e5d3f10315975f4a6ae325711bc624ec583ef223e9326a553a",
+   "amount": 0.012376200407743454,
+   "from_address": "LCI56YNJUFZG47DN6U4TIK5XKOAHKY4IOWAQFOG6OESCE2NXSM65CKNW",
+   "to_address": "GCO45COWIBDZEGJ3DRGDGCCCJXK777F2S6D6HXQKXVB3EKQVCQU7B2WA",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-000409312a6638e5d3f10315975f4a6ae325711bc624ec583ef223e9326a553a-0-8",
+   "timestamp": "2025-11-25T21:02:28.000Z",
+   "date": "2025-11-25T00:00:00.000Z",
+   "transaction_hash": "000409312a6638e5d3f10315975f4a6ae325711bc624ec583ef223e9326a553a",
+   "amount": 0.012376200407743454,
+   "from_address": "GCO45COWIBDZEGJ3DRGDGCCCJXK777F2S6D6HXQKXVB3EKQVCQU7B2WA",
+   "to_address": "LA4C74RBF4QGQT2OWFLONVDJTDC3BK4J4W2N2KHMZX2KKWGWXH77SYYA",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00040e364d82efda76e65c35fca52f916c2c29fb85eec86a04f3f95778a7658a-6-1",
+   "timestamp": "2026-06-13T09:27:04.000Z",
+   "date": "2026-06-13T00:00:00.000Z",
+   "transaction_hash": "00040e364d82efda76e65c35fca52f916c2c29fb85eec86a04f3f95778a7658a",
+   "amount": 0.00015039999561849982,
+   "from_address": "LC5GEWAORKDIUKWQOANLUYIU2IYGOKMIYA4L5FRS6WKTRXXBMEDHETWG",
+   "to_address": "GAFEDMD42RJVK4TWOV7QXFTBPJOU7HIKS4DBNKZYUNFUEK24AW26ZJJ5",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00040e364d82efda76e65c35fca52f916c2c29fb85eec86a04f3f95778a7658a-6-2",
+   "timestamp": "2026-06-13T09:27:04.000Z",
+   "date": "2026-06-13T00:00:00.000Z",
+   "transaction_hash": "00040e364d82efda76e65c35fca52f916c2c29fb85eec86a04f3f95778a7658a",
+   "amount": 0.00015039999561849982,
+   "from_address": "GAFEDMD42RJVK4TWOV7QXFTBPJOU7HIKS4DBNKZYUNFUEK24AW26ZJJ5",
+   "to_address": "LA2XUPXS6LARKDPTWHACM3NUVIHVIT3K6WZTUH4SUBVJMT3EVGLKGWZH",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00042293b8ebe175eb6f0233323d78b177103f42c3c5eb4c999084e7c20319ab-1-1",
+   "timestamp": "2026-08-02T08:57:47.000Z",
+   "date": "2026-08-02T00:00:00.000Z",
+   "transaction_hash": "00042293b8ebe175eb6f0233323d78b177103f42c3c5eb4c999084e7c20319ab",
+   "amount": 0.0008811000152491033,
+   "from_address": "LA5IEX6DTLNTFWDUB7RNME66AGKCDGY62BO3GGEIK7JCCHBJ6QVPY5SN",
+   "to_address": "GA64OFUFTJCXYFP2UQWR7CBK4YSK6GSXNHGE32CF5XBDVVELXWR3TVR6",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00042293b8ebe175eb6f0233323d78b177103f42c3c5eb4c999084e7c20319ab-1-2",
+   "timestamp": "2026-08-02T08:57:47.000Z",
+   "date": "2026-08-02T00:00:00.000Z",
+   "transaction_hash": "00042293b8ebe175eb6f0233323d78b177103f42c3c5eb4c999084e7c20319ab",
+   "amount": 0.0008811000152491033,
+   "from_address": "GA64OFUFTJCXYFP2UQWR7CBK4YSK6GSXNHGE32CF5XBDVVELXWR3TVR6",
+   "to_address": "LCP3HCKKKQQTNYQ46BPAE6Z4ZA7NCS2VG72D7PMUCTOUU7QAGHG34KLI",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00044328188f53e1cc4d67949a41bbd88e51563ea646da3b47b4a228838156fd-3-3",
+   "timestamp": "2026-03-04T11:04:34.000Z",
+   "date": "2026-03-04T00:00:00.000Z",
+   "transaction_hash": "00044328188f53e1cc4d67949a41bbd88e51563ea646da3b47b4a228838156fd",
+   "amount": 0.00011030000314349309,
+   "from_address": "LDPVYYBDPQRK3XSC5G623VWI2JTHQW6E4VQE6ZX7MQS2LJ6FRR7OARCO",
+   "to_address": "GAU4BNYLVCABIMT4WHPEXKT7LGJXLYHEGMHR4RD55YFWOIJUO67X5VUE",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00044328188f53e1cc4d67949a41bbd88e51563ea646da3b47b4a228838156fd-3-4",
+   "timestamp": "2026-03-04T11:04:34.000Z",
+   "date": "2026-03-04T00:00:00.000Z",
+   "transaction_hash": "00044328188f53e1cc4d67949a41bbd88e51563ea646da3b47b4a228838156fd",
+   "amount": 0.00011030000314349309,
+   "from_address": "GAU4BNYLVCABIMT4WHPEXKT7LGJXLYHEGMHR4RD55YFWOIJUO67X5VUE",
+   "to_address": "LBYGNAYUBB7M6NG22PISDCG4WUFF7WGUJ35ILTD3WEQKGUH3KGQW3BDB",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0004cad483c2e584872cbe4c3b6e4b9cac249bd1852c3fa1f3691764afcc3f63-8-3",
+   "timestamp": "2026-06-08T20:29:06.000Z",
+   "date": "2026-06-08T00:00:00.000Z",
+   "transaction_hash": "0004cad483c2e584872cbe4c3b6e4b9cac249bd1852c3fa1f3691764afcc3f63",
+   "amount": 0.0006716999923810363,
+   "from_address": "LAUEXVLCTHEG2MI72JTGJVPU74F2UEMAP6N2XBI7JHYC4J22FT4UX7VK",
+   "to_address": "GAFB7IYPCYZCODQBB5BR5JO45JC4PPVLARUAXQSFHWTLH2KMHPWJ36GD",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0004cad483c2e584872cbe4c3b6e4b9cac249bd1852c3fa1f3691764afcc3f63-8-4",
+   "timestamp": "2026-06-08T20:29:06.000Z",
+   "date": "2026-06-08T00:00:00.000Z",
+   "transaction_hash": "0004cad483c2e584872cbe4c3b6e4b9cac249bd1852c3fa1f3691764afcc3f63",
+   "amount": 0.0006716999923810363,
+   "from_address": "GAFB7IYPCYZCODQBB5BR5JO45JC4PPVLARUAXQSFHWTLH2KMHPWJ36GD",
+   "to_address": "GBPO5K4DY6C7RDUN5QJJ63SIJ5ZAY4STXMF5QB4TJKXYRS5UY2SD3QCS",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0004d8ccd238665dd65826147497331595b62a71dec571e29cf769ce51666446-0-1",
+   "timestamp": "2026-06-26T23:21:14.000Z",
+   "date": "2026-06-26T00:00:00.000Z",
+   "transaction_hash": "0004d8ccd238665dd65826147497331595b62a71dec571e29cf769ce51666446",
+   "amount": 0.0153414998203516,
+   "from_address": "LDPVYYBDPQRK3XSC5G623VWI2JTHQW6E4VQE6ZX7MQS2LJ6FRR7OARCO",
+   "to_address": "GBOMCO5L5YFTTOHUCISCHMM6HYSPCTA7YBBJDCKU3Y4RQUAPHBMIVFM3",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0004d8ccd238665dd65826147497331595b62a71dec571e29cf769ce51666446-0-2",
+   "timestamp": "2026-06-26T23:21:14.000Z",
+   "date": "2026-06-26T00:00:00.000Z",
+   "transaction_hash": "0004d8ccd238665dd65826147497331595b62a71dec571e29cf769ce51666446",
+   "amount": 0.0153414998203516,
+   "from_address": "GBOMCO5L5YFTTOHUCISCHMM6HYSPCTA7YBBJDCKU3Y4RQUAPHBMIVFM3",
+   "to_address": "LCYZSGUHY4RHOICTW752VMPECF5UKET73WM7KAFT3QNJRYLOO2HUNB6I",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00053c26fdc30c0b531356450dc6d979c1adeedbb09fe55359a818d3d0edbac7-3-3",
+   "timestamp": "2026-05-02T03:59:30.000Z",
+   "date": "2026-05-02T00:00:00.000Z",
+   "transaction_hash": "00053c26fdc30c0b531356450dc6d979c1adeedbb09fe55359a818d3d0edbac7",
+   "amount": 0.00036929998896084726,
+   "from_address": "LDWAI3LBT2UIDS644HVBSEDKQ63BRQ6V4R3Z7SI7BMSYUV4VBLB3J2EP",
+   "to_address": "GAFB7IYPCYZCODQBB5BR5JO45JC4PPVLARUAXQSFHWTLH2KMHPWJ36GD",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00053c26fdc30c0b531356450dc6d979c1adeedbb09fe55359a818d3d0edbac7-3-4",
+   "timestamp": "2026-05-02T03:59:30.000Z",
+   "date": "2026-05-02T00:00:00.000Z",
+   "transaction_hash": "00053c26fdc30c0b531356450dc6d979c1adeedbb09fe55359a818d3d0edbac7",
+   "amount": 0.00036929998896084726,
+   "from_address": "GAFB7IYPCYZCODQBB5BR5JO45JC4PPVLARUAXQSFHWTLH2KMHPWJ36GD",
+   "to_address": "GBTU72UJV766YP5VM7QZGKZ27H7YGQQJOLUNOM2ZA3XBE6FZYVPI2PW5",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-000540cf65e5b3c7eb2f51f6d266eacf83390fdfe4f4d851ca8185bf262780cc-0-3",
+   "timestamp": "2026-08-28T07:09:04.000Z",
+   "date": "2026-08-28T00:00:00.000Z",
+   "transaction_hash": "000540cf65e5b3c7eb2f51f6d266eacf83390fdfe4f4d851ca8185bf262780cc",
+   "amount": 0.003688399912789464,
+   "from_address": "LAUEXVLCTHEG2MI72JTGJVPU74F2UEMAP6N2XBI7JHYC4J22FT4UX7VK",
+   "to_address": "GCO45COWIBDZEGJ3DRGDGCCCJXK777F2S6D6HXQKXVB3EKQVCQU7B2WA",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-000540cf65e5b3c7eb2f51f6d266eacf83390fdfe4f4d851ca8185bf262780cc-0-4",
+   "timestamp": "2026-08-28T07:09:04.000Z",
+   "date": "2026-08-28T00:00:00.000Z",
+   "transaction_hash": "000540cf65e5b3c7eb2f51f6d266eacf83390fdfe4f4d851ca8185bf262780cc",
+   "amount": 0.003688399912789464,
+   "from_address": "GCO45COWIBDZEGJ3DRGDGCCCJXK777F2S6D6HXQKXVB3EKQVCQU7B2WA",
+   "to_address": "LCI56YNJUFZG47DN6U4TIK5XKOAHKY4IOWAQFOG6OESCE2NXSM65CKNW",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00061274e5edc00466ed4a22a3dd479b11b1d7e1f3a4da47ec9c1e81581d5382-0-3",
+   "timestamp": "2026-06-05T08:20:04.000Z",
+   "date": "2026-06-05T00:00:00.000Z",
+   "transaction_hash": "00061274e5edc00466ed4a22a3dd479b11b1d7e1f3a4da47ec9c1e81581d5382",
+   "amount": 0.015594500117003918,
+   "from_address": "LA4HTLN3YOQYIOMUFCBENSXKEX5ZMZHQ46MW5OA7PKWIEONXBFZLUT4B",
+   "to_address": "GCO45COWIBDZEGJ3DRGDGCCCJXK777F2S6D6HXQKXVB3EKQVCQU7B2WA",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00061274e5edc00466ed4a22a3dd479b11b1d7e1f3a4da47ec9c1e81581d5382-0-4",
+   "timestamp": "2026-06-05T08:20:04.000Z",
+   "date": "2026-06-05T00:00:00.000Z",
+   "transaction_hash": "00061274e5edc00466ed4a22a3dd479b11b1d7e1f3a4da47ec9c1e81581d5382",
+   "amount": 0.015594500117003918,
+   "from_address": "GCO45COWIBDZEGJ3DRGDGCCCJXK777F2S6D6HXQKXVB3EKQVCQU7B2WA",
+   "to_address": "GBQ2NOMPXDGYO7R5X7HJZOIU3WL3AUUKZWC5IIENELCUNOK2HHET6SWF",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-000629954a0c317fa2a20cc1bbfc4f19382fee2f45213a10df2ae5da86e3ca23-0-3",
+   "timestamp": "2026-02-20T20:47:40.000Z",
+   "date": "2026-02-20T00:00:00.000Z",
+   "transaction_hash": "000629954a0c317fa2a20cc1bbfc4f19382fee2f45213a10df2ae5da86e3ca23",
+   "amount": 0.0014428000431507826,
+   "from_address": "LCI56YNJUFZG47DN6U4TIK5XKOAHKY4IOWAQFOG6OESCE2NXSM65CKNW",
+   "to_address": "GCY7AY7OOO2XKZUCKLOZL3MJ62DW5UNL3ISFWDEDEEJM7JFGYZEUS55Z",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-000629954a0c317fa2a20cc1bbfc4f19382fee2f45213a10df2ae5da86e3ca23-0-4",
+   "timestamp": "2026-02-20T20:47:40.000Z",
+   "date": "2026-02-20T00:00:00.000Z",
+   "transaction_hash": "000629954a0c317fa2a20cc1bbfc4f19382fee2f45213a10df2ae5da86e3ca23",
+   "amount": 0.0014428000431507826,
+   "from_address": "GCY7AY7OOO2XKZUCKLOZL3MJ62DW5UNL3ISFWDEDEEJM7JFGYZEUS55Z",
+   "to_address": "GCJPHBZEZHGBDO2UAGJM43YJ3AXF2WRJG6VPOGX5N2DTSFPPDIB2HSF3",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0006653d24d10ef9f5b6ef1c0f2716de779366c5b23c7e567600207e8c5a8356-0-0",
+   "timestamp": "2026-06-25T14:05:45.000Z",
+   "date": "2026-06-25T00:00:00.000Z",
+   "transaction_hash": "0006653d24d10ef9f5b6ef1c0f2716de779366c5b23c7e567600207e8c5a8356",
+   "amount": 10.5,
+   "from_address": "GBZ2YFXEKYKZXBPOM4GU5WKHM5XWUESOZWBATIHAKGJ2KKJQYJAHXZUE",
+   "to_address": "GCGA3WOXG4KGG4R44NUXNOFCDLKRI3CDUDHAHOTGSDQLRX6XKBLLVJXY",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-000667bbb2eb86c1c6493e86cf53ac83a34c52fe453e92eb6fe4a9ffc59a1b24-0-3",
+   "timestamp": "2026-08-10T02:47:28.000Z",
+   "date": "2026-08-10T00:00:00.000Z",
+   "transaction_hash": "000667bbb2eb86c1c6493e86cf53ac83a34c52fe453e92eb6fe4a9ffc59a1b24",
+   "amount": 5.3499999921768904e-05,
+   "from_address": "LA5IEX6DTLNTFWDUB7RNME66AGKCDGY62BO3GGEIK7JCCHBJ6QVPY5SN",
+   "to_address": "GCSO6DAFG52JZDJOB2ZXY3FZBCFJIEINR2BXNA2TTTCMFAOL5SQMIPW6",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-000667bbb2eb86c1c6493e86cf53ac83a34c52fe453e92eb6fe4a9ffc59a1b24-0-4",
+   "timestamp": "2026-08-10T02:47:28.000Z",
+   "date": "2026-08-10T00:00:00.000Z",
+   "transaction_hash": "000667bbb2eb86c1c6493e86cf53ac83a34c52fe453e92eb6fe4a9ffc59a1b24",
+   "amount": 5.3499999921768904e-05,
+   "from_address": "GCSO6DAFG52JZDJOB2ZXY3FZBCFJIEINR2BXNA2TTTCMFAOL5SQMIPW6",
+   "to_address": "LAFILDKD72KSX2YKLLVCSDOQI5UJOMOSPRNGUFHCDTSR2TO2BKZI57KZ",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00067d21a00a4523be4b12ee003cc572bcc10ac660a82e2499df21a642b6ec6c-0-1",
+   "timestamp": "2026-02-15T13:02:13.000Z",
+   "date": "2026-02-15T00:00:00.000Z",
+   "transaction_hash": "00067d21a00a4523be4b12ee003cc572bcc10ac660a82e2499df21a642b6ec6c",
+   "amount": 0.03804809972643852,
+   "from_address": "LDPVYYBDPQRK3XSC5G623VWI2JTHQW6E4VQE6ZX7MQS2LJ6FRR7OARCO",
+   "to_address": "GCO45COWIBDZEGJ3DRGDGCCCJXK777F2S6D6HXQKXVB3EKQVCQU7B2WA",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00067d21a00a4523be4b12ee003cc572bcc10ac660a82e2499df21a642b6ec6c-0-2",
+   "timestamp": "2026-02-15T13:02:13.000Z",
+   "date": "2026-02-15T00:00:00.000Z",
+   "transaction_hash": "00067d21a00a4523be4b12ee003cc572bcc10ac660a82e2499df21a642b6ec6c",
+   "amount": 0.03804809972643852,
+   "from_address": "GCO45COWIBDZEGJ3DRGDGCCCJXK777F2S6D6HXQKXVB3EKQVCQU7B2WA",
+   "to_address": "GARMNQOGD2CVXHJMUUGVOVZ7VFG7BWBMC3TRASSE3IMNF5DI2E4RZZXD",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0007a8a31351c281e66675b6a1e82c60550fae0cab512160b212797f619beb55-1-3",
+   "timestamp": "2026-06-05T18:06:57.000Z",
+   "date": "2026-06-05T00:00:00.000Z",
+   "transaction_hash": "0007a8a31351c281e66675b6a1e82c60550fae0cab512160b212797f619beb55",
+   "amount": 11,
+   "from_address": "GBQ2NOMPXDGYO7R5X7HJZOIU3WL3AUUKZWC5IIENELCUNOK2HHET6SWF",
+   "to_address": "GD3KP52V5IJLN3KYC7UVNOMJICDUAV4GDJUBDEHZCYP6KXYW3QEXVWE7",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0007a8a31351c281e66675b6a1e82c60550fae0cab512160b212797f619beb55-1-4",
+   "timestamp": "2026-06-05T18:06:57.000Z",
+   "date": "2026-06-05T00:00:00.000Z",
+   "transaction_hash": "0007a8a31351c281e66675b6a1e82c60550fae0cab512160b212797f619beb55",
+   "amount": 11,
+   "from_address": "GD3KP52V5IJLN3KYC7UVNOMJICDUAV4GDJUBDEHZCYP6KXYW3QEXVWE7",
+   "to_address": "GD3KP52V5IJLN3KYC7UVNOMJICDUAV4GDJUBDEHZCYP6KXYW3QEXVWE7",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00080c60b04baec45fb29c43ddc8226887eacda16a8963d40b28f6d0c6ac22f7-0-7",
+   "timestamp": "2026-06-09T23:36:12.000Z",
+   "date": "2026-06-09T00:00:00.000Z",
+   "transaction_hash": "00080c60b04baec45fb29c43ddc8226887eacda16a8963d40b28f6d0c6ac22f7",
+   "amount": 0.017907800152897835,
+   "from_address": "LBQJSF4EZX7IEXEVFQ3IQF66B7LUOBWYGEBPRWJL3ZT4TJWBRO7RHJ7U",
+   "to_address": "GCO45COWIBDZEGJ3DRGDGCCCJXK777F2S6D6HXQKXVB3EKQVCQU7B2WA",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00080c60b04baec45fb29c43ddc8226887eacda16a8963d40b28f6d0c6ac22f7-0-8",
+   "timestamp": "2026-06-09T23:36:12.000Z",
+   "date": "2026-06-09T00:00:00.000Z",
+   "transaction_hash": "00080c60b04baec45fb29c43ddc8226887eacda16a8963d40b28f6d0c6ac22f7",
+   "amount": 0.017907800152897835,
+   "from_address": "GCO45COWIBDZEGJ3DRGDGCCCJXK777F2S6D6HXQKXVB3EKQVCQU7B2WA",
+   "to_address": "GBPO5K4DY6C7RDUN5QJJ63SIJ5ZAY4STXMF5QB4TJKXYRS5UY2SD3QCS",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-000932f76187f94f711d6509901d934c95e24f94ff43276eda574356f99e4198-0-3",
+   "timestamp": "2026-02-23T03:57:36.000Z",
+   "date": "2026-02-23T00:00:00.000Z",
+   "transaction_hash": "000932f76187f94f711d6509901d934c95e24f94ff43276eda574356f99e4198",
+   "amount": 0.00672039994969964,
+   "from_address": "LAA5YSUQ63X635E2UQE6GS5KDAQIU5S6F5KIZUN6TE6ZKYWGLUKSCLZ4",
+   "to_address": "GCY7AY7OOO2XKZUCKLOZL3MJ62DW5UNL3ISFWDEDEEJM7JFGYZEUS55Z",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-000932f76187f94f711d6509901d934c95e24f94ff43276eda574356f99e4198-0-4",
+   "timestamp": "2026-02-23T03:57:36.000Z",
+   "date": "2026-02-23T00:00:00.000Z",
+   "transaction_hash": "000932f76187f94f711d6509901d934c95e24f94ff43276eda574356f99e4198",
+   "amount": 0.00672039994969964,
+   "from_address": "GCY7AY7OOO2XKZUCKLOZL3MJ62DW5UNL3ISFWDEDEEJM7JFGYZEUS55Z",
+   "to_address": "GCJPHBZEZHGBDO2UAGJM43YJ3AXF2WRJG6VPOGX5N2DTSFPPDIB2HSF3",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00096a0b90b84b69a629c235fe61abf18a6e0c5f8eb77c05e232106d59dea3ff-3-1",
+   "timestamp": "2026-08-23T14:00:12.000Z",
+   "date": "2026-08-23T00:00:00.000Z",
+   "transaction_hash": "00096a0b90b84b69a629c235fe61abf18a6e0c5f8eb77c05e232106d59dea3ff",
+   "amount": 0.0010158000513911247,
+   "from_address": "LA2XUPXS6LARKDPTWHACM3NUVIHVIT3K6WZTUH4SUBVJMT3EVGLKGWZH",
+   "to_address": "GA64OFUFTJCXYFP2UQWR7CBK4YSK6GSXNHGE32CF5XBDVVELXWR3TVR6",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00096a0b90b84b69a629c235fe61abf18a6e0c5f8eb77c05e232106d59dea3ff-3-2",
+   "timestamp": "2026-08-23T14:00:12.000Z",
+   "date": "2026-08-23T00:00:00.000Z",
+   "transaction_hash": "00096a0b90b84b69a629c235fe61abf18a6e0c5f8eb77c05e232106d59dea3ff",
+   "amount": 0.0010158000513911247,
+   "from_address": "GA64OFUFTJCXYFP2UQWR7CBK4YSK6GSXNHGE32CF5XBDVVELXWR3TVR6",
+   "to_address": "LA5IEX6DTLNTFWDUB7RNME66AGKCDGY62BO3GGEIK7JCCHBJ6QVPY5SN",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00096d91c7e2243d10bfdf706fb0b71413a96b0af49a9a815dd23282ab2a72cf-0-13",
+   "timestamp": "2026-06-05T19:39:49.000Z",
+   "date": "2026-06-05T00:00:00.000Z",
+   "transaction_hash": "00096d91c7e2243d10bfdf706fb0b71413a96b0af49a9a815dd23282ab2a72cf",
+   "amount": 10.552763938903809,
+   "from_address": "CBQDHNBFBZYE4MKPWBSJOPIYLW4SFSXAXUTSXJN76GNKYVYPCKWC6QUK",
+   "to_address": "CCPGFQUTSEHDIQODRE3GJDNE64A35HZ32L7LPDN7GXOCIYNBJSMS6V6B",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00096d91c7e2243d10bfdf706fb0b71413a96b0af49a9a815dd23282ab2a72cf-0-15",
+   "timestamp": "2026-06-05T19:39:49.000Z",
+   "date": "2026-06-05T00:00:00.000Z",
+   "transaction_hash": "00096d91c7e2243d10bfdf706fb0b71413a96b0af49a9a815dd23282ab2a72cf",
+   "amount": 10.5,
+   "from_address": "CCPGFQUTSEHDIQODRE3GJDNE64A35HZ32L7LPDN7GXOCIYNBJSMS6V6B",
+   "to_address": "GD53CHRGKTVI77EWMDGP3E5HFFDWOFTMPW3EWORK27GUY6DGPL7HXYBM",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00096d91c7e2243d10bfdf706fb0b71413a96b0af49a9a815dd23282ab2a72cf-0-8",
+   "timestamp": "2026-06-05T19:39:49.000Z",
+   "date": "2026-06-05T00:00:00.000Z",
+   "transaction_hash": "00096d91c7e2243d10bfdf706fb0b71413a96b0af49a9a815dd23282ab2a72cf",
+   "amount": 10.552763938903809,
+   "from_address": "CCV2X5THRWCT7HCGJU42DMOVYLAARVIPEDG2LQOVVA2WGONF2MZY2OX6",
+   "to_address": "CBQDHNBFBZYE4MKPWBSJOPIYLW4SFSXAXUTSXJN76GNKYVYPCKWC6QUK",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0009cbdcb530d2762578570005cbd2e7f671bd0031e242486f1787bb07d9da17-0-1",
+   "timestamp": "2026-08-02T02:50:47.000Z",
+   "date": "2026-08-02T00:00:00.000Z",
+   "transaction_hash": "0009cbdcb530d2762578570005cbd2e7f671bd0031e242486f1787bb07d9da17",
+   "amount": 0.001249799970537424,
+   "from_address": "GBPO5K4DY6C7RDUN5QJJ63SIJ5ZAY4STXMF5QB4TJKXYRS5UY2SD3QCS",
+   "to_address": "GCO45COWIBDZEGJ3DRGDGCCCJXK777F2S6D6HXQKXVB3EKQVCQU7B2WA",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0009cbdcb530d2762578570005cbd2e7f671bd0031e242486f1787bb07d9da17-0-2",
+   "timestamp": "2026-08-02T02:50:47.000Z",
+   "date": "2026-08-02T00:00:00.000Z",
+   "transaction_hash": "0009cbdcb530d2762578570005cbd2e7f671bd0031e242486f1787bb07d9da17",
+   "amount": 0.001249799970537424,
+   "from_address": "GCO45COWIBDZEGJ3DRGDGCCCJXK777F2S6D6HXQKXVB3EKQVCQU7B2WA",
+   "to_address": "LDGW2E2JMK44PRJ6Q5W3UUXNDEHT25ULUS3RFP2TYZPLGOBEQU5M4WBY",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0009d15315ca3db90d765bd8d25f1353bbcaef650b9d5cca5cb6a04f5c203598-0-0",
+   "timestamp": "2026-06-05T03:34:30.000Z",
+   "date": "2026-06-05T00:00:00.000Z",
+   "transaction_hash": "0009d15315ca3db90d765bd8d25f1353bbcaef650b9d5cca5cb6a04f5c203598",
+   "amount": 17.302818298339844,
+   "from_address": "GB3JCHJUP6HHZJLN5LKQDRFP2HWSLNXYE2TGWDGBTNXIW6MLVRQXNDBC",
+   "to_address": "GBQ2NOMPXDGYO7R5X7HJZOIU3WL3AUUKZWC5IIENELCUNOK2HHET6SWF",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-000b30c4fe5d8247807cbf5538bca2a6abe0db828fdaef8fe80c1651fd746ddc-0-10",
+   "timestamp": "2026-01-02T02:34:25.000Z",
+   "date": "2026-01-02T00:00:00.000Z",
+   "transaction_hash": "000b30c4fe5d8247807cbf5538bca2a6abe0db828fdaef8fe80c1651fd746ddc",
+   "amount": 0.001841300050728023,
+   "from_address": "GCLZPOAAMW3DUNSGAR5UNRV6SAQDC6JDTGAFIWJKXFJ24CKYZ6Y6NNEA",
+   "to_address": "GCJPHBZEZHGBDO2UAGJM43YJ3AXF2WRJG6VPOGX5N2DTSFPPDIB2HSF3",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-000b30c4fe5d8247807cbf5538bca2a6abe0db828fdaef8fe80c1651fd746ddc-0-9",
+   "timestamp": "2026-01-02T02:34:25.000Z",
+   "date": "2026-01-02T00:00:00.000Z",
+   "transaction_hash": "000b30c4fe5d8247807cbf5538bca2a6abe0db828fdaef8fe80c1651fd746ddc",
+   "amount": 0.001841300050728023,
+   "from_address": "LAA5YSUQ63X635E2UQE6GS5KDAQIU5S6F5KIZUN6TE6ZKYWGLUKSCLZ4",
+   "to_address": "GCLZPOAAMW3DUNSGAR5UNRV6SAQDC6JDTGAFIWJKXFJ24CKYZ6Y6NNEA",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-000be8c6f859fe843486935c739a7d3e99566da683dc41a757e755309d5f4e42-5-1",
+   "timestamp": "2026-07-12T19:05:41.000Z",
+   "date": "2026-07-12T00:00:00.000Z",
+   "transaction_hash": "000be8c6f859fe843486935c739a7d3e99566da683dc41a757e755309d5f4e42",
+   "amount": 0.00030899999546818435,
+   "from_address": "GBPO5K4DY6C7RDUN5QJJ63SIJ5ZAY4STXMF5QB4TJKXYRS5UY2SD3QCS",
+   "to_address": "GDKET3IZMV2ZAM4CIWSWWFOTLWDSHIR7NJBHZOWXGZA7C35D4W7BLK7W",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-000be8c6f859fe843486935c739a7d3e99566da683dc41a757e755309d5f4e42-5-2",
+   "timestamp": "2026-07-12T19:05:41.000Z",
+   "date": "2026-07-12T00:00:00.000Z",
+   "transaction_hash": "000be8c6f859fe843486935c739a7d3e99566da683dc41a757e755309d5f4e42",
+   "amount": 0.00030899999546818435,
+   "from_address": "GDKET3IZMV2ZAM4CIWSWWFOTLWDSHIR7NJBHZOWXGZA7C35D4W7BLK7W",
+   "to_address": "LAVQLXA645IWMCXEZHMLSZK2B7GN3D5EZZY36SGNX7ECB6TG3YK544VE",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-000cb9e3a26e4c5934b85cfaf750ad425e7e57bf6269b40d88c3e75893794c50-0-1",
+   "timestamp": "2026-07-03T20:45:47.000Z",
+   "date": "2026-07-03T00:00:00.000Z",
+   "transaction_hash": "000cb9e3a26e4c5934b85cfaf750ad425e7e57bf6269b40d88c3e75893794c50",
+   "amount": 0.003958200104534626,
+   "from_address": "GBPO5K4DY6C7RDUN5QJJ63SIJ5ZAY4STXMF5QB4TJKXYRS5UY2SD3QCS",
+   "to_address": "GCO45COWIBDZEGJ3DRGDGCCCJXK777F2S6D6HXQKXVB3EKQVCQU7B2WA",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-000cb9e3a26e4c5934b85cfaf750ad425e7e57bf6269b40d88c3e75893794c50-0-2",
+   "timestamp": "2026-07-03T20:45:47.000Z",
+   "date": "2026-07-03T00:00:00.000Z",
+   "transaction_hash": "000cb9e3a26e4c5934b85cfaf750ad425e7e57bf6269b40d88c3e75893794c50",
+   "amount": 0.003958200104534626,
+   "from_address": "GCO45COWIBDZEGJ3DRGDGCCCJXK777F2S6D6HXQKXVB3EKQVCQU7B2WA",
+   "to_address": "LDLQDMBWCL7VSEYQ2YJNTY7FYX4UY7SKGH6GNQWODQCJUMP7OGAJCAVJ",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-000d4eb3fb9b238e619f2f7dec1d3bd6812778eab665d30fff7347e98e785af2-3-3",
+   "timestamp": "2026-07-31T12:34:23.000Z",
+   "date": "2026-07-31T00:00:00.000Z",
+   "transaction_hash": "000d4eb3fb9b238e619f2f7dec1d3bd6812778eab665d30fff7347e98e785af2",
+   "amount": 0.00033599999733269215,
+   "from_address": "LDGW2E2JMK44PRJ6Q5W3UUXNDEHT25ULUS3RFP2TYZPLGOBEQU5M4WBY",
+   "to_address": "GBGRBCUB6L7LH4JQ6EPDP7REH2DDACMCUQI76M3P6DM52QWU2Z5LIEVW",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-000d4eb3fb9b238e619f2f7dec1d3bd6812778eab665d30fff7347e98e785af2-3-4",
+   "timestamp": "2026-07-31T12:34:23.000Z",
+   "date": "2026-07-31T00:00:00.000Z",
+   "transaction_hash": "000d4eb3fb9b238e619f2f7dec1d3bd6812778eab665d30fff7347e98e785af2",
+   "amount": 0.00033599999733269215,
+   "from_address": "GBGRBCUB6L7LH4JQ6EPDP7REH2DDACMCUQI76M3P6DM52QWU2Z5LIEVW",
+   "to_address": "LDPVYYBDPQRK3XSC5G623VWI2JTHQW6E4VQE6ZX7MQS2LJ6FRR7OARCO",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-000d4eb3fb9b238e619f2f7dec1d3bd6812778eab665d30fff7347e98e785af2-5-3",
+   "timestamp": "2026-07-31T12:34:23.000Z",
+   "date": "2026-07-31T00:00:00.000Z",
+   "transaction_hash": "000d4eb3fb9b238e619f2f7dec1d3bd6812778eab665d30fff7347e98e785af2",
+   "amount": 0.0003355999942868948,
+   "from_address": "LDGW2E2JMK44PRJ6Q5W3UUXNDEHT25ULUS3RFP2TYZPLGOBEQU5M4WBY",
+   "to_address": "GBGRBCUB6L7LH4JQ6EPDP7REH2DDACMCUQI76M3P6DM52QWU2Z5LIEVW",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-000d4eb3fb9b238e619f2f7dec1d3bd6812778eab665d30fff7347e98e785af2-5-4",
+   "timestamp": "2026-07-31T12:34:23.000Z",
+   "date": "2026-07-31T00:00:00.000Z",
+   "transaction_hash": "000d4eb3fb9b238e619f2f7dec1d3bd6812778eab665d30fff7347e98e785af2",
+   "amount": 0.0003355999942868948,
+   "from_address": "GBGRBCUB6L7LH4JQ6EPDP7REH2DDACMCUQI76M3P6DM52QWU2Z5LIEVW",
+   "to_address": "LDPVYYBDPQRK3XSC5G623VWI2JTHQW6E4VQE6ZX7MQS2LJ6FRR7OARCO",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-000d57dafd8bef6492e7d37c903170dd3eb65e8f7a15adf0720fab2cb2d4c1c1-0-3",
+   "timestamp": "2026-07-14T03:14:44.000Z",
+   "date": "2026-07-14T00:00:00.000Z",
+   "transaction_hash": "000d57dafd8bef6492e7d37c903170dd3eb65e8f7a15adf0720fab2cb2d4c1c1",
+   "amount": 0.001567999948747456,
+   "from_address": "LBQJSF4EZX7IEXEVFQ3IQF66B7LUOBWYGEBPRWJL3ZT4TJWBRO7RHJ7U",
+   "to_address": "GALMOTUVDYGDSJZWI7FZCLD7DC7DHYTPZ7AAIVRPP5KNVPVLBJLCAPSI",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-000d57dafd8bef6492e7d37c903170dd3eb65e8f7a15adf0720fab2cb2d4c1c1-0-4",
+   "timestamp": "2026-07-14T03:14:44.000Z",
+   "date": "2026-07-14T00:00:00.000Z",
+   "transaction_hash": "000d57dafd8bef6492e7d37c903170dd3eb65e8f7a15adf0720fab2cb2d4c1c1",
+   "amount": 0.001567999948747456,
+   "from_address": "GALMOTUVDYGDSJZWI7FZCLD7DC7DHYTPZ7AAIVRPP5KNVPVLBJLCAPSI",
+   "to_address": "GBPO5K4DY6C7RDUN5QJJ63SIJ5ZAY4STXMF5QB4TJKXYRS5UY2SD3QCS",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-000d7a69f64f382a3c400ef410af786cebd42e92cff0b8fef003310167b5c15f-0-1",
+   "timestamp": "2026-01-21T20:50:51.000Z",
+   "date": "2026-01-21T00:00:00.000Z",
+   "transaction_hash": "000d7a69f64f382a3c400ef410af786cebd42e92cff0b8fef003310167b5c15f",
+   "amount": 0.028702400624752045,
+   "from_address": "GCJPHBZEZHGBDO2UAGJM43YJ3AXF2WRJG6VPOGX5N2DTSFPPDIB2HSF3",
+   "to_address": "GD63RXM4XASUAKBNXGM2QEWKYSRB3OEDZZKSR3UFW6Z7Y2RRZB6G2F6Z",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-000d7a69f64f382a3c400ef410af786cebd42e92cff0b8fef003310167b5c15f-0-2",
+   "timestamp": "2026-01-21T20:50:51.000Z",
+   "date": "2026-01-21T00:00:00.000Z",
+   "transaction_hash": "000d7a69f64f382a3c400ef410af786cebd42e92cff0b8fef003310167b5c15f",
+   "amount": 0.028702400624752045,
+   "from_address": "GD63RXM4XASUAKBNXGM2QEWKYSRB3OEDZZKSR3UFW6Z7Y2RRZB6G2F6Z",
+   "to_address": "GALLON2PUETE265477AJ3AVZYVPCR7HYJ2OEPYELP2DZLCRYQPW6OVRQ",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-000e1c6d3a681514e28f5e9df290d50237a29ac25860ae76f3ebe5601f8d1028-0-7",
+   "timestamp": "2026-03-23T14:51:58.000Z",
+   "date": "2026-03-23T00:00:00.000Z",
+   "transaction_hash": "000e1c6d3a681514e28f5e9df290d50237a29ac25860ae76f3ebe5601f8d1028",
+   "amount": 0.0014642999740317464,
+   "from_address": "GALLON2PUETE265477AJ3AVZYVPCR7HYJ2OEPYELP2DZLCRYQPW6OVRQ",
+   "to_address": "GAL6OAYMEISR5ASHEQLXWLEXBD236EEXBOWRSYV4ZXE6MLBS4X4QDYCU",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-000e1c6d3a681514e28f5e9df290d50237a29ac25860ae76f3ebe5601f8d1028-0-8",
+   "timestamp": "2026-03-23T14:51:58.000Z",
+   "date": "2026-03-23T00:00:00.000Z",
+   "transaction_hash": "000e1c6d3a681514e28f5e9df290d50237a29ac25860ae76f3ebe5601f8d1028",
+   "amount": 0.0014642999740317464,
+   "from_address": "GAL6OAYMEISR5ASHEQLXWLEXBD236EEXBOWRSYV4ZXE6MLBS4X4QDYCU",
+   "to_address": "LCSMADTPON76COD5G7LRTKV73PQVN5SLCLBZ4QLQ3OPVAW327EYERK42",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-000ec486d857f01844321e41f90ed4474e546161678c4888d84ec36d266cdd1d-1-3",
+   "timestamp": "2026-08-20T14:41:11.000Z",
+   "date": "2026-08-20T00:00:00.000Z",
+   "transaction_hash": "000ec486d857f01844321e41f90ed4474e546161678c4888d84ec36d266cdd1d",
+   "amount": 0.008756900206208229,
+   "from_address": "LDPVYYBDPQRK3XSC5G623VWI2JTHQW6E4VQE6ZX7MQS2LJ6FRR7OARCO",
+   "to_address": "GAFB7IYPCYZCODQBB5BR5JO45JC4PPVLARUAXQSFHWTLH2KMHPWJ36GD",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-000ec486d857f01844321e41f90ed4474e546161678c4888d84ec36d266cdd1d-1-4",
+   "timestamp": "2026-08-20T14:41:11.000Z",
+   "date": "2026-08-20T00:00:00.000Z",
+   "transaction_hash": "000ec486d857f01844321e41f90ed4474e546161678c4888d84ec36d266cdd1d",
+   "amount": 0.008756900206208229,
+   "from_address": "GAFB7IYPCYZCODQBB5BR5JO45JC4PPVLARUAXQSFHWTLH2KMHPWJ36GD",
+   "to_address": "GBQ2NOMPXDGYO7R5X7HJZOIU3WL3AUUKZWC5IIENELCUNOK2HHET6SWF",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-000f69939a43bef7509dbaf3e810ce9361c848c66c628be08af0d54a5472a8e7-0-10",
+   "timestamp": "2026-06-17T15:26:44.000Z",
+   "date": "2026-06-17T00:00:00.000Z",
+   "transaction_hash": "000f69939a43bef7509dbaf3e810ce9361c848c66c628be08af0d54a5472a8e7",
+   "amount": 0.0014775999588891864,
+   "from_address": "GCO45COWIBDZEGJ3DRGDGCCCJXK777F2S6D6HXQKXVB3EKQVCQU7B2WA",
+   "to_address": "GBPO5K4DY6C7RDUN5QJJ63SIJ5ZAY4STXMF5QB4TJKXYRS5UY2SD3QCS",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-000f69939a43bef7509dbaf3e810ce9361c848c66c628be08af0d54a5472a8e7-0-9",
+   "timestamp": "2026-06-17T15:26:44.000Z",
+   "date": "2026-06-17T00:00:00.000Z",
+   "transaction_hash": "000f69939a43bef7509dbaf3e810ce9361c848c66c628be08af0d54a5472a8e7",
+   "amount": 0.0014775999588891864,
+   "from_address": "LDGW2E2JMK44PRJ6Q5W3UUXNDEHT25ULUS3RFP2TYZPLGOBEQU5M4WBY",
+   "to_address": "GCO45COWIBDZEGJ3DRGDGCCCJXK777F2S6D6HXQKXVB3EKQVCQU7B2WA",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-000f72c670c29a167a4581faf8329d000354310fda7533f585aaa8b4595d9712-0-7",
+   "timestamp": "2026-01-17T21:22:46.000Z",
+   "date": "2026-01-17T00:00:00.000Z",
+   "transaction_hash": "000f72c670c29a167a4581faf8329d000354310fda7533f585aaa8b4595d9712",
+   "amount": 0.07194720208644867,
+   "from_address": "GALLON2PUETE265477AJ3AVZYVPCR7HYJ2OEPYELP2DZLCRYQPW6OVRQ",
+   "to_address": "GDQCQVEFC3CMV4NY3W7WY7V7MSB3O3BG37HCBSHZ4FU2K5KKKPUNRPHW",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-000f72c670c29a167a4581faf8329d000354310fda7533f585aaa8b4595d9712-0-8",
+   "timestamp": "2026-01-17T21:22:46.000Z",
+   "date": "2026-01-17T00:00:00.000Z",
+   "transaction_hash": "000f72c670c29a167a4581faf8329d000354310fda7533f585aaa8b4595d9712",
+   "amount": 0.07194720208644867,
+   "from_address": "GDQCQVEFC3CMV4NY3W7WY7V7MSB3O3BG37HCBSHZ4FU2K5KKKPUNRPHW",
+   "to_address": "GCJPHBZEZHGBDO2UAGJM43YJ3AXF2WRJG6VPOGX5N2DTSFPPDIB2HSF3",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0010367ee2ed446a0a105b6c4652c88acf86d87d844d5c192d261562c510904f-0-3",
+   "timestamp": "2026-01-19T02:27:24.000Z",
+   "date": "2026-01-19T00:00:00.000Z",
+   "transaction_hash": "0010367ee2ed446a0a105b6c4652c88acf86d87d844d5c192d261562c510904f",
+   "amount": 0.7150189280509949,
+   "from_address": "GCJPHBZEZHGBDO2UAGJM43YJ3AXF2WRJG6VPOGX5N2DTSFPPDIB2HSF3",
+   "to_address": "GCFXWV4JZXPVJTBTRUWPX3CTHNCPS3IW35QTEBNYIKGOACNVR4E2HPFQ",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0010367ee2ed446a0a105b6c4652c88acf86d87d844d5c192d261562c510904f-0-4",
+   "timestamp": "2026-01-19T02:27:24.000Z",
+   "date": "2026-01-19T00:00:00.000Z",
+   "transaction_hash": "0010367ee2ed446a0a105b6c4652c88acf86d87d844d5c192d261562c510904f",
+   "amount": 0.7150189280509949,
+   "from_address": "GCFXWV4JZXPVJTBTRUWPX3CTHNCPS3IW35QTEBNYIKGOACNVR4E2HPFQ",
+   "to_address": "GARMNQOGD2CVXHJMUUGVOVZ7VFG7BWBMC3TRASSE3IMNF5DI2E4RZZXD",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00111a3e382155efec1a1e7732a017e6e0fadcd21a4151db153e098f4701d487-0-1",
+   "timestamp": "2026-02-28T19:02:52.000Z",
+   "date": "2026-02-28T00:00:00.000Z",
+   "transaction_hash": "00111a3e382155efec1a1e7732a017e6e0fadcd21a4151db153e098f4701d487",
+   "amount": 0.0036780000664293766,
+   "from_address": "GCJPHBZEZHGBDO2UAGJM43YJ3AXF2WRJG6VPOGX5N2DTSFPPDIB2HSF3",
+   "to_address": "GCO45COWIBDZEGJ3DRGDGCCCJXK777F2S6D6HXQKXVB3EKQVCQU7B2WA",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00111a3e382155efec1a1e7732a017e6e0fadcd21a4151db153e098f4701d487-0-2",
+   "timestamp": "2026-02-28T19:02:52.000Z",
+   "date": "2026-02-28T00:00:00.000Z",
+   "transaction_hash": "00111a3e382155efec1a1e7732a017e6e0fadcd21a4151db153e098f4701d487",
+   "amount": 0.0035399000626057386,
+   "from_address": "GCO45COWIBDZEGJ3DRGDGCCCJXK777F2S6D6HXQKXVB3EKQVCQU7B2WA",
+   "to_address": "GARMNQOGD2CVXHJMUUGVOVZ7VFG7BWBMC3TRASSE3IMNF5DI2E4RZZXD",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00111a3e382155efec1a1e7732a017e6e0fadcd21a4151db153e098f4701d487-0-4",
+   "timestamp": "2026-02-28T19:02:52.000Z",
+   "date": "2026-02-28T00:00:00.000Z",
+   "transaction_hash": "00111a3e382155efec1a1e7732a017e6e0fadcd21a4151db153e098f4701d487",
+   "amount": 0.00013810000382363796,
+   "from_address": "GCO45COWIBDZEGJ3DRGDGCCCJXK777F2S6D6HXQKXVB3EKQVCQU7B2WA",
+   "to_address": "GALLON2PUETE265477AJ3AVZYVPCR7HYJ2OEPYELP2DZLCRYQPW6OVRQ",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00111d369bcc941eda0f32b018e6a614e6c750ad4cc6e9d1131d374cabaa36a0-0-7",
+   "timestamp": "2026-03-02T23:18:27.000Z",
+   "date": "2026-03-02T00:00:00.000Z",
+   "transaction_hash": "00111d369bcc941eda0f32b018e6a614e6c750ad4cc6e9d1131d374cabaa36a0",
+   "amount": 0.0038026999682188034,
+   "from_address": "LCI56YNJUFZG47DN6U4TIK5XKOAHKY4IOWAQFOG6OESCE2NXSM65CKNW",
+   "to_address": "GCO45COWIBDZEGJ3DRGDGCCCJXK777F2S6D6HXQKXVB3EKQVCQU7B2WA",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00111d369bcc941eda0f32b018e6a614e6c750ad4cc6e9d1131d374cabaa36a0-0-8",
+   "timestamp": "2026-03-02T23:18:27.000Z",
+   "date": "2026-03-02T00:00:00.000Z",
+   "transaction_hash": "00111d369bcc941eda0f32b018e6a614e6c750ad4cc6e9d1131d374cabaa36a0",
+   "amount": 0.0038026999682188034,
+   "from_address": "GCO45COWIBDZEGJ3DRGDGCCCJXK777F2S6D6HXQKXVB3EKQVCQU7B2WA",
+   "to_address": "GALLON2PUETE265477AJ3AVZYVPCR7HYJ2OEPYELP2DZLCRYQPW6OVRQ",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001176a68974623a2d51e9d5db973d5216fbd54a68611a49d7ae094f2d41b6a7-0-10",
+   "timestamp": "2026-02-23T01:07:22.000Z",
+   "date": "2026-02-23T00:00:00.000Z",
+   "transaction_hash": "001176a68974623a2d51e9d5db973d5216fbd54a68611a49d7ae094f2d41b6a7",
+   "amount": 0.001366900047287345,
+   "from_address": "GAL6OAYMEISR5ASHEQLXWLEXBD236EEXBOWRSYV4ZXE6MLBS4X4QDYCU",
+   "to_address": "LDPVYYBDPQRK3XSC5G623VWI2JTHQW6E4VQE6ZX7MQS2LJ6FRR7OARCO",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001176a68974623a2d51e9d5db973d5216fbd54a68611a49d7ae094f2d41b6a7-0-9",
+   "timestamp": "2026-02-23T01:07:22.000Z",
+   "date": "2026-02-23T00:00:00.000Z",
+   "transaction_hash": "001176a68974623a2d51e9d5db973d5216fbd54a68611a49d7ae094f2d41b6a7",
+   "amount": 0.001366900047287345,
+   "from_address": "LCI56YNJUFZG47DN6U4TIK5XKOAHKY4IOWAQFOG6OESCE2NXSM65CKNW",
+   "to_address": "GAL6OAYMEISR5ASHEQLXWLEXBD236EEXBOWRSYV4ZXE6MLBS4X4QDYCU",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00120c5dfa75c837d228711c5457f407881abf832f6eda33db011c2cb26b5c37-0-3",
+   "timestamp": "2025-10-14T08:57:01.000Z",
+   "date": "2025-10-14T00:00:00.000Z",
+   "transaction_hash": "00120c5dfa75c837d228711c5457f407881abf832f6eda33db011c2cb26b5c37",
+   "amount": 0.00013669999316334724,
+   "from_address": "GARMNQOGD2CVXHJMUUGVOVZ7VFG7BWBMC3TRASSE3IMNF5DI2E4RZZXD",
+   "to_address": "GBLVLKGRDU66WLWY4XRORJXCC4LDZ347AQTUYBEPBABIZTVITW2OAGIP",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00120c5dfa75c837d228711c5457f407881abf832f6eda33db011c2cb26b5c37-0-4",
+   "timestamp": "2025-10-14T08:57:01.000Z",
+   "date": "2025-10-14T00:00:00.000Z",
+   "transaction_hash": "00120c5dfa75c837d228711c5457f407881abf832f6eda33db011c2cb26b5c37",
+   "amount": 0.00013669999316334724,
+   "from_address": "GBLVLKGRDU66WLWY4XRORJXCC4LDZ347AQTUYBEPBABIZTVITW2OAGIP",
+   "to_address": "LDPVYYBDPQRK3XSC5G623VWI2JTHQW6E4VQE6ZX7MQS2LJ6FRR7OARCO",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0012454e44978023270ec2ae62027302f7803a326f3b2a7f02bc6a41208e7b41-3-3",
+   "timestamp": "2026-06-07T01:14:27.000Z",
+   "date": "2026-06-07T00:00:00.000Z",
+   "transaction_hash": "0012454e44978023270ec2ae62027302f7803a326f3b2a7f02bc6a41208e7b41",
+   "amount": 0.000790800026152283,
+   "from_address": "GBPO5K4DY6C7RDUN5QJJ63SIJ5ZAY4STXMF5QB4TJKXYRS5UY2SD3QCS",
+   "to_address": "GAFEDMD42RJVK4TWOV7QXFTBPJOU7HIKS4DBNKZYUNFUEK24AW26ZJJ5",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0012454e44978023270ec2ae62027302f7803a326f3b2a7f02bc6a41208e7b41-3-4",
+   "timestamp": "2026-06-07T01:14:27.000Z",
+   "date": "2026-06-07T00:00:00.000Z",
+   "transaction_hash": "0012454e44978023270ec2ae62027302f7803a326f3b2a7f02bc6a41208e7b41",
+   "amount": 0.000790800026152283,
+   "from_address": "GAFEDMD42RJVK4TWOV7QXFTBPJOU7HIKS4DBNKZYUNFUEK24AW26ZJJ5",
+   "to_address": "LC5GEWAORKDIUKWQOANLUYIU2IYGOKMIYA4L5FRS6WKTRXXBMEDHETWG",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0012454e44978023270ec2ae62027302f7803a326f3b2a7f02bc6a41208e7b41-5-3",
+   "timestamp": "2026-06-07T01:14:27.000Z",
+   "date": "2026-06-07T00:00:00.000Z",
+   "transaction_hash": "0012454e44978023270ec2ae62027302f7803a326f3b2a7f02bc6a41208e7b41",
+   "amount": 0.000790800026152283,
+   "from_address": "GBPO5K4DY6C7RDUN5QJJ63SIJ5ZAY4STXMF5QB4TJKXYRS5UY2SD3QCS",
+   "to_address": "GAFEDMD42RJVK4TWOV7QXFTBPJOU7HIKS4DBNKZYUNFUEK24AW26ZJJ5",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0012454e44978023270ec2ae62027302f7803a326f3b2a7f02bc6a41208e7b41-5-4",
+   "timestamp": "2026-06-07T01:14:27.000Z",
+   "date": "2026-06-07T00:00:00.000Z",
+   "transaction_hash": "0012454e44978023270ec2ae62027302f7803a326f3b2a7f02bc6a41208e7b41",
+   "amount": 0.000790800026152283,
+   "from_address": "GAFEDMD42RJVK4TWOV7QXFTBPJOU7HIKS4DBNKZYUNFUEK24AW26ZJJ5",
+   "to_address": "LC5GEWAORKDIUKWQOANLUYIU2IYGOKMIYA4L5FRS6WKTRXXBMEDHETWG",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0012454e44978023270ec2ae62027302f7803a326f3b2a7f02bc6a41208e7b41-8-1",
+   "timestamp": "2026-06-07T01:14:27.000Z",
+   "date": "2026-06-07T00:00:00.000Z",
+   "transaction_hash": "0012454e44978023270ec2ae62027302f7803a326f3b2a7f02bc6a41208e7b41",
+   "amount": 0.0007517000194638968,
+   "from_address": "GBPO5K4DY6C7RDUN5QJJ63SIJ5ZAY4STXMF5QB4TJKXYRS5UY2SD3QCS",
+   "to_address": "GAFEDMD42RJVK4TWOV7QXFTBPJOU7HIKS4DBNKZYUNFUEK24AW26ZJJ5",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0012454e44978023270ec2ae62027302f7803a326f3b2a7f02bc6a41208e7b41-8-2",
+   "timestamp": "2026-06-07T01:14:27.000Z",
+   "date": "2026-06-07T00:00:00.000Z",
+   "transaction_hash": "0012454e44978023270ec2ae62027302f7803a326f3b2a7f02bc6a41208e7b41",
+   "amount": 0.0007517000194638968,
+   "from_address": "GAFEDMD42RJVK4TWOV7QXFTBPJOU7HIKS4DBNKZYUNFUEK24AW26ZJJ5",
+   "to_address": "LAFILDKD72KSX2YKLLVCSDOQI5UJOMOSPRNGUFHCDTSR2TO2BKZI57KZ",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00128bb0b628fdd7b568edbd59beeb5da7596aa9c83d313cc2697c93d615fcf4-0-7",
+   "timestamp": "2026-02-02T04:25:36.000Z",
+   "date": "2026-02-02T00:00:00.000Z",
+   "transaction_hash": "00128bb0b628fdd7b568edbd59beeb5da7596aa9c83d313cc2697c93d615fcf4",
+   "amount": 0.6632719039916992,
+   "from_address": "GCJPHBZEZHGBDO2UAGJM43YJ3AXF2WRJG6VPOGX5N2DTSFPPDIB2HSF3",
+   "to_address": "GDJSHJALTU3W5C6DZTHO5XH3LCPNPCKQSBA5K7AKTUQWGEQJ5XL3JKXT",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00128bb0b628fdd7b568edbd59beeb5da7596aa9c83d313cc2697c93d615fcf4-0-8",
+   "timestamp": "2026-02-02T04:25:36.000Z",
+   "date": "2026-02-02T00:00:00.000Z",
+   "transaction_hash": "00128bb0b628fdd7b568edbd59beeb5da7596aa9c83d313cc2697c93d615fcf4",
+   "amount": 0.6632719039916992,
+   "from_address": "GDJSHJALTU3W5C6DZTHO5XH3LCPNPCKQSBA5K7AKTUQWGEQJ5XL3JKXT",
+   "to_address": "GARMNQOGD2CVXHJMUUGVOVZ7VFG7BWBMC3TRASSE3IMNF5DI2E4RZZXD",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0012e8477ecb8270b6760554b44b20401453d20dad18ad16a0cd6340998abfe5-0-3",
+   "timestamp": "2026-09-14T15:27:32.000Z",
+   "date": "2026-09-14T00:00:00.000Z",
+   "transaction_hash": "0012e8477ecb8270b6760554b44b20401453d20dad18ad16a0cd6340998abfe5",
+   "amount": 0.022336600348353386,
+   "from_address": "LCP3HCKKKQQTNYQ46BPAE6Z4ZA7NCS2VG72D7PMUCTOUU7QAGHG34KLI",
+   "to_address": "GBOMCO5L5YFTTOHUCISCHMM6HYSPCTA7YBBJDCKU3Y4RQUAPHBMIVFM3",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0012e8477ecb8270b6760554b44b20401453d20dad18ad16a0cd6340998abfe5-0-4",
+   "timestamp": "2026-09-14T15:27:32.000Z",
+   "date": "2026-09-14T00:00:00.000Z",
+   "transaction_hash": "0012e8477ecb8270b6760554b44b20401453d20dad18ad16a0cd6340998abfe5",
+   "amount": 0.022336600348353386,
+   "from_address": "GBOMCO5L5YFTTOHUCISCHMM6HYSPCTA7YBBJDCKU3Y4RQUAPHBMIVFM3",
+   "to_address": "LBVJKIY7CCHW6ILHY4ESNSLKYEN3TH7C5P4GDXY3EQE5IAOXRYGTVCGT",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00131240b1d18ab014e181723fc6229006805f1c7c3d0fa3af2ec149a0b155db-0-1",
+   "timestamp": "2026-08-06T07:03:44.000Z",
+   "date": "2026-08-06T00:00:00.000Z",
+   "transaction_hash": "00131240b1d18ab014e181723fc6229006805f1c7c3d0fa3af2ec149a0b155db",
+   "amount": 0.006577999796718359,
+   "from_address": "LAVQLXA645IWMCXEZHMLSZK2B7GN3D5EZZY36SGNX7ECB6TG3YK544VE",
+   "to_address": "GBOMCO5L5YFTTOHUCISCHMM6HYSPCTA7YBBJDCKU3Y4RQUAPHBMIVFM3",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00131240b1d18ab014e181723fc6229006805f1c7c3d0fa3af2ec149a0b155db-0-2",
+   "timestamp": "2026-08-06T07:03:44.000Z",
+   "date": "2026-08-06T00:00:00.000Z",
+   "transaction_hash": "00131240b1d18ab014e181723fc6229006805f1c7c3d0fa3af2ec149a0b155db",
+   "amount": 0.006577999796718359,
+   "from_address": "GBOMCO5L5YFTTOHUCISCHMM6HYSPCTA7YBBJDCKU3Y4RQUAPHBMIVFM3",
+   "to_address": "LAFILDKD72KSX2YKLLVCSDOQI5UJOMOSPRNGUFHCDTSR2TO2BKZI57KZ",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001336eedf8b1deb2176d3b0fc05a6bc936ee665ce49781524a49217590a2ef8-0-1",
+   "timestamp": "2026-06-01T11:03:44.000Z",
+   "date": "2026-06-01T00:00:00.000Z",
+   "transaction_hash": "001336eedf8b1deb2176d3b0fc05a6bc936ee665ce49781524a49217590a2ef8",
+   "amount": 0.034112799912691116,
+   "from_address": "LDPVYYBDPQRK3XSC5G623VWI2JTHQW6E4VQE6ZX7MQS2LJ6FRR7OARCO",
+   "to_address": "GBOMCO5L5YFTTOHUCISCHMM6HYSPCTA7YBBJDCKU3Y4RQUAPHBMIVFM3",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001336eedf8b1deb2176d3b0fc05a6bc936ee665ce49781524a49217590a2ef8-0-2",
+   "timestamp": "2026-06-01T11:03:44.000Z",
+   "date": "2026-06-01T00:00:00.000Z",
+   "transaction_hash": "001336eedf8b1deb2176d3b0fc05a6bc936ee665ce49781524a49217590a2ef8",
+   "amount": 0.034112799912691116,
+   "from_address": "GBOMCO5L5YFTTOHUCISCHMM6HYSPCTA7YBBJDCKU3Y4RQUAPHBMIVFM3",
+   "to_address": "LAA5YSUQ63X635E2UQE6GS5KDAQIU5S6F5KIZUN6TE6ZKYWGLUKSCLZ4",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0013a1d798f5e8e43e058ce1d1643e25922343103a6832e4c42cca07366f0294-0-5",
+   "timestamp": "2026-01-16T04:50:34.000Z",
+   "date": "2026-01-16T00:00:00.000Z",
+   "transaction_hash": "0013a1d798f5e8e43e058ce1d1643e25922343103a6832e4c42cca07366f0294",
+   "amount": 2.147095203399658,
+   "from_address": "GARMNQOGD2CVXHJMUUGVOVZ7VFG7BWBMC3TRASSE3IMNF5DI2E4RZZXD",
+   "to_address": "GDY52RAQG3FFQZ54T6MY6DCX7G2WHQNILQ3ZKU7BRCJ55SDOC7E27XQN",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0013a1d798f5e8e43e058ce1d1643e25922343103a6832e4c42cca07366f0294-0-6",
+   "timestamp": "2026-01-16T04:50:34.000Z",
+   "date": "2026-01-16T00:00:00.000Z",
+   "transaction_hash": "0013a1d798f5e8e43e058ce1d1643e25922343103a6832e4c42cca07366f0294",
+   "amount": 2.147095203399658,
+   "from_address": "GDY52RAQG3FFQZ54T6MY6DCX7G2WHQNILQ3ZKU7BRCJ55SDOC7E27XQN",
+   "to_address": "GCJPHBZEZHGBDO2UAGJM43YJ3AXF2WRJG6VPOGX5N2DTSFPPDIB2HSF3",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0013f41dd57885c6fd4484ec7a01dc85e6c8093103e25d4bc4a1260998d5003c-0-14",
+   "timestamp": "2026-06-05T05:55:16.000Z",
+   "date": "2026-06-05T00:00:00.000Z",
+   "transaction_hash": "0013f41dd57885c6fd4484ec7a01dc85e6c8093103e25d4bc4a1260998d5003c",
+   "amount": 10.127408027648926,
+   "from_address": "CBQDHNBFBZYE4MKPWBSJOPIYLW4SFSXAXUTSXJN76GNKYVYPCKWC6QUK",
+   "to_address": "CCPGFQUTSEHDIQODRE3GJDNE64A35HZ32L7LPDN7GXOCIYNBJSMS6V6B",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0013f41dd57885c6fd4484ec7a01dc85e6c8093103e25d4bc4a1260998d5003c-0-15",
+   "timestamp": "2026-06-05T05:55:16.000Z",
+   "date": "2026-06-05T00:00:00.000Z",
+   "transaction_hash": "0013f41dd57885c6fd4484ec7a01dc85e6c8093103e25d4bc4a1260998d5003c",
+   "amount": 10.076770782470703,
+   "from_address": "CCPGFQUTSEHDIQODRE3GJDNE64A35HZ32L7LPDN7GXOCIYNBJSMS6V6B",
+   "to_address": "GBOJC6W3NKA45CNE6E2WIHG74GXPP4FGDG3XS56WPKWAQTV4U63TP4TM",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0013f41dd57885c6fd4484ec7a01dc85e6c8093103e25d4bc4a1260998d5003c-0-9",
+   "timestamp": "2026-06-05T05:55:16.000Z",
+   "date": "2026-06-05T00:00:00.000Z",
+   "transaction_hash": "0013f41dd57885c6fd4484ec7a01dc85e6c8093103e25d4bc4a1260998d5003c",
+   "amount": 10.127408027648926,
+   "from_address": "CCV2X5THRWCT7HCGJU42DMOVYLAARVIPEDG2LQOVVA2WGONF2MZY2OX6",
+   "to_address": "CBQDHNBFBZYE4MKPWBSJOPIYLW4SFSXAXUTSXJN76GNKYVYPCKWC6QUK",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001516fd7d6d081907e0f56dbab2f607ab3d820e08f2e094e90d7e5f2de038eb-0-1",
+   "timestamp": "2026-08-20T10:04:52.000Z",
+   "date": "2026-08-20T00:00:00.000Z",
+   "transaction_hash": "001516fd7d6d081907e0f56dbab2f607ab3d820e08f2e094e90d7e5f2de038eb",
+   "amount": 0.0009599999757483602,
+   "from_address": "LAVQLXA645IWMCXEZHMLSZK2B7GN3D5EZZY36SGNX7ECB6TG3YK544VE",
+   "to_address": "GBLVLKGRDU66WLWY4XRORJXCC4LDZ347AQTUYBEPBABIZTVITW2OAGIP",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001516fd7d6d081907e0f56dbab2f607ab3d820e08f2e094e90d7e5f2de038eb-0-2",
+   "timestamp": "2026-08-20T10:04:52.000Z",
+   "date": "2026-08-20T00:00:00.000Z",
+   "transaction_hash": "001516fd7d6d081907e0f56dbab2f607ab3d820e08f2e094e90d7e5f2de038eb",
+   "amount": 0.0009599999757483602,
+   "from_address": "GBLVLKGRDU66WLWY4XRORJXCC4LDZ347AQTUYBEPBABIZTVITW2OAGIP",
+   "to_address": "LB7Z7COMKPJTYRXGPZQ2AE7GYBJ3WN4TOVUSDSCYFXJLZHKJGODLPGRU",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00154b9abd86223fe7bffbcbbc508173a822530d5d86c8d347a2a747a7bb5899-0-3",
+   "timestamp": "2026-03-07T13:12:46.000Z",
+   "date": "2026-03-07T00:00:00.000Z",
+   "transaction_hash": "00154b9abd86223fe7bffbcbbc508173a822530d5d86c8d347a2a747a7bb5899",
+   "amount": 0.004004999995231628,
+   "from_address": "GALLON2PUETE265477AJ3AVZYVPCR7HYJ2OEPYELP2DZLCRYQPW6OVRQ",
+   "to_address": "GAIY6FWAYXU2EOGZ3W7HTFGKGBYNBO2ONRHGAYKBUVSY72H6UGGUJ75A",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00154b9abd86223fe7bffbcbbc508173a822530d5d86c8d347a2a747a7bb5899-0-4",
+   "timestamp": "2026-03-07T13:12:46.000Z",
+   "date": "2026-03-07T00:00:00.000Z",
+   "transaction_hash": "00154b9abd86223fe7bffbcbbc508173a822530d5d86c8d347a2a747a7bb5899",
+   "amount": 0.004004999995231628,
+   "from_address": "GAIY6FWAYXU2EOGZ3W7HTFGKGBYNBO2ONRHGAYKBUVSY72H6UGGUJ75A",
+   "to_address": "GCJPHBZEZHGBDO2UAGJM43YJ3AXF2WRJG6VPOGX5N2DTSFPPDIB2HSF3",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0016199301a52c631e40851c202a22a5b6774353894ce60d2efed0f2c5de62a4-0-5",
+   "timestamp": "2026-01-20T16:33:16.000Z",
+   "date": "2026-01-20T00:00:00.000Z",
+   "transaction_hash": "0016199301a52c631e40851c202a22a5b6774353894ce60d2efed0f2c5de62a4",
+   "amount": 0.6988176703453064,
+   "from_address": "GARMNQOGD2CVXHJMUUGVOVZ7VFG7BWBMC3TRASSE3IMNF5DI2E4RZZXD",
+   "to_address": "GASB76SYSIS6ERWG2CNZAFUBYXJPBQEE6VADWJTGOI3BDDCBNINPCTTS",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0016199301a52c631e40851c202a22a5b6774353894ce60d2efed0f2c5de62a4-0-6",
+   "timestamp": "2026-01-20T16:33:16.000Z",
+   "date": "2026-01-20T00:00:00.000Z",
+   "transaction_hash": "0016199301a52c631e40851c202a22a5b6774353894ce60d2efed0f2c5de62a4",
+   "amount": 0.6988176703453064,
+   "from_address": "GASB76SYSIS6ERWG2CNZAFUBYXJPBQEE6VADWJTGOI3BDDCBNINPCTTS",
+   "to_address": "GCJPHBZEZHGBDO2UAGJM43YJ3AXF2WRJG6VPOGX5N2DTSFPPDIB2HSF3",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001635667c9c870957445774858bb7880a98fbf05f97b3b9eea7edcee2b37aaa-1-3",
+   "timestamp": "2026-07-12T00:10:16.000Z",
+   "date": "2026-07-12T00:00:00.000Z",
+   "transaction_hash": "001635667c9c870957445774858bb7880a98fbf05f97b3b9eea7edcee2b37aaa",
+   "amount": 0.08710269629955292,
+   "from_address": "GBPO5K4DY6C7RDUN5QJJ63SIJ5ZAY4STXMF5QB4TJKXYRS5UY2SD3QCS",
+   "to_address": "GAFB7IYPCYZCODQBB5BR5JO45JC4PPVLARUAXQSFHWTLH2KMHPWJ36GD",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001635667c9c870957445774858bb7880a98fbf05f97b3b9eea7edcee2b37aaa-1-4",
+   "timestamp": "2026-07-12T00:10:16.000Z",
+   "date": "2026-07-12T00:00:00.000Z",
+   "transaction_hash": "001635667c9c870957445774858bb7880a98fbf05f97b3b9eea7edcee2b37aaa",
+   "amount": 0.08710269629955292,
+   "from_address": "GAFB7IYPCYZCODQBB5BR5JO45JC4PPVLARUAXQSFHWTLH2KMHPWJ36GD",
+   "to_address": "GBQ2NOMPXDGYO7R5X7HJZOIU3WL3AUUKZWC5IIENELCUNOK2HHET6SWF",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001635667c9c870957445774858bb7880a98fbf05f97b3b9eea7edcee2b37aaa-7-3",
+   "timestamp": "2026-07-12T00:10:16.000Z",
+   "date": "2026-07-12T00:00:00.000Z",
+   "transaction_hash": "001635667c9c870957445774858bb7880a98fbf05f97b3b9eea7edcee2b37aaa",
+   "amount": 0.08710269629955292,
+   "from_address": "GBPO5K4DY6C7RDUN5QJJ63SIJ5ZAY4STXMF5QB4TJKXYRS5UY2SD3QCS",
+   "to_address": "GAFB7IYPCYZCODQBB5BR5JO45JC4PPVLARUAXQSFHWTLH2KMHPWJ36GD",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001635667c9c870957445774858bb7880a98fbf05f97b3b9eea7edcee2b37aaa-7-4",
+   "timestamp": "2026-07-12T00:10:16.000Z",
+   "date": "2026-07-12T00:00:00.000Z",
+   "transaction_hash": "001635667c9c870957445774858bb7880a98fbf05f97b3b9eea7edcee2b37aaa",
+   "amount": 0.08710269629955292,
+   "from_address": "GAFB7IYPCYZCODQBB5BR5JO45JC4PPVLARUAXQSFHWTLH2KMHPWJ36GD",
+   "to_address": "GBQ2NOMPXDGYO7R5X7HJZOIU3WL3AUUKZWC5IIENELCUNOK2HHET6SWF",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001635667c9c870957445774858bb7880a98fbf05f97b3b9eea7edcee2b37aaa-9-3",
+   "timestamp": "2026-07-12T00:10:16.000Z",
+   "date": "2026-07-12T00:00:00.000Z",
+   "transaction_hash": "001635667c9c870957445774858bb7880a98fbf05f97b3b9eea7edcee2b37aaa",
+   "amount": 0.08710269629955292,
+   "from_address": "GBPO5K4DY6C7RDUN5QJJ63SIJ5ZAY4STXMF5QB4TJKXYRS5UY2SD3QCS",
+   "to_address": "GAFB7IYPCYZCODQBB5BR5JO45JC4PPVLARUAXQSFHWTLH2KMHPWJ36GD",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001635667c9c870957445774858bb7880a98fbf05f97b3b9eea7edcee2b37aaa-9-4",
+   "timestamp": "2026-07-12T00:10:16.000Z",
+   "date": "2026-07-12T00:00:00.000Z",
+   "transaction_hash": "001635667c9c870957445774858bb7880a98fbf05f97b3b9eea7edcee2b37aaa",
+   "amount": 0.08710269629955292,
+   "from_address": "GAFB7IYPCYZCODQBB5BR5JO45JC4PPVLARUAXQSFHWTLH2KMHPWJ36GD",
+   "to_address": "GBQ2NOMPXDGYO7R5X7HJZOIU3WL3AUUKZWC5IIENELCUNOK2HHET6SWF",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0016bf010b34d70100af2bdac84aa4617c04fa8c8f095435defb2bdd37afe4aa-0-1",
+   "timestamp": "2026-05-22T18:44:08.000Z",
+   "date": "2026-05-22T00:00:00.000Z",
+   "transaction_hash": "0016bf010b34d70100af2bdac84aa4617c04fa8c8f095435defb2bdd37afe4aa",
+   "amount": 0.014506000094115734,
+   "from_address": "LDPVYYBDPQRK3XSC5G623VWI2JTHQW6E4VQE6ZX7MQS2LJ6FRR7OARCO",
+   "to_address": "GCO45COWIBDZEGJ3DRGDGCCCJXK777F2S6D6HXQKXVB3EKQVCQU7B2WA",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0016bf010b34d70100af2bdac84aa4617c04fa8c8f095435defb2bdd37afe4aa-0-2",
+   "timestamp": "2026-05-22T18:44:08.000Z",
+   "date": "2026-05-22T00:00:00.000Z",
+   "transaction_hash": "0016bf010b34d70100af2bdac84aa4617c04fa8c8f095435defb2bdd37afe4aa",
+   "amount": 0.014506000094115734,
+   "from_address": "GCO45COWIBDZEGJ3DRGDGCCCJXK777F2S6D6HXQKXVB3EKQVCQU7B2WA",
+   "to_address": "GALLON2PUETE265477AJ3AVZYVPCR7HYJ2OEPYELP2DZLCRYQPW6OVRQ",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0016e7f8e82a83f7bb862ad3929055c9299932ab9b334b9f28c5b6c2825d338c-0-7",
+   "timestamp": "2026-01-20T08:51:22.000Z",
+   "date": "2026-01-20T00:00:00.000Z",
+   "transaction_hash": "0016e7f8e82a83f7bb862ad3929055c9299932ab9b334b9f28c5b6c2825d338c",
+   "amount": 0.028316199779510498,
+   "from_address": "GARMNQOGD2CVXHJMUUGVOVZ7VFG7BWBMC3TRASSE3IMNF5DI2E4RZZXD",
+   "to_address": "GCK35RFPRLCR5NUNJGO6SLKXCN3PQGWQ6HEYIMHPYJCP7POLUGJNTW5H",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0016e7f8e82a83f7bb862ad3929055c9299932ab9b334b9f28c5b6c2825d338c-0-8",
+   "timestamp": "2026-01-20T08:51:22.000Z",
+   "date": "2026-01-20T00:00:00.000Z",
+   "transaction_hash": "0016e7f8e82a83f7bb862ad3929055c9299932ab9b334b9f28c5b6c2825d338c",
+   "amount": 0.028316199779510498,
+   "from_address": "GCK35RFPRLCR5NUNJGO6SLKXCN3PQGWQ6HEYIMHPYJCP7POLUGJNTW5H",
+   "to_address": "GCJPHBZEZHGBDO2UAGJM43YJ3AXF2WRJG6VPOGX5N2DTSFPPDIB2HSF3",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0016f794b7ea7e012cb8e9b5da25c5751a639b562bbc07af31f67ed97f6f168c-0-1",
+   "timestamp": "2026-01-27T20:53:42.000Z",
+   "date": "2026-01-27T00:00:00.000Z",
+   "transaction_hash": "0016f794b7ea7e012cb8e9b5da25c5751a639b562bbc07af31f67ed97f6f168c",
+   "amount": 0.001867600018158555,
+   "from_address": "GCJPHBZEZHGBDO2UAGJM43YJ3AXF2WRJG6VPOGX5N2DTSFPPDIB2HSF3",
+   "to_address": "GALMOTUVDYGDSJZWI7FZCLD7DC7DHYTPZ7AAIVRPP5KNVPVLBJLCAPSI",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0016f794b7ea7e012cb8e9b5da25c5751a639b562bbc07af31f67ed97f6f168c-0-2",
+   "timestamp": "2026-01-27T20:53:42.000Z",
+   "date": "2026-01-27T00:00:00.000Z",
+   "transaction_hash": "0016f794b7ea7e012cb8e9b5da25c5751a639b562bbc07af31f67ed97f6f168c",
+   "amount": 0.001867600018158555,
+   "from_address": "GALMOTUVDYGDSJZWI7FZCLD7DC7DHYTPZ7AAIVRPP5KNVPVLBJLCAPSI",
+   "to_address": "LDGW2E2JMK44PRJ6Q5W3UUXNDEHT25ULUS3RFP2TYZPLGOBEQU5M4WBY",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00173291cce6b516f4fa6559d72ccd6114616b84d05c31a253766fdf2a12b176-0-18",
+   "timestamp": "2026-09-04T16:18:44.000Z",
+   "date": "2026-09-04T00:00:00.000Z",
+   "transaction_hash": "00173291cce6b516f4fa6559d72ccd6114616b84d05c31a253766fdf2a12b176",
+   "amount": 0.11990609765052795,
+   "from_address": "CAFHLHGZXOVNCGFJ7DOXL7JDNMBCEZKDI3LS5NRQH3GXC7CSIMQZHUSM",
+   "to_address": "CBQDHNBFBZYE4MKPWBSJOPIYLW4SFSXAXUTSXJN76GNKYVYPCKWC6QUK",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00173291cce6b516f4fa6559d72ccd6114616b84d05c31a253766fdf2a12b176-0-22",
+   "timestamp": "2026-09-04T16:18:44.000Z",
+   "date": "2026-09-04T00:00:00.000Z",
+   "transaction_hash": "00173291cce6b516f4fa6559d72ccd6114616b84d05c31a253766fdf2a12b176",
+   "amount": 0.11990609765052795,
+   "from_address": "CBQDHNBFBZYE4MKPWBSJOPIYLW4SFSXAXUTSXJN76GNKYVYPCKWC6QUK",
+   "to_address": "CCPGFQUTSEHDIQODRE3GJDNE64A35HZ32L7LPDN7GXOCIYNBJSMS6V6B",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00173291cce6b516f4fa6559d72ccd6114616b84d05c31a253766fdf2a12b176-0-23",
+   "timestamp": "2026-09-04T16:18:44.000Z",
+   "date": "2026-09-04T00:00:00.000Z",
+   "transaction_hash": "00173291cce6b516f4fa6559d72ccd6114616b84d05c31a253766fdf2a12b176",
+   "amount": 0.11990609765052795,
+   "from_address": "CCPGFQUTSEHDIQODRE3GJDNE64A35HZ32L7LPDN7GXOCIYNBJSMS6V6B",
+   "to_address": "GASHVS7SRXZFCYHBOOBOV6DLRUH5V6DK7ZESF7VWQ2TX5PX7WVMEMZE6",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0017fe683ee87f12e808fbc27c5f499fd961010d3284ba53645c02b1c4aa7c67-0-5",
+   "timestamp": "2026-02-02T14:11:57.000Z",
+   "date": "2026-02-02T00:00:00.000Z",
+   "transaction_hash": "0017fe683ee87f12e808fbc27c5f499fd961010d3284ba53645c02b1c4aa7c67",
+   "amount": 3.655060291290283,
+   "from_address": "GALLON2PUETE265477AJ3AVZYVPCR7HYJ2OEPYELP2DZLCRYQPW6OVRQ",
+   "to_address": "GBJR4QDVXQIHQPJAAVKUBRPNZZRKH6RCQ7H2SLHGF2MC4LHLYQ6RQYWF",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0017fe683ee87f12e808fbc27c5f499fd961010d3284ba53645c02b1c4aa7c67-0-7",
+   "timestamp": "2026-02-02T14:11:57.000Z",
+   "date": "2026-02-02T00:00:00.000Z",
+   "transaction_hash": "0017fe683ee87f12e808fbc27c5f499fd961010d3284ba53645c02b1c4aa7c67",
+   "amount": 0.5242215991020203,
+   "from_address": "GARMNQOGD2CVXHJMUUGVOVZ7VFG7BWBMC3TRASSE3IMNF5DI2E4RZZXD",
+   "to_address": "GBJR4QDVXQIHQPJAAVKUBRPNZZRKH6RCQ7H2SLHGF2MC4LHLYQ6RQYWF",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0017fe683ee87f12e808fbc27c5f499fd961010d3284ba53645c02b1c4aa7c67-0-8",
+   "timestamp": "2026-02-02T14:11:57.000Z",
+   "date": "2026-02-02T00:00:00.000Z",
+   "transaction_hash": "0017fe683ee87f12e808fbc27c5f499fd961010d3284ba53645c02b1c4aa7c67",
+   "amount": 4.179282188415527,
+   "from_address": "GBJR4QDVXQIHQPJAAVKUBRPNZZRKH6RCQ7H2SLHGF2MC4LHLYQ6RQYWF",
+   "to_address": "GCJPHBZEZHGBDO2UAGJM43YJ3AXF2WRJG6VPOGX5N2DTSFPPDIB2HSF3",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00180169314e4fe9a241512a5f2f3129494d0463cb67fb56ae2d2827024013b6-0-1",
+   "timestamp": "2025-11-17T21:40:08.000Z",
+   "date": "2025-11-17T00:00:00.000Z",
+   "transaction_hash": "00180169314e4fe9a241512a5f2f3129494d0463cb67fb56ae2d2827024013b6",
+   "amount": 0.02399200014770031,
+   "from_address": "GCJPHBZEZHGBDO2UAGJM43YJ3AXF2WRJG6VPOGX5N2DTSFPPDIB2HSF3",
+   "to_address": "GABIOWBZG6IXN7ASBBCDPJ2KK5OWQ76UDV3PN4WPQT5MUCFCUQR4JZLE",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00180169314e4fe9a241512a5f2f3129494d0463cb67fb56ae2d2827024013b6-0-2",
+   "timestamp": "2025-11-17T21:40:08.000Z",
+   "date": "2025-11-17T00:00:00.000Z",
+   "transaction_hash": "00180169314e4fe9a241512a5f2f3129494d0463cb67fb56ae2d2827024013b6",
+   "amount": 0.02399200014770031,
+   "from_address": "GABIOWBZG6IXN7ASBBCDPJ2KK5OWQ76UDV3PN4WPQT5MUCFCUQR4JZLE",
+   "to_address": "GDFIHCKM4QVFWHD6T3J2GMZNRY5ZBQQA24V3HH7UUPWWF6ZSPBUBNEMW",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001855c08101019b3fab60038c1fe96021e22bef07a9fb89a66d6c6c2bafd83d-0-1",
+   "timestamp": "2026-08-20T08:44:37.000Z",
+   "date": "2026-08-20T00:00:00.000Z",
+   "transaction_hash": "001855c08101019b3fab60038c1fe96021e22bef07a9fb89a66d6c6c2bafd83d",
+   "amount": 0.0030511999502778053,
+   "from_address": "GBPO5K4DY6C7RDUN5QJJ63SIJ5ZAY4STXMF5QB4TJKXYRS5UY2SD3QCS",
+   "to_address": "GD77RS525TLPXBSFTZSHDEVDSCDO3NQBTATLRJQVHBOTKUC2PMGPTQEF",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001855c08101019b3fab60038c1fe96021e22bef07a9fb89a66d6c6c2bafd83d-0-2",
+   "timestamp": "2026-08-20T08:44:37.000Z",
+   "date": "2026-08-20T00:00:00.000Z",
+   "transaction_hash": "001855c08101019b3fab60038c1fe96021e22bef07a9fb89a66d6c6c2bafd83d",
+   "amount": 0.0030511999502778053,
+   "from_address": "GD77RS525TLPXBSFTZSHDEVDSCDO3NQBTATLRJQVHBOTKUC2PMGPTQEF",
+   "to_address": "GBQ2NOMPXDGYO7R5X7HJZOIU3WL3AUUKZWC5IIENELCUNOK2HHET6SWF",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00187326d7db32446b2dd3332ac0286a037ed2cd3e535dd1476b6b9cb0e0c9b8-6-1",
+   "timestamp": "2026-04-15T22:12:42.000Z",
+   "date": "2026-04-15T00:00:00.000Z",
+   "transaction_hash": "00187326d7db32446b2dd3332ac0286a037ed2cd3e535dd1476b6b9cb0e0c9b8",
+   "amount": 0.000447300000814721,
+   "from_address": "GBGLVAZWZRTGXMYWN3HY2WWPT44DNO5YIAEWU67OQAPWMR6ZSAFCADUH",
+   "to_address": "GDQOIHLHKQ7T47TSTGOICGFSAVVQOHP5YU4LIHVIMVI56NO2TV3GKVBU",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00187326d7db32446b2dd3332ac0286a037ed2cd3e535dd1476b6b9cb0e0c9b8-6-2",
+   "timestamp": "2026-04-15T22:12:42.000Z",
+   "date": "2026-04-15T00:00:00.000Z",
+   "transaction_hash": "00187326d7db32446b2dd3332ac0286a037ed2cd3e535dd1476b6b9cb0e0c9b8",
+   "amount": 0.000447300000814721,
+   "from_address": "GDQOIHLHKQ7T47TSTGOICGFSAVVQOHP5YU4LIHVIMVI56NO2TV3GKVBU",
+   "to_address": "LDBOZNDOQ3SO7CSHU3TZPFAIMYPZHYGTHV2EK4YVZSAZD3O4CCNKHIRY",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0018eb7da3c34aae05ecdd17db89f8c26e734d1893bdd895cbfa1b9bf1d5e977-0-3",
+   "timestamp": "2026-05-24T08:43:21.000Z",
+   "date": "2026-05-24T00:00:00.000Z",
+   "transaction_hash": "0018eb7da3c34aae05ecdd17db89f8c26e734d1893bdd895cbfa1b9bf1d5e977",
+   "amount": 1.2000000424450263e-06,
+   "from_address": "LCI56YNJUFZG47DN6U4TIK5XKOAHKY4IOWAQFOG6OESCE2NXSM65CKNW",
+   "to_address": "GCEETSI6ZGG3CS37YUFAUKCCJSCOILXL43JOJVZ435KBJ5NICDYY4EMP",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0018eb7da3c34aae05ecdd17db89f8c26e734d1893bdd895cbfa1b9bf1d5e977-0-4",
+   "timestamp": "2026-05-24T08:43:21.000Z",
+   "date": "2026-05-24T00:00:00.000Z",
+   "transaction_hash": "0018eb7da3c34aae05ecdd17db89f8c26e734d1893bdd895cbfa1b9bf1d5e977",
+   "amount": 1.2000000424450263e-06,
+   "from_address": "GCEETSI6ZGG3CS37YUFAUKCCJSCOILXL43JOJVZ435KBJ5NICDYY4EMP",
+   "to_address": "LC5GEWAORKDIUKWQOANLUYIU2IYGOKMIYA4L5FRS6WKTRXXBMEDHETWG",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00190a740b82ff212c9076634cd21d95e77ac9af154dee9afe6be3cf2d354377-0-3",
+   "timestamp": "2026-05-28T19:49:10.000Z",
+   "date": "2026-05-28T00:00:00.000Z",
+   "transaction_hash": "00190a740b82ff212c9076634cd21d95e77ac9af154dee9afe6be3cf2d354377",
+   "amount": 0.0696893036365509,
+   "from_address": "LA4HTLN3YOQYIOMUFCBENSXKEX5ZMZHQ46MW5OA7PKWIEONXBFZLUT4B",
+   "to_address": "GCXV6EEBS7ICNTDTPWN2NMCTAG3LTXEHN4PLHUS6MFUKCB4BKAIOZLNX",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00190a740b82ff212c9076634cd21d95e77ac9af154dee9afe6be3cf2d354377-0-4",
+   "timestamp": "2026-05-28T19:49:10.000Z",
+   "date": "2026-05-28T00:00:00.000Z",
+   "transaction_hash": "00190a740b82ff212c9076634cd21d95e77ac9af154dee9afe6be3cf2d354377",
+   "amount": 0.0696893036365509,
+   "from_address": "GCXV6EEBS7ICNTDTPWN2NMCTAG3LTXEHN4PLHUS6MFUKCB4BKAIOZLNX",
+   "to_address": "GALLON2PUETE265477AJ3AVZYVPCR7HYJ2OEPYELP2DZLCRYQPW6OVRQ",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0019e5e7850b8cab935971ec7b2a3a0d174ee141cc33e78653c5271cba327091-0-18",
+   "timestamp": "2026-09-14T06:45:35.000Z",
+   "date": "2026-09-14T00:00:00.000Z",
+   "transaction_hash": "0019e5e7850b8cab935971ec7b2a3a0d174ee141cc33e78653c5271cba327091",
+   "amount": 0.11846739798784256,
+   "from_address": "CAFHLHGZXOVNCGFJ7DOXL7JDNMBCEZKDI3LS5NRQH3GXC7CSIMQZHUSM",
+   "to_address": "CBQDHNBFBZYE4MKPWBSJOPIYLW4SFSXAXUTSXJN76GNKYVYPCKWC6QUK",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0019e5e7850b8cab935971ec7b2a3a0d174ee141cc33e78653c5271cba327091-0-22",
+   "timestamp": "2026-09-14T06:45:35.000Z",
+   "date": "2026-09-14T00:00:00.000Z",
+   "transaction_hash": "0019e5e7850b8cab935971ec7b2a3a0d174ee141cc33e78653c5271cba327091",
+   "amount": 0.11846739798784256,
+   "from_address": "CBQDHNBFBZYE4MKPWBSJOPIYLW4SFSXAXUTSXJN76GNKYVYPCKWC6QUK",
+   "to_address": "CCPGFQUTSEHDIQODRE3GJDNE64A35HZ32L7LPDN7GXOCIYNBJSMS6V6B",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0019e5e7850b8cab935971ec7b2a3a0d174ee141cc33e78653c5271cba327091-0-23",
+   "timestamp": "2026-09-14T06:45:35.000Z",
+   "date": "2026-09-14T00:00:00.000Z",
+   "transaction_hash": "0019e5e7850b8cab935971ec7b2a3a0d174ee141cc33e78653c5271cba327091",
+   "amount": 0.11787500232458115,
+   "from_address": "CCPGFQUTSEHDIQODRE3GJDNE64A35HZ32L7LPDN7GXOCIYNBJSMS6V6B",
+   "to_address": "GBHK6INC2HL753VB3JYZ63V5HC5G6P6DTOTLFBJCSITL6FDUXD7A7CNU",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001a02c73ecb5d549841001b552b29b9e89470df83e1c5d6168b5f09ad6a8c62-0-1",
+   "timestamp": "2026-08-22T04:54:16.000Z",
+   "date": "2026-08-22T00:00:00.000Z",
+   "transaction_hash": "001a02c73ecb5d549841001b552b29b9e89470df83e1c5d6168b5f09ad6a8c62",
+   "amount": 0.0011890999739989638,
+   "from_address": "LAVQLXA645IWMCXEZHMLSZK2B7GN3D5EZZY36SGNX7ECB6TG3YK544VE",
+   "to_address": "GBLVLKGRDU66WLWY4XRORJXCC4LDZ347AQTUYBEPBABIZTVITW2OAGIP",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001a02c73ecb5d549841001b552b29b9e89470df83e1c5d6168b5f09ad6a8c62-0-2",
+   "timestamp": "2026-08-22T04:54:16.000Z",
+   "date": "2026-08-22T00:00:00.000Z",
+   "transaction_hash": "001a02c73ecb5d549841001b552b29b9e89470df83e1c5d6168b5f09ad6a8c62",
+   "amount": 0.0011890999739989638,
+   "from_address": "GBLVLKGRDU66WLWY4XRORJXCC4LDZ347AQTUYBEPBABIZTVITW2OAGIP",
+   "to_address": "LDIFNVBMGPR5PHIXUVRDQK7SMBZRBQ7FRW7LZYYAN7VLCDUBZCIXQX5O",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001af137d8f68916b62eaab9644e1b2cffce00936c5749c1ef8e84ece4a4fb32-0-3",
+   "timestamp": "2026-06-18T08:19:34.000Z",
+   "date": "2026-06-18T00:00:00.000Z",
+   "transaction_hash": "001af137d8f68916b62eaab9644e1b2cffce00936c5749c1ef8e84ece4a4fb32",
+   "amount": 0.008510800078511238,
+   "from_address": "LCD3BHUXQLZS5PLDBNTRDI3UNVYBAZ7AWQPKGAI7XR4WEHZ5FDMJFFKY",
+   "to_address": "GBOMCO5L5YFTTOHUCISCHMM6HYSPCTA7YBBJDCKU3Y4RQUAPHBMIVFM3",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001af137d8f68916b62eaab9644e1b2cffce00936c5749c1ef8e84ece4a4fb32-0-4",
+   "timestamp": "2026-06-18T08:19:34.000Z",
+   "date": "2026-06-18T00:00:00.000Z",
+   "transaction_hash": "001af137d8f68916b62eaab9644e1b2cffce00936c5749c1ef8e84ece4a4fb32",
+   "amount": 0.008510800078511238,
+   "from_address": "GBOMCO5L5YFTTOHUCISCHMM6HYSPCTA7YBBJDCKU3Y4RQUAPHBMIVFM3",
+   "to_address": "LDPVYYBDPQRK3XSC5G623VWI2JTHQW6E4VQE6ZX7MQS2LJ6FRR7OARCO",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001af3ae7c980809a18a3fcba1e2e94b772f89149eff019e769558a3717fb0bc-0-13",
+   "timestamp": "2026-06-05T18:44:24.000Z",
+   "date": "2026-06-05T00:00:00.000Z",
+   "transaction_hash": "001af3ae7c980809a18a3fcba1e2e94b772f89149eff019e769558a3717fb0bc",
+   "amount": 11.055276870727539,
+   "from_address": "CBQDHNBFBZYE4MKPWBSJOPIYLW4SFSXAXUTSXJN76GNKYVYPCKWC6QUK",
+   "to_address": "CCPGFQUTSEHDIQODRE3GJDNE64A35HZ32L7LPDN7GXOCIYNBJSMS6V6B",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001af3ae7c980809a18a3fcba1e2e94b772f89149eff019e769558a3717fb0bc-0-15",
+   "timestamp": "2026-06-05T18:44:24.000Z",
+   "date": "2026-06-05T00:00:00.000Z",
+   "transaction_hash": "001af3ae7c980809a18a3fcba1e2e94b772f89149eff019e769558a3717fb0bc",
+   "amount": 11,
+   "from_address": "CCPGFQUTSEHDIQODRE3GJDNE64A35HZ32L7LPDN7GXOCIYNBJSMS6V6B",
+   "to_address": "GBSIPNM2ZHRMAO4OBBSC42G4A7GCJ6T7W6LMFK664E42HSK6TBRJ2CRM",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001af3ae7c980809a18a3fcba1e2e94b772f89149eff019e769558a3717fb0bc-0-8",
+   "timestamp": "2026-06-05T18:44:24.000Z",
+   "date": "2026-06-05T00:00:00.000Z",
+   "transaction_hash": "001af3ae7c980809a18a3fcba1e2e94b772f89149eff019e769558a3717fb0bc",
+   "amount": 11.055276870727539,
+   "from_address": "CCV2X5THRWCT7HCGJU42DMOVYLAARVIPEDG2LQOVVA2WGONF2MZY2OX6",
+   "to_address": "CBQDHNBFBZYE4MKPWBSJOPIYLW4SFSXAXUTSXJN76GNKYVYPCKWC6QUK",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001b185a3cc83fdce88092ecb78bd731e0265e9c04d9cf6a72f3c217cb50700e-1-1",
+   "timestamp": "2026-08-05T19:56:36.000Z",
+   "date": "2026-08-05T00:00:00.000Z",
+   "transaction_hash": "001b185a3cc83fdce88092ecb78bd731e0265e9c04d9cf6a72f3c217cb50700e",
+   "amount": 0.0008784999954514205,
+   "from_address": "LCP3HCKKKQQTNYQ46BPAE6Z4ZA7NCS2VG72D7PMUCTOUU7QAGHG34KLI",
+   "to_address": "GA64OFUFTJCXYFP2UQWR7CBK4YSK6GSXNHGE32CF5XBDVVELXWR3TVR6",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001b185a3cc83fdce88092ecb78bd731e0265e9c04d9cf6a72f3c217cb50700e-1-2",
+   "timestamp": "2026-08-05T19:56:36.000Z",
+   "date": "2026-08-05T00:00:00.000Z",
+   "transaction_hash": "001b185a3cc83fdce88092ecb78bd731e0265e9c04d9cf6a72f3c217cb50700e",
+   "amount": 0.0008784999954514205,
+   "from_address": "GA64OFUFTJCXYFP2UQWR7CBK4YSK6GSXNHGE32CF5XBDVVELXWR3TVR6",
+   "to_address": "LA5IEX6DTLNTFWDUB7RNME66AGKCDGY62BO3GGEIK7JCCHBJ6QVPY5SN",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001b581efcdcde1d962f35f03ccce9a82724d875c67087acf346b07aaa02db48-0-0",
+   "timestamp": "2026-06-25T14:05:39.000Z",
+   "date": "2026-06-25T00:00:00.000Z",
+   "transaction_hash": "001b581efcdcde1d962f35f03ccce9a82724d875c67087acf346b07aaa02db48",
+   "amount": 11,
+   "from_address": "GCUJAVWGQ3RNQ42V3YIYHHV3UK3EX72FNVTRLM5EYS5LX3FTTD64FDMN",
+   "to_address": "GCGA3WOXG4KGG4R44NUXNOFCDLKRI3CDUDHAHOTGSDQLRX6XKBLLVJXY",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001b6a070976dffd56034a82b07ee5ac970074ffb0042544fb6445cfa5df03cb-5-1",
+   "timestamp": "2026-06-04T07:53:30.000Z",
+   "date": "2026-06-04T00:00:00.000Z",
+   "transaction_hash": "001b6a070976dffd56034a82b07ee5ac970074ffb0042544fb6445cfa5df03cb",
+   "amount": 0.0008737000171095133,
+   "from_address": "LDPVYYBDPQRK3XSC5G623VWI2JTHQW6E4VQE6ZX7MQS2LJ6FRR7OARCO",
+   "to_address": "GCROB2O5QFBJ7DZZ6FMJNMGVCF7TGGJMUMY56G6LMTNTQ3FLCJ6XBDTR",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001b6a070976dffd56034a82b07ee5ac970074ffb0042544fb6445cfa5df03cb-5-2",
+   "timestamp": "2026-06-04T07:53:30.000Z",
+   "date": "2026-06-04T00:00:00.000Z",
+   "transaction_hash": "001b6a070976dffd56034a82b07ee5ac970074ffb0042544fb6445cfa5df03cb",
+   "amount": 0.0008737000171095133,
+   "from_address": "GCROB2O5QFBJ7DZZ6FMJNMGVCF7TGGJMUMY56G6LMTNTQ3FLCJ6XBDTR",
+   "to_address": "LA5IEX6DTLNTFWDUB7RNME66AGKCDGY62BO3GGEIK7JCCHBJ6QVPY5SN",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001b6a070976dffd56034a82b07ee5ac970074ffb0042544fb6445cfa5df03cb-7-1",
+   "timestamp": "2026-06-04T07:53:30.000Z",
+   "date": "2026-06-04T00:00:00.000Z",
+   "transaction_hash": "001b6a070976dffd56034a82b07ee5ac970074ffb0042544fb6445cfa5df03cb",
+   "amount": 0.0008736000163480639,
+   "from_address": "LDPVYYBDPQRK3XSC5G623VWI2JTHQW6E4VQE6ZX7MQS2LJ6FRR7OARCO",
+   "to_address": "GCROB2O5QFBJ7DZZ6FMJNMGVCF7TGGJMUMY56G6LMTNTQ3FLCJ6XBDTR",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001b6a070976dffd56034a82b07ee5ac970074ffb0042544fb6445cfa5df03cb-7-2",
+   "timestamp": "2026-06-04T07:53:30.000Z",
+   "date": "2026-06-04T00:00:00.000Z",
+   "transaction_hash": "001b6a070976dffd56034a82b07ee5ac970074ffb0042544fb6445cfa5df03cb",
+   "amount": 0.0008736000163480639,
+   "from_address": "GCROB2O5QFBJ7DZZ6FMJNMGVCF7TGGJMUMY56G6LMTNTQ3FLCJ6XBDTR",
+   "to_address": "LAXCZHFLKAOF3TODXCVJU4YM5C2F5FTG55EGZEMDTBA2T5HMZWDEZKW4",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001b6a070976dffd56034a82b07ee5ac970074ffb0042544fb6445cfa5df03cb-9-1",
+   "timestamp": "2026-06-04T07:53:30.000Z",
+   "date": "2026-06-04T00:00:00.000Z",
+   "transaction_hash": "001b6a070976dffd56034a82b07ee5ac970074ffb0042544fb6445cfa5df03cb",
+   "amount": 0.0008736000163480639,
+   "from_address": "LDPVYYBDPQRK3XSC5G623VWI2JTHQW6E4VQE6ZX7MQS2LJ6FRR7OARCO",
+   "to_address": "GCROB2O5QFBJ7DZZ6FMJNMGVCF7TGGJMUMY56G6LMTNTQ3FLCJ6XBDTR",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001b6a070976dffd56034a82b07ee5ac970074ffb0042544fb6445cfa5df03cb-9-2",
+   "timestamp": "2026-06-04T07:53:30.000Z",
+   "date": "2026-06-04T00:00:00.000Z",
+   "transaction_hash": "001b6a070976dffd56034a82b07ee5ac970074ffb0042544fb6445cfa5df03cb",
+   "amount": 0.0008736000163480639,
+   "from_address": "GCROB2O5QFBJ7DZZ6FMJNMGVCF7TGGJMUMY56G6LMTNTQ3FLCJ6XBDTR",
+   "to_address": "LCI56YNJUFZG47DN6U4TIK5XKOAHKY4IOWAQFOG6OESCE2NXSM65CKNW",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001bb1170b76f5952fd4013497a4d8ca7e5804789479a3312965e208cbf94f91-3-3",
+   "timestamp": "2026-06-06T13:57:53.000Z",
+   "date": "2026-06-06T00:00:00.000Z",
+   "transaction_hash": "001bb1170b76f5952fd4013497a4d8ca7e5804789479a3312965e208cbf94f91",
+   "amount": 0.0007467999821528792,
+   "from_address": "LB7JQXRNKJAGVL52WSUX5L2QBDMSSGJ5SGMB6ZX5ZRYO22UDMNFAMCLF",
+   "to_address": "GCROB2O5QFBJ7DZZ6FMJNMGVCF7TGGJMUMY56G6LMTNTQ3FLCJ6XBDTR",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001bb1170b76f5952fd4013497a4d8ca7e5804789479a3312965e208cbf94f91-3-4",
+   "timestamp": "2026-06-06T13:57:53.000Z",
+   "date": "2026-06-06T00:00:00.000Z",
+   "transaction_hash": "001bb1170b76f5952fd4013497a4d8ca7e5804789479a3312965e208cbf94f91",
+   "amount": 0.0007467999821528792,
+   "from_address": "GCROB2O5QFBJ7DZZ6FMJNMGVCF7TGGJMUMY56G6LMTNTQ3FLCJ6XBDTR",
+   "to_address": "GBPO5K4DY6C7RDUN5QJJ63SIJ5ZAY4STXMF5QB4TJKXYRS5UY2SD3QCS",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001c09aa60c95731056fea598dbe1229b65abcd9fc1fe6d45621693c49024ccb-0-14",
+   "timestamp": "2026-06-05T08:37:23.000Z",
+   "date": "2026-06-05T00:00:00.000Z",
+   "transaction_hash": "001c09aa60c95731056fea598dbe1229b65abcd9fc1fe6d45621693c49024ccb",
+   "amount": 11.055276870727539,
+   "from_address": "CCV2X5THRWCT7HCGJU42DMOVYLAARVIPEDG2LQOVVA2WGONF2MZY2OX6",
+   "to_address": "CBQDHNBFBZYE4MKPWBSJOPIYLW4SFSXAXUTSXJN76GNKYVYPCKWC6QUK",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001c09aa60c95731056fea598dbe1229b65abcd9fc1fe6d45621693c49024ccb-0-19",
+   "timestamp": "2026-06-05T08:37:23.000Z",
+   "date": "2026-06-05T00:00:00.000Z",
+   "transaction_hash": "001c09aa60c95731056fea598dbe1229b65abcd9fc1fe6d45621693c49024ccb",
+   "amount": 11.055276870727539,
+   "from_address": "CBQDHNBFBZYE4MKPWBSJOPIYLW4SFSXAXUTSXJN76GNKYVYPCKWC6QUK",
+   "to_address": "CCPGFQUTSEHDIQODRE3GJDNE64A35HZ32L7LPDN7GXOCIYNBJSMS6V6B",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001c09aa60c95731056fea598dbe1229b65abcd9fc1fe6d45621693c49024ccb-0-21",
+   "timestamp": "2026-06-05T08:37:23.000Z",
+   "date": "2026-06-05T00:00:00.000Z",
+   "transaction_hash": "001c09aa60c95731056fea598dbe1229b65abcd9fc1fe6d45621693c49024ccb",
+   "amount": 11,
+   "from_address": "CCPGFQUTSEHDIQODRE3GJDNE64A35HZ32L7LPDN7GXOCIYNBJSMS6V6B",
+   "to_address": "GDB7BDTVDNC7QO6KXJCSHSAKXR2YCXAYGNR2ZIS2KGLZZMVD6QK6DT3C",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001ca554406720cb0bef36ade7c0527e20922685335269698e0edbc7fa2913f1-0-1",
+   "timestamp": "2026-02-06T13:23:40.000Z",
+   "date": "2026-02-06T00:00:00.000Z",
+   "transaction_hash": "001ca554406720cb0bef36ade7c0527e20922685335269698e0edbc7fa2913f1",
+   "amount": 5.160000000614673e-05,
+   "from_address": "GCJPHBZEZHGBDO2UAGJM43YJ3AXF2WRJG6VPOGX5N2DTSFPPDIB2HSF3",
+   "to_address": "GDT27W7EZNXXI3O4JRX6TC5WJPAJYRAIFPU2PCFTZ7XZTQH7FAUTNQEN",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001ca554406720cb0bef36ade7c0527e20922685335269698e0edbc7fa2913f1-0-2",
+   "timestamp": "2026-02-06T13:23:40.000Z",
+   "date": "2026-02-06T00:00:00.000Z",
+   "transaction_hash": "001ca554406720cb0bef36ade7c0527e20922685335269698e0edbc7fa2913f1",
+   "amount": 5.160000000614673e-05,
+   "from_address": "GDT27W7EZNXXI3O4JRX6TC5WJPAJYRAIFPU2PCFTZ7XZTQH7FAUTNQEN",
+   "to_address": "LA5IEX6DTLNTFWDUB7RNME66AGKCDGY62BO3GGEIK7JCCHBJ6QVPY5SN",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001d164b667fe11779b42f5f50bf6b4e062e6c4627e0dee64c0c1912a9f4a8ab-0-10",
+   "timestamp": "2026-06-15T18:03:31.000Z",
+   "date": "2026-06-15T00:00:00.000Z",
+   "transaction_hash": "001d164b667fe11779b42f5f50bf6b4e062e6c4627e0dee64c0c1912a9f4a8ab",
+   "amount": 0.0009236999903805554,
+   "from_address": "GCO45COWIBDZEGJ3DRGDGCCCJXK777F2S6D6HXQKXVB3EKQVCQU7B2WA",
+   "to_address": "GBPO5K4DY6C7RDUN5QJJ63SIJ5ZAY4STXMF5QB4TJKXYRS5UY2SD3QCS",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001d164b667fe11779b42f5f50bf6b4e062e6c4627e0dee64c0c1912a9f4a8ab-0-9",
+   "timestamp": "2026-06-15T18:03:31.000Z",
+   "date": "2026-06-15T00:00:00.000Z",
+   "transaction_hash": "001d164b667fe11779b42f5f50bf6b4e062e6c4627e0dee64c0c1912a9f4a8ab",
+   "amount": 0.0009236999903805554,
+   "from_address": "LCI56YNJUFZG47DN6U4TIK5XKOAHKY4IOWAQFOG6OESCE2NXSM65CKNW",
+   "to_address": "GCO45COWIBDZEGJ3DRGDGCCCJXK777F2S6D6HXQKXVB3EKQVCQU7B2WA",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001e1a6427301411f25d171c4c24ade9021a0f9ebc54418e6c99ba49061266fd-3-1",
+   "timestamp": "2026-09-14T19:09:15.000Z",
+   "date": "2026-09-14T00:00:00.000Z",
+   "transaction_hash": "001e1a6427301411f25d171c4c24ade9021a0f9ebc54418e6c99ba49061266fd",
+   "amount": 0.000958500022534281,
+   "from_address": "LA5IEX6DTLNTFWDUB7RNME66AGKCDGY62BO3GGEIK7JCCHBJ6QVPY5SN",
+   "to_address": "GA64OFUFTJCXYFP2UQWR7CBK4YSK6GSXNHGE32CF5XBDVVELXWR3TVR6",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001e1a6427301411f25d171c4c24ade9021a0f9ebc54418e6c99ba49061266fd-3-2",
+   "timestamp": "2026-09-14T19:09:15.000Z",
+   "date": "2026-09-14T00:00:00.000Z",
+   "transaction_hash": "001e1a6427301411f25d171c4c24ade9021a0f9ebc54418e6c99ba49061266fd",
+   "amount": 0.000958500022534281,
+   "from_address": "GA64OFUFTJCXYFP2UQWR7CBK4YSK6GSXNHGE32CF5XBDVVELXWR3TVR6",
+   "to_address": "LA2XUPXS6LARKDPTWHACM3NUVIHVIT3K6WZTUH4SUBVJMT3EVGLKGWZH",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001e556e03a754527a182231ff3577dc7f3c0b43ad1515331f8cf63d65382869-9-1",
+   "timestamp": "2026-07-15T18:51:08.000Z",
+   "date": "2026-07-15T00:00:00.000Z",
+   "transaction_hash": "001e556e03a754527a182231ff3577dc7f3c0b43ad1515331f8cf63d65382869",
+   "amount": 0.0003183000080753118,
+   "from_address": "LAVQLXA645IWMCXEZHMLSZK2B7GN3D5EZZY36SGNX7ECB6TG3YK544VE",
+   "to_address": "GBTEZE3JLLRBS5NFXRPQU675AFLC3L7P2CXDOIM4333AUNCZ2NUA2EKV",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001e556e03a754527a182231ff3577dc7f3c0b43ad1515331f8cf63d65382869-9-2",
+   "timestamp": "2026-07-15T18:51:08.000Z",
+   "date": "2026-07-15T00:00:00.000Z",
+   "transaction_hash": "001e556e03a754527a182231ff3577dc7f3c0b43ad1515331f8cf63d65382869",
+   "amount": 0.0003183000080753118,
+   "from_address": "GBTEZE3JLLRBS5NFXRPQU675AFLC3L7P2CXDOIM4333AUNCZ2NUA2EKV",
+   "to_address": "GBPO5K4DY6C7RDUN5QJJ63SIJ5ZAY4STXMF5QB4TJKXYRS5UY2SD3QCS",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001e5e55738081c3165b25a681a839bad4697df81e3c35f2508a42ccb783bf63-7-1",
+   "timestamp": "2026-05-11T03:22:38.000Z",
+   "date": "2026-05-11T00:00:00.000Z",
+   "transaction_hash": "001e5e55738081c3165b25a681a839bad4697df81e3c35f2508a42ccb783bf63",
+   "amount": 0.00021529999503400177,
+   "from_address": "LDPVYYBDPQRK3XSC5G623VWI2JTHQW6E4VQE6ZX7MQS2LJ6FRR7OARCO",
+   "to_address": "GCSO6DAFG52JZDJOB2ZXY3FZBCFJIEINR2BXNA2TTTCMFAOL5SQMIPW6",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001e5e55738081c3165b25a681a839bad4697df81e3c35f2508a42ccb783bf63-7-2",
+   "timestamp": "2026-05-11T03:22:38.000Z",
+   "date": "2026-05-11T00:00:00.000Z",
+   "transaction_hash": "001e5e55738081c3165b25a681a839bad4697df81e3c35f2508a42ccb783bf63",
+   "amount": 0.00021529999503400177,
+   "from_address": "GCSO6DAFG52JZDJOB2ZXY3FZBCFJIEINR2BXNA2TTTCMFAOL5SQMIPW6",
+   "to_address": "LDWAI3LBT2UIDS644HVBSEDKQ63BRQ6V4R3Z7SI7BMSYUV4VBLB3J2EP",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001ef273723b431ac2c8ff3ca862c67860258ac642408ae93972dcc1150ec3f3-0-1",
+   "timestamp": "2026-02-05T15:42:08.000Z",
+   "date": "2026-02-05T00:00:00.000Z",
+   "transaction_hash": "001ef273723b431ac2c8ff3ca862c67860258ac642408ae93972dcc1150ec3f3",
+   "amount": 0.1562754064798355,
+   "from_address": "GCJPHBZEZHGBDO2UAGJM43YJ3AXF2WRJG6VPOGX5N2DTSFPPDIB2HSF3",
+   "to_address": "GA2XPBGNHOWPXM6XBOMZNZFJWXRLMKPR6B5VK2T2JNRDEZVMXZGAVPFD",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001ef273723b431ac2c8ff3ca862c67860258ac642408ae93972dcc1150ec3f3-0-2",
+   "timestamp": "2026-02-05T15:42:08.000Z",
+   "date": "2026-02-05T00:00:00.000Z",
+   "transaction_hash": "001ef273723b431ac2c8ff3ca862c67860258ac642408ae93972dcc1150ec3f3",
+   "amount": 0.1562754064798355,
+   "from_address": "GA2XPBGNHOWPXM6XBOMZNZFJWXRLMKPR6B5VK2T2JNRDEZVMXZGAVPFD",
+   "to_address": "GARMNQOGD2CVXHJMUUGVOVZ7VFG7BWBMC3TRASSE3IMNF5DI2E4RZZXD",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001ef983b8ff0d3201be936d54df657cb417c3f0d9e3bf15f7823b4dbbda2536-0-0",
+   "timestamp": "2026-01-30T13:30:58.000Z",
+   "date": "2026-01-30T00:00:00.000Z",
+   "transaction_hash": "001ef983b8ff0d3201be936d54df657cb417c3f0d9e3bf15f7823b4dbbda2536",
+   "amount": 4.504297256469727,
+   "from_address": "GD7HOBY7TX6WAMVCCG5PS4URZELUGV65EEXUICVBGG7X3EPNCPEYPMNH",
+   "to_address": "GCJPHBZEZHGBDO2UAGJM43YJ3AXF2WRJG6VPOGX5N2DTSFPPDIB2HSF3",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001f5157919108596f24f9ed3d3800d5c56f7d800e71fdd5edb043b55eccd7a4-0-3",
+   "timestamp": "2026-05-27T20:13:32.000Z",
+   "date": "2026-05-27T00:00:00.000Z",
+   "transaction_hash": "001f5157919108596f24f9ed3d3800d5c56f7d800e71fdd5edb043b55eccd7a4",
+   "amount": 0.0014788999687880278,
+   "from_address": "LCI56YNJUFZG47DN6U4TIK5XKOAHKY4IOWAQFOG6OESCE2NXSM65CKNW",
+   "to_address": "GCY7AY7OOO2XKZUCKLOZL3MJ62DW5UNL3ISFWDEDEEJM7JFGYZEUS55Z",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001f5157919108596f24f9ed3d3800d5c56f7d800e71fdd5edb043b55eccd7a4-0-4",
+   "timestamp": "2026-05-27T20:13:32.000Z",
+   "date": "2026-05-27T00:00:00.000Z",
+   "transaction_hash": "001f5157919108596f24f9ed3d3800d5c56f7d800e71fdd5edb043b55eccd7a4",
+   "amount": 0.0014788999687880278,
+   "from_address": "GCY7AY7OOO2XKZUCKLOZL3MJ62DW5UNL3ISFWDEDEEJM7JFGYZEUS55Z",
+   "to_address": "LDPVYYBDPQRK3XSC5G623VWI2JTHQW6E4VQE6ZX7MQS2LJ6FRR7OARCO",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001f5c1453b0653b9921488dc9116e90b74a5cb2ef6969d0263fb9df46d6ce00-0-1",
+   "timestamp": "2026-07-06T02:44:46.000Z",
+   "date": "2026-07-06T00:00:00.000Z",
+   "transaction_hash": "001f5c1453b0653b9921488dc9116e90b74a5cb2ef6969d0263fb9df46d6ce00",
+   "amount": 0.0001407999952789396,
+   "from_address": "LCD3BHUXQLZS5PLDBNTRDI3UNVYBAZ7AWQPKGAI7XR4WEHZ5FDMJFFKY",
+   "to_address": "GBJAMW27KDP6AUPFVFRM7TUE3RGGBGJCNXE5V4PJ3JLRYCXQ6VNNWTBO",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001f5c1453b0653b9921488dc9116e90b74a5cb2ef6969d0263fb9df46d6ce00-0-2",
+   "timestamp": "2026-07-06T02:44:46.000Z",
+   "date": "2026-07-06T00:00:00.000Z",
+   "transaction_hash": "001f5c1453b0653b9921488dc9116e90b74a5cb2ef6969d0263fb9df46d6ce00",
+   "amount": 0.0001407999952789396,
+   "from_address": "GBJAMW27KDP6AUPFVFRM7TUE3RGGBGJCNXE5V4PJ3JLRYCXQ6VNNWTBO",
+   "to_address": "GBPO5K4DY6C7RDUN5QJJ63SIJ5ZAY4STXMF5QB4TJKXYRS5UY2SD3QCS",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001fb8042a59b432220ec82757c72157a755951c059231cd6c1521e409c1c3f4-0-3",
+   "timestamp": "2026-06-18T22:35:11.000Z",
+   "date": "2026-06-18T00:00:00.000Z",
+   "transaction_hash": "001fb8042a59b432220ec82757c72157a755951c059231cd6c1521e409c1c3f4",
+   "amount": 0.0001438000035705045,
+   "from_address": "LCI56YNJUFZG47DN6U4TIK5XKOAHKY4IOWAQFOG6OESCE2NXSM65CKNW",
+   "to_address": "GBACAAL2B4E3B2CFEODT22E7R6W4THW5B7QPJUJXCBJP6TWKL4ZR6ILY",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001fb8042a59b432220ec82757c72157a755951c059231cd6c1521e409c1c3f4-0-4",
+   "timestamp": "2026-06-18T22:35:11.000Z",
+   "date": "2026-06-18T00:00:00.000Z",
+   "transaction_hash": "001fb8042a59b432220ec82757c72157a755951c059231cd6c1521e409c1c3f4",
+   "amount": 0.0001438000035705045,
+   "from_address": "GBACAAL2B4E3B2CFEODT22E7R6W4THW5B7QPJUJXCBJP6TWKL4ZR6ILY",
+   "to_address": "LDPVYYBDPQRK3XSC5G623VWI2JTHQW6E4VQE6ZX7MQS2LJ6FRR7OARCO",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001ff3872a74d011989c7b328d04be47da371f9fc1b17b115e07d2beb179cdec-5-1",
+   "timestamp": "2026-07-14T12:44:31.000Z",
+   "date": "2026-07-14T00:00:00.000Z",
+   "transaction_hash": "001ff3872a74d011989c7b328d04be47da371f9fc1b17b115e07d2beb179cdec",
+   "amount": 6.10999995842576e-05,
+   "from_address": "LDPVYYBDPQRK3XSC5G623VWI2JTHQW6E4VQE6ZX7MQS2LJ6FRR7OARCO",
+   "to_address": "GC43BZH24ZLMQLM4EOGT2L2EUNGN74AG77WVBPDFWEP23XOY3AZ2TRXH",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-001ff3872a74d011989c7b328d04be47da371f9fc1b17b115e07d2beb179cdec-5-2",
+   "timestamp": "2026-07-14T12:44:31.000Z",
+   "date": "2026-07-14T00:00:00.000Z",
+   "transaction_hash": "001ff3872a74d011989c7b328d04be47da371f9fc1b17b115e07d2beb179cdec",
+   "amount": 6.10999995842576e-05,
+   "from_address": "GC43BZH24ZLMQLM4EOGT2L2EUNGN74AG77WVBPDFWEP23XOY3AZ2TRXH",
+   "to_address": "LA5IEX6DTLNTFWDUB7RNME66AGKCDGY62BO3GGEIK7JCCHBJ6QVPY5SN",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00200c4d3b2c791a0ee31013b4ff12ab1bde1266946d05dbf3b71fc34e3537d5-0-0",
+   "timestamp": "2026-06-25T14:06:01.000Z",
+   "date": "2026-06-25T00:00:00.000Z",
+   "transaction_hash": "00200c4d3b2c791a0ee31013b4ff12ab1bde1266946d05dbf3b71fc34e3537d5",
+   "amount": 10.5,
+   "from_address": "GC6MZ4KKZHHNOIAJTVM2Y6T3QRZ7ICKN7CVUCS3WMXL3AP2D73F6PHS6",
+   "to_address": "GCGA3WOXG4KGG4R44NUXNOFCDLKRI3CDUDHAHOTGSDQLRX6XKBLLVJXY",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0020c7071567adc28b6b2d0b6a100ecb6e886598256de3bcb4e4aa4c48e79042-0-5",
+   "timestamp": "2026-02-15T03:36:21.000Z",
+   "date": "2026-02-15T00:00:00.000Z",
+   "transaction_hash": "0020c7071567adc28b6b2d0b6a100ecb6e886598256de3bcb4e4aa4c48e79042",
+   "amount": 0.384799987077713,
+   "from_address": "GARMNQOGD2CVXHJMUUGVOVZ7VFG7BWBMC3TRASSE3IMNF5DI2E4RZZXD",
+   "to_address": "GCI52IP25LJRMAMETQJB2MRVOXJ7RGJR4SBTWDQBAMRA5TEEUGVGOBMS",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0020c7071567adc28b6b2d0b6a100ecb6e886598256de3bcb4e4aa4c48e79042-0-6",
+   "timestamp": "2026-02-15T03:36:21.000Z",
+   "date": "2026-02-15T00:00:00.000Z",
+   "transaction_hash": "0020c7071567adc28b6b2d0b6a100ecb6e886598256de3bcb4e4aa4c48e79042",
+   "amount": 0.384799987077713,
+   "from_address": "GCI52IP25LJRMAMETQJB2MRVOXJ7RGJR4SBTWDQBAMRA5TEEUGVGOBMS",
+   "to_address": "GCJPHBZEZHGBDO2UAGJM43YJ3AXF2WRJG6VPOGX5N2DTSFPPDIB2HSF3",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0020d9e048bfbb5bd62aa5cb2172675691c7138eadfd96ab5f9ef30b6f7a1bbd-0-7",
+   "timestamp": "2026-02-17T14:44:44.000Z",
+   "date": "2026-02-17T00:00:00.000Z",
+   "transaction_hash": "0020d9e048bfbb5bd62aa5cb2172675691c7138eadfd96ab5f9ef30b6f7a1bbd",
+   "amount": 0.4151206910610199,
+   "from_address": "GARMNQOGD2CVXHJMUUGVOVZ7VFG7BWBMC3TRASSE3IMNF5DI2E4RZZXD",
+   "to_address": "GASB76SYSIS6ERWG2CNZAFUBYXJPBQEE6VADWJTGOI3BDDCBNINPCTTS",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0020d9e048bfbb5bd62aa5cb2172675691c7138eadfd96ab5f9ef30b6f7a1bbd-0-8",
+   "timestamp": "2026-02-17T14:44:44.000Z",
+   "date": "2026-02-17T00:00:00.000Z",
+   "transaction_hash": "0020d9e048bfbb5bd62aa5cb2172675691c7138eadfd96ab5f9ef30b6f7a1bbd",
+   "amount": 0.4151206910610199,
+   "from_address": "GASB76SYSIS6ERWG2CNZAFUBYXJPBQEE6VADWJTGOI3BDDCBNINPCTTS",
+   "to_address": "GCJPHBZEZHGBDO2UAGJM43YJ3AXF2WRJG6VPOGX5N2DTSFPPDIB2HSF3",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-002107af030121d74e8df53638e53ccfda82cc65ec5686f3fca54d5e96b9da72-0-0",
+   "timestamp": "2026-08-03T16:13:56.000Z",
+   "date": "2026-08-03T00:00:00.000Z",
+   "transaction_hash": "002107af030121d74e8df53638e53ccfda82cc65ec5686f3fca54d5e96b9da72",
+   "amount": 3.916405200958252,
+   "from_address": "GAQ6KSJNJUH4SCQPWWLUAYCCE7D5ZPZT4ZKWNJNDPWVLOEPKCU4QZVF2",
+   "to_address": "GBPO5K4DY6C7RDUN5QJJ63SIJ5ZAY4STXMF5QB4TJKXYRS5UY2SD3QCS",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00212729b64630ae75ba4505d60413648e62c8f3d057632bba664a5b18618ab4-0-1",
+   "timestamp": "2026-07-04T16:11:21.000Z",
+   "date": "2026-07-04T00:00:00.000Z",
+   "transaction_hash": "00212729b64630ae75ba4505d60413648e62c8f3d057632bba664a5b18618ab4",
+   "amount": 0.00013869999384041876,
+   "from_address": "LDWAI3LBT2UIDS644HVBSEDKQ63BRQ6V4R3Z7SI7BMSYUV4VBLB3J2EP",
+   "to_address": "GBJAMW27KDP6AUPFVFRM7TUE3RGGBGJCNXE5V4PJ3JLRYCXQ6VNNWTBO",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00212729b64630ae75ba4505d60413648e62c8f3d057632bba664a5b18618ab4-0-2",
+   "timestamp": "2026-07-04T16:11:21.000Z",
+   "date": "2026-07-04T00:00:00.000Z",
+   "transaction_hash": "00212729b64630ae75ba4505d60413648e62c8f3d057632bba664a5b18618ab4",
+   "amount": 0.00013869999384041876,
+   "from_address": "GBJAMW27KDP6AUPFVFRM7TUE3RGGBGJCNXE5V4PJ3JLRYCXQ6VNNWTBO",
+   "to_address": "LB7Z7COMKPJTYRXGPZQ2AE7GYBJ3WN4TOVUSDSCYFXJLZHKJGODLPGRU",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-002261b5d44dcb404015021e91a26d5c004f71028fed00ec9f91bd6712fe0585-0-3",
+   "timestamp": "2025-11-18T19:37:25.000Z",
+   "date": "2025-11-18T00:00:00.000Z",
+   "transaction_hash": "002261b5d44dcb404015021e91a26d5c004f71028fed00ec9f91bd6712fe0585",
+   "amount": 0.0021969000808894634,
+   "from_address": "LC5GEWAORKDIUKWQOANLUYIU2IYGOKMIYA4L5FRS6WKTRXXBMEDHETWG",
+   "to_address": "GCY7AY7OOO2XKZUCKLOZL3MJ62DW5UNL3ISFWDEDEEJM7JFGYZEUS55Z",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-002261b5d44dcb404015021e91a26d5c004f71028fed00ec9f91bd6712fe0585-0-4",
+   "timestamp": "2025-11-18T19:37:25.000Z",
+   "date": "2025-11-18T00:00:00.000Z",
+   "transaction_hash": "002261b5d44dcb404015021e91a26d5c004f71028fed00ec9f91bd6712fe0585",
+   "amount": 0.0021969000808894634,
+   "from_address": "GCY7AY7OOO2XKZUCKLOZL3MJ62DW5UNL3ISFWDEDEEJM7JFGYZEUS55Z",
+   "to_address": "LDPVYYBDPQRK3XSC5G623VWI2JTHQW6E4VQE6ZX7MQS2LJ6FRR7OARCO",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-002302910045a18d5426feca4e1a53e5b1e7603c5ab6c5101f7ae03fad339d77-1-1",
+   "timestamp": "2026-08-02T05:19:25.000Z",
+   "date": "2026-08-02T00:00:00.000Z",
+   "transaction_hash": "002302910045a18d5426feca4e1a53e5b1e7603c5ab6c5101f7ae03fad339d77",
+   "amount": 0.00088900001719594,
+   "from_address": "GBPO5K4DY6C7RDUN5QJJ63SIJ5ZAY4STXMF5QB4TJKXYRS5UY2SD3QCS",
+   "to_address": "GAFEDMD42RJVK4TWOV7QXFTBPJOU7HIKS4DBNKZYUNFUEK24AW26ZJJ5",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-002302910045a18d5426feca4e1a53e5b1e7603c5ab6c5101f7ae03fad339d77-1-2",
+   "timestamp": "2026-08-02T05:19:25.000Z",
+   "date": "2026-08-02T00:00:00.000Z",
+   "transaction_hash": "002302910045a18d5426feca4e1a53e5b1e7603c5ab6c5101f7ae03fad339d77",
+   "amount": 0.00088900001719594,
+   "from_address": "GAFEDMD42RJVK4TWOV7QXFTBPJOU7HIKS4DBNKZYUNFUEK24AW26ZJJ5",
+   "to_address": "LA5IEX6DTLNTFWDUB7RNME66AGKCDGY62BO3GGEIK7JCCHBJ6QVPY5SN",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00233a051f2cd4063842d4a6119e8ed623d76fdc0639ab98714624751ca8626e-0-5",
+   "timestamp": "2026-02-02T03:50:00.000Z",
+   "date": "2026-02-02T00:00:00.000Z",
+   "transaction_hash": "00233a051f2cd4063842d4a6119e8ed623d76fdc0639ab98714624751ca8626e",
+   "amount": 0.40223538875579834,
+   "from_address": "GCJPHBZEZHGBDO2UAGJM43YJ3AXF2WRJG6VPOGX5N2DTSFPPDIB2HSF3",
+   "to_address": "GASB76SYSIS6ERWG2CNZAFUBYXJPBQEE6VADWJTGOI3BDDCBNINPCTTS",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00233a051f2cd4063842d4a6119e8ed623d76fdc0639ab98714624751ca8626e-0-6",
+   "timestamp": "2026-02-02T03:50:00.000Z",
+   "date": "2026-02-02T00:00:00.000Z",
+   "transaction_hash": "00233a051f2cd4063842d4a6119e8ed623d76fdc0639ab98714624751ca8626e",
+   "amount": 0.40223538875579834,
+   "from_address": "GASB76SYSIS6ERWG2CNZAFUBYXJPBQEE6VADWJTGOI3BDDCBNINPCTTS",
+   "to_address": "GARMNQOGD2CVXHJMUUGVOVZ7VFG7BWBMC3TRASSE3IMNF5DI2E4RZZXD",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00235d17f224f545f89b124f6657b272e9c4dfa425d0791f78bd6f8f952c8228-0-1",
+   "timestamp": "2026-01-26T13:20:46.000Z",
+   "date": "2026-01-26T00:00:00.000Z",
+   "transaction_hash": "00235d17f224f545f89b124f6657b272e9c4dfa425d0791f78bd6f8f952c8228",
+   "amount": 1.1736688613891602,
+   "from_address": "GCJPHBZEZHGBDO2UAGJM43YJ3AXF2WRJG6VPOGX5N2DTSFPPDIB2HSF3",
+   "to_address": "GDBKSHB4QTLZD2HUD5JJ4R3RWR6S2P3Z3HU4BQBRWBIHQWMG5D6BFPQ2",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-00235d17f224f545f89b124f6657b272e9c4dfa425d0791f78bd6f8f952c8228-0-2",
+   "timestamp": "2026-01-26T13:20:46.000Z",
+   "date": "2026-01-26T00:00:00.000Z",
+   "transaction_hash": "00235d17f224f545f89b124f6657b272e9c4dfa425d0791f78bd6f8f952c8228",
+   "amount": 1.1736688613891602,
+   "from_address": "GDBKSHB4QTLZD2HUD5JJ4R3RWR6S2P3Z3HU4BQBRWBIHQWMG5D6BFPQ2",
+   "to_address": "GARMNQOGD2CVXHJMUUGVOVZ7VFG7BWBMC3TRASSE3IMNF5DI2E4RZZXD",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  },
+  {
+   "id": "9-0023897e2e93d005361f6173bcad1c6f275807f9b1a54c28c6ee9dac1e12136d-0-1",
+   "timestamp": "2026-08-13T12:59:15.000Z",
+   "date": "2026-08-13T00:00:00.000Z",
+   "transaction_hash": "0023897e2e93d005361f6173bcad1c6f275807f9b1a54c28c6ee9dac1e12136d",
+   "amount": 0.00596169987693429,
+   "from_address": "LDPVYYBDPQRK3XSC5G623VWI2JTHQW6E4VQE6ZX7MQS2LJ6FRR7OARCO",
+   "to_address": "GBOMCO5L5YFTTOHUCISCHMM6HYSPCTA7YBBJDCKU3Y4RQUAPHBMIVFM3",
+   "token_address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+   "network_id": 9,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer"
+   },
+   "token": {
+    "address": "USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1",
+    "decimals": 7,
+    "network_id": 9,
+    "asset_id": "60"
+   }
+  }
+ ]
+}
