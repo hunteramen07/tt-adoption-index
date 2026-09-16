@@ -108,6 +108,7 @@ import {
   sizeWindowByPreflight,
 } from '@/src/lib/rwa/backfill-span'
 import { fetchAssetSupplyByToken, sumSupplyForNetwork } from '@/src/lib/rwa/assets'
+import { logRpcEndpointsInUse } from '@/src/lib/rwa/solana-rpc'
 import type { TokenSupply } from '@/src/lib/rwa/assets'
 import { fetchTransfersWindowRWA, fetchEarliestTxDate, countTransfersWindowPagesRWA } from '@/src/lib/rwa/transfers'
 import { fetchChainSupply, toTokens } from '@/src/lib/rwa/chain-supply'
@@ -1400,6 +1401,9 @@ async function backfillRwaFund(product: Product, nowTs: number, budget: RunBudge
 async function main() {
   console.log('=== classify ===')
   console.log(`window: trailing 90 days  |  ${new Date().toISOString()}`)
+  // Every mode (nightly, BACKFILL, REANCHOR) can hit the Solana resolver; say which
+  // RPC list it will use so a misconfigured secret is visible, not silent.
+  logRpcEndpointsInUse()
 
   const progress = loadProgress() ?? { startedAt: new Date().toISOString(), completedProducts: [] }
   if (progress.completedProducts.length > 0) {

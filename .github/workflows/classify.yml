@@ -52,3 +52,8 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
           RWA_API_KEY: ${{ secrets.RWA_API_KEY }}
+          # Solana JSON-RPC endpoint list (comma-separated, keyed URLs first). Unset ⇒ the
+          # hardcoded defaults, of which only api.mainnet-beta actually answers the
+          # resolver's 100-address getMultipleAccounts (publicnode 403s above ~10
+          # addresses, drpc is paywalled). The run logs which list is in use at startup.
+          SOLANA_RPC_URLS: ${{ secrets.SOLANA_RPC_URLS }}

@@ -10,7 +10,7 @@
  * throws, and nothing here ever guesses on failure.
  */
 
-import { jsonRpc, endpointsFromEnv } from '@/src/lib/rwa/json-rpc'
+import { jsonRpc, endpointsFromEnv, redactEndpoint } from '@/src/lib/rwa/json-rpc'
 
 // ⚠ Fragile in practice (probed 2026-09-15 with the resolver's real 100-address
 // getMultipleAccounts batch): only api.mainnet-beta answers. publicnode returns 403
@@ -29,6 +29,38 @@ const DEFAULT_RPC_ENDPOINTS = [
 /** RPC endpoints, overridable via SOLANA_RPC_URLS (comma-separated). */
 export function rpcEndpoints(): string[] {
   return endpointsFromEnv('SOLANA_RPC_URLS') ?? DEFAULT_RPC_ENDPOINTS
+}
+
+/**
+ * Which endpoint list a run will use, in a form safe for a CI log: hosts only (a
+ * keyed URL carries its key in the path or query, which is redacted). Logged at
+ * startup so a missing, empty, or malformed SOLANA_RPC_URLS secret is VISIBLE — the
+ * silent alternative is a run that quietly falls back to a single public endpoint.
+ */
+export function describeRpcEndpoints(): { source: 'SOLANA_RPC_URLS' | 'defaults'; hosts: string[]; invalid: string[] } {
+  const fromEnv = endpointsFromEnv('SOLANA_RPC_URLS')
+  const list = fromEnv ?? DEFAULT_RPC_ENDPOINTS
+  const invalid = list.filter((u) => {
+    try { return !/^https?:$/.test(new URL(u).protocol) } catch { return true }
+  })
+  return { source: fromEnv ? 'SOLANA_RPC_URLS' : 'defaults', hosts: list.map(redactEndpoint), invalid }
+}
+
+/** One startup log line for the endpoint list (see describeRpcEndpoints). Warns when
+ *  the secret is set but unusable, or absent so the fragile defaults are in play. */
+export function logRpcEndpointsInUse(): void {
+  const raw = process.env.SOLANA_RPC_URLS
+  if (raw !== undefined && raw.trim() === '') {
+    console.warn('[solana-rpc] SOLANA_RPC_URLS is set but EMPTY — falling back to the hardcoded defaults (only api.mainnet-beta answers)')
+  }
+  const d = describeRpcEndpoints()
+  console.log(`[solana-rpc] endpoints in use (${d.source}): ${d.hosts.join(', ')}`)
+  if (d.invalid.length > 0) {
+    console.warn(`[solana-rpc] ${d.invalid.length} endpoint(s) in SOLANA_RPC_URLS are not http(s) URLs and will fail every call: ${d.invalid.map(redactEndpoint).join(', ')}`)
+  }
+  if (d.source === 'defaults') {
+    console.warn('[solana-rpc] no usable SOLANA_RPC_URLS — defaults are a single point of failure (publicnode 403s the resolver batch, drpc is paywalled)')
+  }
 }
 
 /** The subset of a jsonParsed account that resolution reads. */
