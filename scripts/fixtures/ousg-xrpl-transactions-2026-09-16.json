@@ -1,0 +1,1358 @@
+{
+ "capturedAt": "2026-09-16T23:10:33.846Z",
+ "source": "rwa.xyz /v4/transactions asset_id=57 network_id=46 (OUSG on XRP Ledger), full history, sort id asc",
+ "resultCount": 56,
+ "assets": {
+  "total_supply_token": 1639899.4142968748,
+  "holding_addresses_count": 5,
+  "market_value_dollar": 191148363.18694106,
+  "decimals": 6,
+  "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p"
+ },
+ "results": [
+  {
+   "id": "46-011032873EE2B0A42408C3C123164FE46EA36420C0F5D3285B28FD78517D260A-32--999",
+   "timestamp": "2026-02-11T18:29:10.000Z",
+   "date": "2026-02-11T00:00:00.000Z",
+   "transaction_hash": "011032873EE2B0A42408C3C123164FE46EA36420C0F5D3285B28FD78517D260A",
+   "amount": 1,
+   "usd_amount": 114.250262,
+   "from_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "to_address": "r4mjCAQBUpD52FPAkdnjRhJndGgjShRiL",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer",
+    "name": "Token Transfer"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-01308321A310E20068E185800FE6400612B5B754BAA1C39B164336C0B234BEF9-1--999",
+   "timestamp": "2026-06-19T22:05:40.000Z",
+   "date": "2026-06-19T00:00:00.000Z",
+   "transaction_hash": "01308321A310E20068E185800FE6400612B5B754BAA1C39B164336C0B234BEF9",
+   "amount": 1,
+   "usd_amount": 115.613091,
+   "from_address": "r4mjCAQBUpD52FPAkdnjRhJndGgjShRiL",
+   "to_address": "rssUVoVq3R7UqWJQqqUUBmfuVZp2KCW6za",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer",
+    "name": "Token Transfer"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-12CF97C38A91956D791B5BBDC1469B48E09EC56E10BD49E3399F0505EF397E9D-45--999",
+   "timestamp": "2026-03-18T21:38:11.000Z",
+   "date": "2026-03-18T00:00:00.000Z",
+   "transaction_hash": "12CF97C38A91956D791B5BBDC1469B48E09EC56E10BD49E3399F0505EF397E9D",
+   "amount": 870,
+   "usd_amount": 99719.84805,
+   "from_address": "rJqiMb94hyz41SBTNr2AyPNW8AzELa8nE",
+   "to_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer",
+    "name": "Token Transfer"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-18E508B897CDD61A65D509B8D908A29E2A971C2F39C7CD21C944C76FACC81FCF-1--999",
+   "timestamp": "2025-06-09T23:52:22.000Z",
+   "date": "2025-06-09T00:00:00.000Z",
+   "transaction_hash": "18E508B897CDD61A65D509B8D908A29E2A971C2F39C7CD21C944C76FACC81FCF",
+   "amount": 2,
+   "usd_amount": 222.68665,
+   "from_address": "rpMDp3mug7Kp3YiUUZ9Ftew8qrD281EeMm",
+   "to_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 2,
+    "slug": "token-burn",
+    "name": "Token Burn"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-238BA56C4ABB4F244C95D013726B4357648F70182F9D738A09F9175860078090-98--999",
+   "timestamp": "2026-08-31T18:25:00.000Z",
+   "date": "2026-08-31T00:00:00.000Z",
+   "transaction_hash": "238BA56C4ABB4F244C95D013726B4357648F70182F9D738A09F9175860078090",
+   "amount": 139399.46875,
+   "usd_amount": 16222883.192552218,
+   "from_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "to_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 2,
+    "slug": "token-burn",
+    "name": "Token Burn"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-2769D522327D6AEB3AEC051C2D865AE7466B846D9E8F66D0271193B4D2AD33D9-25--999",
+   "timestamp": "2026-06-01T18:24:22.000Z",
+   "date": "2026-06-01T00:00:00.000Z",
+   "transaction_hash": "2769D522327D6AEB3AEC051C2D865AE7466B846D9E8F66D0271193B4D2AD33D9",
+   "amount": 173278.046875,
+   "usd_amount": 19999999.95791953,
+   "from_address": "r4mjCAQBUpD52FPAkdnjRhJndGgjShRiL",
+   "to_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer",
+    "name": "Token Transfer"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-280C1910F7275DC9836C50B80F6ED66A1E5CFDE01CAE9E4EFB2B4F7220727B17-21--999",
+   "timestamp": "2026-06-19T22:15:32.000Z",
+   "date": "2026-06-19T00:00:00.000Z",
+   "transaction_hash": "280C1910F7275DC9836C50B80F6ED66A1E5CFDE01CAE9E4EFB2B4F7220727B17",
+   "amount": 529792.8125,
+   "usd_amount": 61250984.642708436,
+   "from_address": "r4mjCAQBUpD52FPAkdnjRhJndGgjShRiL",
+   "to_address": "rssUVoVq3R7UqWJQqqUUBmfuVZp2KCW6za",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer",
+    "name": "Token Transfer"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-299264726A878F466BB7CAC9C0B37304200C381DF3D62FB42BD86D7C38C8B0A2-66--999",
+   "timestamp": "2025-06-09T22:40:42.000Z",
+   "date": "2025-06-09T00:00:00.000Z",
+   "transaction_hash": "299264726A878F466BB7CAC9C0B37304200C381DF3D62FB42BD86D7C38C8B0A2",
+   "amount": 10,
+   "usd_amount": 1113.43325,
+   "from_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "to_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 1,
+    "slug": "token-mint",
+    "name": "Token Mint"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-2C6B0CFAA8267D8032915328AEEF07C8F9D4D2AE4C1382896AB7C553482E5EC8-81--999",
+   "timestamp": "2026-02-13T16:48:51.000Z",
+   "date": "2026-02-13T00:00:00.000Z",
+   "transaction_hash": "2C6B0CFAA8267D8032915328AEEF07C8F9D4D2AE4C1382896AB7C553482E5EC8",
+   "amount": 178504.65625,
+   "usd_amount": 20397925.92387456,
+   "from_address": "rDUdUcFPSQbsdLrU5vfFsaioKDKJUJ5mAR",
+   "to_address": "r4mjCAQBUpD52FPAkdnjRhJndGgjShRiL",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer",
+    "name": "Token Transfer"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-2DC50401190836C2AAB3C08292A2C1DD3988973AADDD5A80D60BA7B3C435B373-46--999",
+   "timestamp": "2026-02-13T16:42:20.000Z",
+   "date": "2026-02-13T00:00:00.000Z",
+   "transaction_hash": "2DC50401190836C2AAB3C08292A2C1DD3988973AADDD5A80D60BA7B3C435B373",
+   "amount": 0.10000000149011612,
+   "usd_amount": 11.427111570277228,
+   "from_address": "rDUdUcFPSQbsdLrU5vfFsaioKDKJUJ5mAR",
+   "to_address": "r4mjCAQBUpD52FPAkdnjRhJndGgjShRiL",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer",
+    "name": "Token Transfer"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-359710482FE0F32894E90FA336A06B699DC46AADF4D7DE05DD58C54898A9EB1F-24--999",
+   "timestamp": "2025-06-11T00:52:31.000Z",
+   "date": "2025-06-11T00:00:00.000Z",
+   "transaction_hash": "359710482FE0F32894E90FA336A06B699DC46AADF4D7DE05DD58C54898A9EB1F",
+   "amount": 89793.0703125,
+   "usd_amount": 10001161.689471703,
+   "from_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "to_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 1,
+    "slug": "token-mint",
+    "name": "Token Mint"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-364E8A05D33C5314D5D1F3CFF5BB18C8E6764954E4C7790922D4CE924CA02818-5--999",
+   "timestamp": "2025-06-13T21:45:21.000Z",
+   "date": "2025-06-13T00:00:00.000Z",
+   "transaction_hash": "364E8A05D33C5314D5D1F3CFF5BB18C8E6764954E4C7790922D4CE924CA02818",
+   "amount": 179526.0625,
+   "usd_amount": 19999999.74011325,
+   "from_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "to_address": "rJqiMb94hyz41SBTNr2AyPNW8AzELa8nE",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer",
+    "name": "Token Transfer"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-3650C23A6B9DEBBCB90494E6A34A9099EA2CEA0104315E21F50ACAC5C15C1AF8-35--999",
+   "timestamp": "2026-06-26T21:15:41.000Z",
+   "date": "2026-06-26T00:00:00.000Z",
+   "transaction_hash": "3650C23A6B9DEBBCB90494E6A34A9099EA2CEA0104315E21F50ACAC5C15C1AF8",
+   "amount": 216093.234375,
+   "usd_amount": 24999999.807710953,
+   "from_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "to_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 2,
+    "slug": "token-burn",
+    "name": "Token Burn"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-38BB1F7B219AF900064116E2836296679863908E80368374DA0C9E483E339BFC-28--999",
+   "timestamp": "2026-02-11T18:17:50.000Z",
+   "date": "2026-02-11T00:00:00.000Z",
+   "transaction_hash": "38BB1F7B219AF900064116E2836296679863908E80368374DA0C9E483E339BFC",
+   "amount": 1042595.8125,
+   "usd_amount": 119116844.73822789,
+   "from_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "to_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 1,
+    "slug": "token-mint",
+    "name": "Token Mint"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-3A5E0B277AF05818326FB387345CE978F034144F1ABEDEF9F1AAD7C9FBCA4ED1-84--999",
+   "timestamp": "2026-04-20T18:23:50.000Z",
+   "date": "2026-04-20T00:00:00.000Z",
+   "transaction_hash": "3A5E0B277AF05818326FB387345CE978F034144F1ABEDEF9F1AAD7C9FBCA4ED1",
+   "amount": 879139.5625,
+   "usd_amount": 101060046.618305,
+   "from_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "to_address": "r4mjCAQBUpD52FPAkdnjRhJndGgjShRiL",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer",
+    "name": "Token Transfer"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-3C2F92328A423498004DFA8CB7A90E36D9CBF5DC6D48639F5D982947AF0E49CB-77--999",
+   "timestamp": "2026-03-19T19:06:52.000Z",
+   "date": "2026-03-19T00:00:00.000Z",
+   "transaction_hash": "3C2F92328A423498004DFA8CB7A90E36D9CBF5DC6D48639F5D982947AF0E49CB",
+   "amount": 870.5,
+   "usd_amount": 99786.292464,
+   "from_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "to_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 2,
+    "slug": "token-burn",
+    "name": "Token Burn"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-3C81FAA15B7ED308545D3FDCB8C2ADF6B84DCA92945CB4F83EC1F89260209D15-51--999",
+   "timestamp": "2025-09-29T22:20:52.000Z",
+   "date": "2025-09-29T00:00:00.000Z",
+   "transaction_hash": "3C81FAA15B7ED308545D3FDCB8C2ADF6B84DCA92945CB4F83EC1F89260209D15",
+   "amount": 88711.671875,
+   "usd_amount": 9999999.614804655,
+   "from_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "to_address": "rDUdUcFPSQbsdLrU5vfFsaioKDKJUJ5mAR",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer",
+    "name": "Token Transfer"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-44379EEEFC0BF895E0CDEE00D1DB2D8FDC7D89D8336657D85729FFE5207DA3BB-48--999",
+   "timestamp": "2026-09-10T15:23:31.000Z",
+   "date": "2026-09-10T00:00:00.000Z",
+   "transaction_hash": "44379EEEFC0BF895E0CDEE00D1DB2D8FDC7D89D8336657D85729FFE5207DA3BB",
+   "amount": 17166.123046875,
+   "usd_amount": 1999999.916485635,
+   "from_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "to_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 2,
+    "slug": "token-burn",
+    "name": "Token Burn"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-481A29A135029B49E8F93E1C8910B0CA446CC8F369FAEC0AC8F79BBC258B1ABD-46--999",
+   "timestamp": "2026-06-01T18:53:31.000Z",
+   "date": "2026-06-01T00:00:00.000Z",
+   "transaction_hash": "481A29A135029B49E8F93E1C8910B0CA446CC8F369FAEC0AC8F79BBC258B1ABD",
+   "amount": 173278.046875,
+   "usd_amount": 19999999.95791953,
+   "from_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "to_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 2,
+    "slug": "token-burn",
+    "name": "Token Burn"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-4AE9DFADBE4D91862AD2F954A406D4C33EEB4DD26915708E8D1B1D51C35C69C7-51--999",
+   "timestamp": "2025-06-09T23:51:21.000Z",
+   "date": "2025-06-09T00:00:00.000Z",
+   "transaction_hash": "4AE9DFADBE4D91862AD2F954A406D4C33EEB4DD26915708E8D1B1D51C35C69C7",
+   "amount": 2,
+   "usd_amount": 222.68665,
+   "from_address": "rDHUh4PJrSmU8MyhY7N7PvEJAcmn9RaBzj",
+   "to_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 2,
+    "slug": "token-burn",
+    "name": "Token Burn"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-5819F15D12F2D4172D34DF90CCD58624D5B794D742BA0D07D4937883B06CAE50-225--999",
+   "timestamp": "2026-08-28T17:06:11.000Z",
+   "date": "2026-08-28T00:00:00.000Z",
+   "transaction_hash": "5819F15D12F2D4172D34DF90CCD58624D5B794D742BA0D07D4937883B06CAE50",
+   "amount": 34377.40625,
+   "usd_amount": 4000371.2595127188,
+   "from_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "to_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 2,
+    "slug": "token-burn",
+    "name": "Token Burn"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-59A2AFA517EAC6D219400983F594BA91300086589E1EEED08038BCDE533D6F0C-119--999",
+   "timestamp": "2025-06-09T23:44:52.000Z",
+   "date": "2025-06-09T00:00:00.000Z",
+   "transaction_hash": "59A2AFA517EAC6D219400983F594BA91300086589E1EEED08038BCDE533D6F0C",
+   "amount": 6,
+   "usd_amount": 668.05995,
+   "from_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "to_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 2,
+    "slug": "token-burn",
+    "name": "Token Burn"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-5B04CBFD9BEF063E0B7366299B5DA97339ADAFFDEFD91453EF8584E1F9A3C369-9--999",
+   "timestamp": "2026-03-30T20:28:00.000Z",
+   "date": "2026-03-30T00:00:00.000Z",
+   "transaction_hash": "5B04CBFD9BEF063E0B7366299B5DA97339ADAFFDEFD91453EF8584E1F9A3C369",
+   "amount": 529996.6875,
+   "usd_amount": 60804359.16038006,
+   "from_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "to_address": "r4mjCAQBUpD52FPAkdnjRhJndGgjShRiL",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer",
+    "name": "Token Transfer"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-5B3C9BB0C7E5B8FA74A6B80475C1A3A7834D8B2CE43B235AC8B177818D76F012-19--999",
+   "timestamp": "2026-06-23T21:38:10.000Z",
+   "date": "2026-06-23T00:00:00.000Z",
+   "transaction_hash": "5B3C9BB0C7E5B8FA74A6B80475C1A3A7834D8B2CE43B235AC8B177818D76F012",
+   "amount": 1,
+   "usd_amount": 115.658929,
+   "from_address": "rssUVoVq3R7UqWJQqqUUBmfuVZp2KCW6za",
+   "to_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer",
+    "name": "Token Transfer"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-5BE0C117B081AF43E332D7DCF191E0576CBDD20BFA8DA6D812436D965FF39E0D-41--999",
+   "timestamp": "2025-06-09T22:49:32.000Z",
+   "date": "2025-06-09T00:00:00.000Z",
+   "transaction_hash": "5BE0C117B081AF43E332D7DCF191E0576CBDD20BFA8DA6D812436D965FF39E0D",
+   "amount": 10,
+   "usd_amount": 1113.43325,
+   "from_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "to_address": "rLos1E4YRJB2PddRqk7xNY8eLSHZrvKchH",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer",
+    "name": "Token Transfer"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-611EBECEE3BDDE968534E7F9CCD0558D6C87F6ECE22EC4C1891C2A1B9DE29FB9-9--999",
+   "timestamp": "2025-06-09T23:58:21.000Z",
+   "date": "2025-06-09T00:00:00.000Z",
+   "transaction_hash": "611EBECEE3BDDE968534E7F9CCD0558D6C87F6ECE22EC4C1891C2A1B9DE29FB9",
+   "amount": 0.009999999776482582,
+   "usd_amount": 1.1134332251128274,
+   "from_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "to_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 1,
+    "slug": "token-mint",
+    "name": "Token Mint"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-6533D3AA36B33FCC8A85F6BD0738D9CBD99B560C8B141D9B81E52EB89D6A5A4C-67--999",
+   "timestamp": "2025-06-09T23:43:31.000Z",
+   "date": "2025-06-09T00:00:00.000Z",
+   "transaction_hash": "6533D3AA36B33FCC8A85F6BD0738D9CBD99B560C8B141D9B81E52EB89D6A5A4C",
+   "amount": 3,
+   "usd_amount": 334.029975,
+   "from_address": "rDHUh4PJrSmU8MyhY7N7PvEJAcmn9RaBzj",
+   "to_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer",
+    "name": "Token Transfer"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-6B528D9A0A3525905A3CA436C5C3C522E043149BF0D5D019300C4141592270E1-12--999",
+   "timestamp": "2026-07-27T18:50:40.000Z",
+   "date": "2026-07-27T00:00:00.000Z",
+   "transaction_hash": "6B528D9A0A3525905A3CA436C5C3C522E043149BF0D5D019300C4141592270E1",
+   "amount": 86205.1875,
+   "usd_amount": 10000000.452957189,
+   "from_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "to_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 2,
+    "slug": "token-burn",
+    "name": "Token Burn"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-6D3BECE7263538992AC5039FB60164EA82CD9F46340C61268776B05A404526DC-54--999",
+   "timestamp": "2025-06-09T23:43:12.000Z",
+   "date": "2025-06-09T00:00:00.000Z",
+   "transaction_hash": "6D3BECE7263538992AC5039FB60164EA82CD9F46340C61268776B05A404526DC",
+   "amount": 3,
+   "usd_amount": 334.029975,
+   "from_address": "rpMDp3mug7Kp3YiUUZ9Ftew8qrD281EeMm",
+   "to_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer",
+    "name": "Token Transfer"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-6E833E551F1F8E9D945AD5731C67EEE5782C437F6EA5631A942FC665576D3DB0-30--999",
+   "timestamp": "2026-06-11T19:37:52.000Z",
+   "date": "2026-06-11T00:00:00.000Z",
+   "transaction_hash": "6E833E551F1F8E9D945AD5731C67EEE5782C437F6EA5631A942FC665576D3DB0",
+   "amount": 129839.21875,
+   "usd_amount": 15000000.084462186,
+   "from_address": "r4mjCAQBUpD52FPAkdnjRhJndGgjShRiL",
+   "to_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer",
+    "name": "Token Transfer"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-6EF8C91108CF966D358C97308DA0662600C96224E64AA48793BFC18181BCC270-54--999",
+   "timestamp": "2025-06-09T23:37:20.000Z",
+   "date": "2025-06-09T00:00:00.000Z",
+   "transaction_hash": "6EF8C91108CF966D358C97308DA0662600C96224E64AA48793BFC18181BCC270",
+   "amount": 5,
+   "usd_amount": 556.716625,
+   "from_address": "rDHUh4PJrSmU8MyhY7N7PvEJAcmn9RaBzj",
+   "to_address": "rpMDp3mug7Kp3YiUUZ9Ftew8qrD281EeMm",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer",
+    "name": "Token Transfer"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-70C1C5A9E495F8A50618D9CE36E6459779DF33B12A8D486119DEAAF952DA20FF-30--999",
+   "timestamp": "2026-08-28T16:59:00.000Z",
+   "date": "2026-08-28T00:00:00.000Z",
+   "transaction_hash": "70C1C5A9E495F8A50618D9CE36E6459779DF33B12A8D486119DEAAF952DA20FF",
+   "amount": 34377.40625,
+   "usd_amount": 4000371.2595127188,
+   "from_address": "rssUVoVq3R7UqWJQqqUUBmfuVZp2KCW6za",
+   "to_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer",
+    "name": "Token Transfer"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-7F306412DC41A808CA2C3C39832E41AADDD99E71B7FC32E7A0EEBD124CECFD77-91--999",
+   "timestamp": "2026-05-15T16:17:21.000Z",
+   "date": "2026-05-15T00:00:00.000Z",
+   "transaction_hash": "7F306412DC41A808CA2C3C39832E41AADDD99E71B7FC32E7A0EEBD124CECFD77",
+   "amount": 1,
+   "usd_amount": 115.239479,
+   "from_address": "r4mjCAQBUpD52FPAkdnjRhJndGgjShRiL",
+   "to_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer",
+    "name": "Token Transfer"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-859D46C9EDBBC9B7E1D6237AD9B0469EA6DB4E0A9606D8FE1EE974A277C17A9A-46--999",
+   "timestamp": "2026-07-27T18:41:11.000Z",
+   "date": "2026-07-27T00:00:00.000Z",
+   "transaction_hash": "859D46C9EDBBC9B7E1D6237AD9B0469EA6DB4E0A9606D8FE1EE974A277C17A9A",
+   "amount": 86205.1875,
+   "usd_amount": 10000000.452957189,
+   "from_address": "rssUVoVq3R7UqWJQqqUUBmfuVZp2KCW6za",
+   "to_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer",
+    "name": "Token Transfer"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-8714C341E879E6FE4956994AAEB55E72345ECD2670267057A446B12E0DE06EDF-17--999",
+   "timestamp": "2025-09-29T22:18:10.000Z",
+   "date": "2025-09-29T00:00:00.000Z",
+   "transaction_hash": "8714C341E879E6FE4956994AAEB55E72345ECD2670267057A446B12E0DE06EDF",
+   "amount": 88711.671875,
+   "usd_amount": 9999999.614804655,
+   "from_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "to_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 1,
+    "slug": "token-mint",
+    "name": "Token Mint"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-88D8999E29A677305FF42F5669B6052990BF456EE51F438BEF21C474E3E8F4E8-39--999",
+   "timestamp": "2026-09-10T15:21:21.000Z",
+   "date": "2026-09-10T00:00:00.000Z",
+   "transaction_hash": "88D8999E29A677305FF42F5669B6052990BF456EE51F438BEF21C474E3E8F4E8",
+   "amount": 17166.123046875,
+   "usd_amount": 1999999.916485635,
+   "from_address": "rssUVoVq3R7UqWJQqqUUBmfuVZp2KCW6za",
+   "to_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer",
+    "name": "Token Transfer"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-90E21298924050D6C9823E22F1D5478897DF987B6380FCCBF76E077E03AEB55E-0--999",
+   "timestamp": "2026-06-11T21:14:50.000Z",
+   "date": "2026-06-11T00:00:00.000Z",
+   "transaction_hash": "90E21298924050D6C9823E22F1D5478897DF987B6380FCCBF76E077E03AEB55E",
+   "amount": 129839.21875,
+   "usd_amount": 15000000.084462186,
+   "from_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "to_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 2,
+    "slug": "token-burn",
+    "name": "Token Burn"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-9816F071FFF45AF498F8D070249DB1263D83310EEBB70C25B104A2FABC3F5BF0-11--999",
+   "timestamp": "2026-05-15T17:33:20.000Z",
+   "date": "2026-05-15T00:00:00.000Z",
+   "transaction_hash": "9816F071FFF45AF498F8D070249DB1263D83310EEBB70C25B104A2FABC3F5BF0",
+   "amount": 260327.453125,
+   "usd_amount": 30000000.067521922,
+   "from_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "to_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 2,
+    "slug": "token-burn",
+    "name": "Token Burn"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-9BA77303E7CA0655114806C8F8587806CC1038CE3DBFB24D6ADEEA41851C204E-20--999",
+   "timestamp": "2025-06-13T21:33:51.000Z",
+   "date": "2025-06-13T00:00:00.000Z",
+   "transaction_hash": "9BA77303E7CA0655114806C8F8587806CC1038CE3DBFB24D6ADEEA41851C204E",
+   "amount": 179526.0625,
+   "usd_amount": 19999999.74011325,
+   "from_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "to_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 1,
+    "slug": "token-mint",
+    "name": "Token Mint"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-9C67FD7FBF968CD83DE9E0E85E7E4D3BFA32F0AC75E0E2C31081E1B524935DBB-50--999",
+   "timestamp": "2025-06-09T23:41:50.000Z",
+   "date": "2025-06-09T00:00:00.000Z",
+   "transaction_hash": "9C67FD7FBF968CD83DE9E0E85E7E4D3BFA32F0AC75E0E2C31081E1B524935DBB",
+   "amount": 1,
+   "usd_amount": 111.343325,
+   "from_address": "rpMDp3mug7Kp3YiUUZ9Ftew8qrD281EeMm",
+   "to_address": "rDHUh4PJrSmU8MyhY7N7PvEJAcmn9RaBzj",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer",
+    "name": "Token Transfer"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-A82B6EAAF0CECB2EC3BF6B08D2CA18964F4D7DFF3FCC52F221BD00DC900AE3DD-10--999",
+   "timestamp": "2026-06-23T22:22:41.000Z",
+   "date": "2026-06-23T00:00:00.000Z",
+   "transaction_hash": "A82B6EAAF0CECB2EC3BF6B08D2CA18964F4D7DFF3FCC52F221BD00DC900AE3DD",
+   "amount": 43225.59765625,
+   "usd_amount": 4999426.330306785,
+   "from_address": "rssUVoVq3R7UqWJQqqUUBmfuVZp2KCW6za",
+   "to_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer",
+    "name": "Token Transfer"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-A8519779B82F1509795E80638918C627BE4FD1E2B57DD935CFFDC85AE5F56044-32--999",
+   "timestamp": "2026-05-15T16:21:50.000Z",
+   "date": "2026-05-15T00:00:00.000Z",
+   "transaction_hash": "A8519779B82F1509795E80638918C627BE4FD1E2B57DD935CFFDC85AE5F56044",
+   "amount": 260326.453125,
+   "usd_amount": 29999884.828042924,
+   "from_address": "r4mjCAQBUpD52FPAkdnjRhJndGgjShRiL",
+   "to_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer",
+    "name": "Token Transfer"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-AA091CEEB9E0B63B3798AF79D72B26937B60DE3FC9ED5B0A0BE17F960413B4A4-62--999",
+   "timestamp": "2025-06-09T23:41:30.000Z",
+   "date": "2025-06-09T00:00:00.000Z",
+   "transaction_hash": "AA091CEEB9E0B63B3798AF79D72B26937B60DE3FC9ED5B0A0BE17F960413B4A4",
+   "amount": 1,
+   "usd_amount": 111.343325,
+   "from_address": "rDHUh4PJrSmU8MyhY7N7PvEJAcmn9RaBzj",
+   "to_address": "rpMDp3mug7Kp3YiUUZ9Ftew8qrD281EeMm",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer",
+    "name": "Token Transfer"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-B3ACCE322C5A38891D342B5A225DD25268B733FEE69290C606315B46A8D4720E-26--999",
+   "timestamp": "2026-07-07T22:05:10.000Z",
+   "date": "2026-07-07T00:00:00.000Z",
+   "transaction_hash": "B3ACCE322C5A38891D342B5A225DD25268B733FEE69290C606315B46A8D4720E",
+   "amount": 69080.2265625,
+   "usd_amount": 8000000.186169985,
+   "from_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "to_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 2,
+    "slug": "token-burn",
+    "name": "Token Burn"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-B7A09C2D67080A855C7B42C6A9921BC86E52683DC75AAE3B582958F8572B0F3F-33--999",
+   "timestamp": "2025-06-09T23:31:01.000Z",
+   "date": "2025-06-09T00:00:00.000Z",
+   "transaction_hash": "B7A09C2D67080A855C7B42C6A9921BC86E52683DC75AAE3B582958F8572B0F3F",
+   "amount": 10,
+   "usd_amount": 1113.43325,
+   "from_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "to_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 1,
+    "slug": "token-mint",
+    "name": "Token Mint"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-C30A2FDB26D50691FFA76E9E5ECC9960A64D8E425CC3575E24703EA45072C2C7-99--999",
+   "timestamp": "2026-04-20T18:20:01.000Z",
+   "date": "2026-04-20T00:00:00.000Z",
+   "transaction_hash": "C30A2FDB26D50691FFA76E9E5ECC9960A64D8E425CC3575E24703EA45072C2C7",
+   "amount": 879139.5625,
+   "usd_amount": 101060046.618305,
+   "from_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "to_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 1,
+    "slug": "token-mint",
+    "name": "Token Mint"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-C37A3C28B21EF61899A39966F682DF57AFCBFA22A3735F8135312FDB7E7F1CBF-64--999",
+   "timestamp": "2026-07-07T19:18:30.000Z",
+   "date": "2026-07-07T00:00:00.000Z",
+   "transaction_hash": "C37A3C28B21EF61899A39966F682DF57AFCBFA22A3735F8135312FDB7E7F1CBF",
+   "amount": 69080.2265625,
+   "usd_amount": 8000000.186169985,
+   "from_address": "rssUVoVq3R7UqWJQqqUUBmfuVZp2KCW6za",
+   "to_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer",
+    "name": "Token Transfer"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-D331538D1536ED7DD304B315CDC66806DA87F8856675EDE902617D6AA6F8C5E8-9--999",
+   "timestamp": "2025-06-11T00:56:31.000Z",
+   "date": "2025-06-11T00:00:00.000Z",
+   "transaction_hash": "D331538D1536ED7DD304B315CDC66806DA87F8856675EDE902617D6AA6F8C5E8",
+   "amount": 89793.0859375,
+   "usd_amount": 10001163.429785859,
+   "from_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "to_address": "rDUdUcFPSQbsdLrU5vfFsaioKDKJUJ5mAR",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer",
+    "name": "Token Transfer"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-DAE5901A7CDB4D398B28B54231C13B466F93344EC2837F13206FE56D7A654DE1-21--999",
+   "timestamp": "2025-06-09T23:22:41.000Z",
+   "date": "2025-06-09T00:00:00.000Z",
+   "transaction_hash": "DAE5901A7CDB4D398B28B54231C13B466F93344EC2837F13206FE56D7A654DE1",
+   "amount": 10,
+   "usd_amount": 1113.43325,
+   "from_address": "rLos1E4YRJB2PddRqk7xNY8eLSHZrvKchH",
+   "to_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 2,
+    "slug": "token-burn",
+    "name": "Token Burn"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-E5AECDC54FECC8104EC2C30037EEA17CFD6FDFA1FC528F4BD8DE90B55BE77CC6-5--999",
+   "timestamp": "2026-06-24T16:13:41.000Z",
+   "date": "2026-06-24T00:00:00.000Z",
+   "transaction_hash": "E5AECDC54FECC8104EC2C30037EEA17CFD6FDFA1FC528F4BD8DE90B55BE77CC6",
+   "amount": 43226.59765625,
+   "usd_amount": 5000000.018264551,
+   "from_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "to_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 2,
+    "slug": "token-burn",
+    "name": "Token Burn"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-E96757A73EBC0E477EDF2AAB91BCB685E28224ADD5F44BD85F268C70EE22AA40-61--999",
+   "timestamp": "2026-08-31T17:18:22.000Z",
+   "date": "2026-08-31T00:00:00.000Z",
+   "transaction_hash": "E96757A73EBC0E477EDF2AAB91BCB685E28224ADD5F44BD85F268C70EE22AA40",
+   "amount": 139399.46875,
+   "usd_amount": 16222883.192552218,
+   "from_address": "r4mjCAQBUpD52FPAkdnjRhJndGgjShRiL",
+   "to_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer",
+    "name": "Token Transfer"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-F70140C5FE41793A2FEDA5770ACDF65C88C26F16931A239391BBBAEC9638D431-4--999",
+   "timestamp": "2026-02-11T18:30:50.000Z",
+   "date": "2026-02-11T00:00:00.000Z",
+   "transaction_hash": "F70140C5FE41793A2FEDA5770ACDF65C88C26F16931A239391BBBAEC9638D431",
+   "amount": 1042594.8125,
+   "usd_amount": 119116730.48796588,
+   "from_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "to_address": "r4mjCAQBUpD52FPAkdnjRhJndGgjShRiL",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer",
+    "name": "Token Transfer"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-F7AC9BD4F27CFAC6E5AA10E39BAD1B5A44116FDA121E238804E708D48A6F197C-76--999",
+   "timestamp": "2025-06-09T23:34:20.000Z",
+   "date": "2025-06-09T00:00:00.000Z",
+   "transaction_hash": "F7AC9BD4F27CFAC6E5AA10E39BAD1B5A44116FDA121E238804E708D48A6F197C",
+   "amount": 10,
+   "usd_amount": 1113.43325,
+   "from_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "to_address": "rDHUh4PJrSmU8MyhY7N7PvEJAcmn9RaBzj",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer",
+    "name": "Token Transfer"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-F8C09E12E2BDB12FAD74BD929F6299FD073AE481AFF115C0016102CAE8597A97-68--999",
+   "timestamp": "2026-03-18T16:14:02.000Z",
+   "date": "2026-03-18T00:00:00.000Z",
+   "transaction_hash": "F8C09E12E2BDB12FAD74BD929F6299FD073AE481AFF115C0016102CAE8597A97",
+   "amount": 0.5,
+   "usd_amount": 57.3102575,
+   "from_address": "rJqiMb94hyz41SBTNr2AyPNW8AzELa8nE",
+   "to_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer",
+    "name": "Token Transfer"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-FD98C1D61F2EE7C67D59E41BA939B5A0CBB645B40FE98AB96BED2BE61ED6CAE8-39--999",
+   "timestamp": "2026-06-26T20:18:40.000Z",
+   "date": "2026-06-26T00:00:00.000Z",
+   "transaction_hash": "FD98C1D61F2EE7C67D59E41BA939B5A0CBB645B40FE98AB96BED2BE61ED6CAE8",
+   "amount": 216093.234375,
+   "usd_amount": 24999999.807710953,
+   "from_address": "r4mjCAQBUpD52FPAkdnjRhJndGgjShRiL",
+   "to_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 3,
+    "slug": "token-transfer",
+    "name": "Token Transfer"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  },
+  {
+   "id": "46-FE39123C3CC030620BF64F0B6720EBBC116AB5607344902C63624B25A6847C4A-24--999",
+   "timestamp": "2026-03-30T20:25:11.000Z",
+   "date": "2026-03-30T00:00:00.000Z",
+   "transaction_hash": "FE39123C3CC030620BF64F0B6720EBBC116AB5607344902C63624B25A6847C4A",
+   "amount": 529996.6875,
+   "usd_amount": 60804359.16038006,
+   "from_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "to_address": "rHprwRkvDexV5LF5tzKQmx7U7Ku2836DA1",
+   "token_address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+   "network_id": 46,
+   "transaction_type": {
+    "id": 1,
+    "slug": "token-mint",
+    "name": "Token Mint"
+   },
+   "token": {
+    "id": "3745",
+    "asset_id": "57",
+    "network_id": 46,
+    "address": "rHuiXXjHLpMP8ZE9sSQU5aADQVWDwv6h5p",
+    "decimals": 6
+   }
+  }
+ ]
+}

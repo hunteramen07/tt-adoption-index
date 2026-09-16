@@ -119,31 +119,41 @@ interface RwaTransactionsResponse {
  * placeholder (and blockNumber "0" — rwa.xyz transactions have no block number,
  * and the engine never reads it).
  *
- * Non-EVM (e.g. Solana) mints/burns arrive with a null counterparty instead of
- * EVM's zero-address string. We coerce those to the zero-address — but ONLY when
- * the transaction_type slug confirms a mint (null from) or burn (null to). Any
- * other null is unexpected and throws, so we never silently corrupt balances.
+ * Mint/burn counterparties come in THREE feed conventions (probed across every
+ * configured network, 2026-09-16), all of which must collapse to the zero-address
+ * string the engine keys mints/burns on:
+ *   • EVM chains       — the zero-address string already (pass-through)
+ *   • Solana, Aptos    — null (from on a mint, to on a burn)
+ *   • XRP Ledger       — the ISSUER account, which is also the configured token
+ *                        address (9/9 OUSG mints from it, 15/15 burns to it)
+ * The coercion is SLUG-GUARDED and closed: only a transaction_type that says mint
+ * (resp. burn) is eligible, and only a value that is null, the zero address, or the
+ * token address is replaced. Anything else throws — a "mint" from a third party or a
+ * null on a plain transfer is a feed we do not understand, and guessing is exactly
+ * how an issuer ends up persisted at −(total supply) (the pre-fix usdy:stellar state
+ * shows what that looks like; Stellar's issuance is a separate, unlabeled case).
  */
 export function normalizeTransaction(tx: RwaTransaction, decimals: number): RwaTransfer {
-  const slug = tx.transaction_type?.slug
+  const slug = tx.transaction_type?.slug ?? ''
+  const tokenAddress = tx.token.address.toLowerCase()
 
-  let from = tx.from_address
-  if (from == null) {
-    if (slug?.includes('mint')) {
-      from = ZERO_ADDRESS
-    } else {
-      throw new Error(`null from_address on non-mint tx: slug=${slug} hash=${tx.transaction_hash}`)
+  /** Zero-address coercion for the side a mint/burn writes off-ledger. */
+  const coerce = (side: 'from' | 'to', value: string | null, kind: 'mint' | 'burn'): string => {
+    if (slug.includes(kind)) {
+      if (value == null || value === ZERO_ADDRESS || value.toLowerCase() === tokenAddress) return ZERO_ADDRESS
+      throw new Error(
+        `${side}_address on a ${slug} is neither null, the zero address, nor the token address ` +
+        `(${value}) — refusing to guess: hash=${tx.transaction_hash}`
+      )
     }
+    if (value == null) {
+      throw new Error(`null ${side}_address on non-${kind} tx: slug=${slug} hash=${tx.transaction_hash}`)
+    }
+    return value
   }
 
-  let to = tx.to_address
-  if (to == null) {
-    if (slug?.includes('burn')) {
-      to = ZERO_ADDRESS
-    } else {
-      throw new Error(`null to_address on non-burn tx: slug=${slug} hash=${tx.transaction_hash}`)
-    }
-  }
+  const from = coerce('from', tx.from_address, 'mint')
+  const to = coerce('to', tx.to_address, 'burn')
 
   return {
     id: String(tx.id),

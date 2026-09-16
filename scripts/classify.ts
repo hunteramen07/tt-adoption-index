@@ -966,7 +966,9 @@ async function reanchorRwaFund(product: Product, nowTs: number): Promise<void> {
 // until it reaches the present. See _local/resumable-backfill-design.md.
 
 /** Networks cleared for chunked backfill, in PRIORITY order (the order they draw from
- *  the shared pool within a run — NOT products.ts tokens[] order). Smallest expected
+ *  the shared pool within a run — NOT products.ts tokens[] order). FUNDS drain in this
+ *  object's key order (Object.keys), so a small fund must be listed before a big one
+ *  or it is starved behind it. Within a fund: smallest expected
  *  remaining work first, so a network needing a few pages is never starved for weeks
  *  behind one needing ~1,000: on 2026-09-15 the six re-opened USDY networks (~173
  *  pages total) sat behind usdy:solana (~983 pages, making zero progress) purely
@@ -986,6 +988,16 @@ async function reanchorRwaFund(product: Product, nowTs: number): Promise<void> {
  *  state-building is safe to run ahead of the cutover. Slugs are the merged network
  *  slugs from observableNetworks — USDY's two Ethereum contracts share 'ethereum'. */
 const BACKFILL_ALLOWED: Record<string, readonly string[]> = {
+  // OUSG (asset 57): four tiny networks (probe 2026-09-16: 2,271 / 12 / 50 / 56
+  // records) that cost ~145 requests only because the 60-day span cap makes a sparse
+  // network pay ~2 requests per window. Listed FIRST because funds drain the pool in
+  // this object's key order — behind usdy it would get nothing until usdy:solana
+  // finishes ~950 pages. Inside it, the two never-before-fetched chains go first so a
+  // surprise surfaces in slot one. State-building only: OUSG stays on the Etherscan
+  // nightly path until the dust-floor decision unblocks its cutover (not in
+  // RWA_MULTICHAIN_SLUGS). XRPL mints/burns carry the issuer address as counterparty —
+  // handled by normalizeTransaction's slug-guarded coercion (transfers.ts).
+  ousg: ['xrp-ledger', 'solana', 'polygon', 'ethereum'],
   usdy: ['ethereum', 'arbitrum', 'mantle', 'plume', 'aptos', 'sei', 'stellar', 'solana'],
 }
 
