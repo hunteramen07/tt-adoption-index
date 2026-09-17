@@ -7,6 +7,7 @@ import { test, describe } from 'node:test'
 import assert from 'node:assert/strict'
 import {
   evaluateReconciliation,
+  decideBackfillCompletion,
   RECONCILE_WARN_PCT,
   RECONCILE_MIN_NOTIONAL_USD,
   type ReconcileInput,
@@ -120,5 +121,49 @@ describe('evaluateReconciliation — assets-vs-chain delta (informational, zero 
     const dust = evaluateReconciliation(base({ stateTokens: 10, chain: chain(10), assetsSupplyTokens: 11, navUsd: 1 }))
     assert.equal(dust.outcome, 'skipped_dust')
     assert.ok(Math.abs(dust.assetsDeltaPct! - 10) < 1e-9)
+  })
+})
+
+describe('decideBackfillCompletion — fallback when Σ balances ≠ /v4/assets', () => {
+  test('ustb:ethereum shape: state within 3% of chain while /v4/assets is 5.7% over chain → complete, skew named', () => {
+    const r = evaluateReconciliation(base({ stateTokens: 48_856_055, chain: chain(47_700_823), assetsSupplyTokens: 50_432_673 }))
+    assert.equal(r.outcome, 'pass')
+    const d = decideBackfillCompletion(r)
+    assert.equal(d.complete, true)
+    assert.match(d.reason, /within 3% of chain/)
+    assert.match(d.reason, /skew vs chain \+5\.72/)
+  })
+
+  test('state itself > 3% off chain → stay in_progress (the tripwire warn)', () => {
+    const r = evaluateReconciliation(base({ stateTokens: 900_000_000, chain: chain(1_000_000_000), assetsSupplyTokens: 1_000_000_000 }))
+    assert.equal(r.outcome, 'warn')
+    assert.equal(decideBackfillCompletion(r).complete, false)
+  })
+
+  test('no chain reference → stay in_progress', () => {
+    const r = evaluateReconciliation(base({ chain: null, assetsSupplyTokens: 1_100_000_000 }))
+    assert.equal(r.outcome, 'skipped_no_reference')
+    const d = decideBackfillCompletion(r)
+    assert.equal(d.complete, false)
+    assert.match(d.reason, /no usable chain reference/)
+  })
+
+  test('reference read failed this run → stay in_progress', () => {
+    const r = evaluateReconciliation(base({ chain: null, chainError: 'timeout', assetsSupplyTokens: 1_100_000_000 }))
+    assert.equal(decideBackfillCompletion(r).complete, false)
+  })
+
+  test('dust notional still completes when within threshold (deviation is computed for dust)', () => {
+    const r = evaluateReconciliation(base({ stateTokens: 100, chain: chain(101), assetsSupplyTokens: 200, navUsd: 1 }))
+    assert.equal(r.outcome, 'skipped_dust')
+    const d = decideBackfillCompletion(r)
+    assert.equal(d.complete, true)
+    assert.match(d.reason, /dust notional/)
+  })
+
+  test('degenerate chain supply (0) → stay in_progress', () => {
+    const r = evaluateReconciliation(base({ stateTokens: 5, chain: chain(0), assetsSupplyTokens: 5 }))
+    assert.equal(r.outcome, 'skipped_degenerate')
+    assert.equal(decideBackfillCompletion(r).complete, false)
   })
 })

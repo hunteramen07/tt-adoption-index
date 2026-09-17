@@ -122,6 +122,7 @@ import {
   isReconcileStrict,
   RECONCILE_WARN_PCT,
   RECONCILE_MIN_NOTIONAL_USD,
+  decideBackfillCompletion,
 } from '@/src/lib/rwa/reconciliation'
 import type { ReconciliationHistoryRow } from '@/src/lib/rwa/reconciliation'
 
@@ -1163,12 +1164,19 @@ async function saveBackfillSpanDays(slug: string, network: string, spanDays: num
  */
 async function verifyBackfillCaughtUp(
   product: Product,
-  net: { networkSlug: string; addresses: string[]; decimals: number },
+  net: { networkId: number; networkSlug: string; addresses: string[]; decimals: number },
   state: BalanceStateMap,
   tag: string
 ): Promise<boolean> {
   let sumRaw = BigInt(0)
-  for (const h of state.values()) sumRaw += h.balance
+  let positiveRaw = BigInt(0)
+  let holderCount = 0
+  let negativeCount = 0
+  for (const h of state.values()) {
+    sumRaw += h.balance
+    if (h.balance > BigInt(0)) { positiveRaw += h.balance; holderCount++ }
+    else if (h.balance < BigInt(0)) negativeCount++
+  }
   const sumAll = toTokens(sumRaw, net.decimals)
   let supply: number | null
   try {
@@ -1192,9 +1200,59 @@ async function verifyBackfillCaughtUp(
   }
   console.warn(
     `  ${tag}: caught up to the feed's edge but Σ balances ${sumAll.toLocaleString()} ≠ /v4/assets ${supply.toLocaleString()} ` +
-    `(Δ ${delta > 0 ? '+' : ''}${delta.toLocaleString()} tokens, ${((delta / supply) * 100).toFixed(4)}%) — the feed is behind or has ` +
-    `records we have not consumed; leaving in_progress, re-check next slot (last real cursor kept, no synthetic advance)`
+    `(Δ ${delta > 0 ? '+' : ''}${delta.toLocaleString()} tokens, ${((delta / supply) * 100).toFixed(4)}%) — either the feed is behind / ` +
+    `has records we have not consumed, or rwa.xyz's assets stat is off from its own ledger (ustb:ethereum: 3.1%). ` +
+    `Falling back to the chain reference.`
   )
+
+  // Fallback: the tripwire's own chain comparison (Σ positive vs on-chain supply, 3%
+  // threshold). Complete only if the chain confirms the state; persist the outcome to
+  // reconciliation_history (context 'backfill') so the skew is on record, not just in
+  // a CI log. No chain reference / failed read / > threshold ⇒ stay in_progress.
+  let chain: ChainSupply | null = null
+  let chainError: string | null = null
+  try {
+    chain = await fetchChainSupply(net.networkId, net.addresses, net.decimals, tag)
+  } catch (err) {
+    chainError = (err as Error).message
+  }
+  const r = evaluateReconciliation({
+    stateTokens: toTokens(positiveRaw, net.decimals),
+    holderCount,
+    negativeCount,
+    chain,
+    chainError,
+    assetsSupplyTokens: supply,
+    navUsd: getNavUsd(product),
+  })
+  const decision = decideBackfillCompletion(r)
+  const row: ReconciliationHistoryRow = {
+    product_slug: product.slug,
+    network: net.networkSlug,
+    context: 'backfill',
+    outcome: r.outcome,
+    reference: chain?.reference ?? null,
+    state_tokens: toTokens(positiveRaw, net.decimals),
+    holder_count: holderCount,
+    negative_count: negativeCount,
+    chain_supply_tokens: chain?.supplyTokens ?? null,
+    assets_supply_tokens: supply,
+    deviation_pct: r.deviationPct,
+    assets_delta_pct: r.assetsDeltaPct,
+    notional_usd: r.notionalUsd,
+    threshold_pct: r.thresholdPct,
+    strict: false,
+  }
+  try {
+    await insertReconciliationHistory(row)
+  } catch (err) {
+    console.warn(`  ${tag}: reconciliation_history write failed (${(err as Error).message}) — completion decision still applied`)
+  }
+  if (decision.complete) {
+    console.warn(`  ${tag}: COMPLETE via chain reference — ${decision.reason}. /v4/assets ≠ Σ balances by ${((delta / supply) * 100).toFixed(4)}% is a source-side skew; persisted to reconciliation_history (context backfill).`)
+    return true
+  }
+  console.warn(`  ${tag}: leaving in_progress — ${decision.reason}; re-check next slot (last real cursor kept, no synthetic advance)`)
   return false
 }
 

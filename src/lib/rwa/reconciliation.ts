@@ -117,6 +117,28 @@ export function evaluateReconciliation(input: ReconcileInput): ReconcileResult {
   }
 }
 
+/**
+ * Chunked-backfill completion when the /v4/assets identity FAILS (Σ balances ≠ assets
+ * supply). rwa.xyz's assets stat can be off from its own transactions ledger at the
+ * source — ustb:ethereum 2026-09-17: a full-feed replay equalled our state exactly
+ * while /v4/assets sat 3.1% above it — so a strict identity would leave such a
+ * network in_progress forever. Fallback: the tripwire's own chain comparison. Complete
+ * when a chain reference exists and Σ positive is within the tripwire threshold of it
+ * (the deviation is computed even on a dust-skipped network, so dust completes on the
+ * same rule); otherwise stay in_progress — no reference, a failed read, or a degenerate
+ * chain supply is not evidence either way, and a > threshold deviation is the tripwire's
+ * own warn. Pure; the caller persists the row and logs the reason.
+ */
+export function decideBackfillCompletion(r: ReconcileResult): { complete: boolean; reason: string } {
+  if (r.deviationPct == null) {
+    return { complete: false, reason: `no usable chain reference (${r.outcome}) — assets identity failed and nothing independent confirms the state` }
+  }
+  if (r.deviationPct <= r.thresholdPct) {
+    return { complete: true, reason: `Σ positive within ${r.thresholdPct}% of chain (deviation ${r.deviationPct.toFixed(4)}%${r.outcome === 'skipped_dust' ? ', dust notional' : ''}); /v4/assets skew vs chain ${r.assetsDeltaPct == null ? 'n/a' : `${r.assetsDeltaPct >= 0 ? '+' : ''}${r.assetsDeltaPct.toFixed(4)}%`}` }
+  }
+  return { complete: false, reason: `Σ positive deviates ${r.deviationPct.toFixed(4)}% from chain (> ${r.thresholdPct}%) — the state, not just the assets stat, disagrees with the ledger` }
+}
+
 /** True when RECONCILE_STRICT=1: a `warn` outcome throws instead of just logging. */
 export const isReconcileStrict = (): boolean => process.env.RECONCILE_STRICT?.trim() === '1'
 
@@ -124,8 +146,10 @@ export const isReconcileStrict = (): boolean => process.env.RECONCILE_STRICT?.tr
 export interface ReconciliationHistoryRow {
   product_slug: string
   network: string
-  /** 'classify' (nightly incremental) or 'reanchor' (post-swap check). */
-  context: 'classify' | 'reanchor'
+  /** 'classify' (nightly incremental), 'reanchor' (post-swap check), or 'backfill'
+   *  (chunked-backfill completion check when Σ balances ≠ /v4/assets — see
+   *  decideBackfillCompletion). */
+  context: 'classify' | 'reanchor' | 'backfill'
   outcome: ReconcileOutcome
   reference: ChainSupply['reference'] | null
   state_tokens: number
