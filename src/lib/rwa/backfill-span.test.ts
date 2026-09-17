@@ -16,6 +16,9 @@ import {
   sizeWindowByPreflight,
   addDaysStr,
   daysBetween,
+  lagBandStart,
+  syntheticAdvanceTarget,
+  BACKFILL_TRAILING_LAG_DAYS,
 } from './backfill-span.js'
 
 describe('halveSpanOnFailure — shrink-on-failure (fail → halve → floor)', () => {
@@ -145,6 +148,30 @@ describe('sizeWindowByPreflight — exact-count window sizing', () => {
     const count = async (gte: string, lt: string) => { seen.push(`${gte}|${lt}`); return 1 }
     await sizeWindowByPreflight({ frontierDay: '2025-01-01', todayDay: today, candidateSpanDays: 500, pageCap: 40, countPages: count })
     assert.deepEqual(seen, [`2025-01-01|${addDaysStr('2025-01-01', BACKFILL_MAX_SPAN_DAYS)}`])
+  })
+})
+
+describe('syntheticAdvanceTarget — empty windows never advance into the trailing lag band', () => {
+  const today = '2026-07-25'
+  test('lag band starts LAG days before today', () => {
+    assert.equal(lagBandStart(today), addDaysStr(today, -BACKFILL_TRAILING_LAG_DAYS))
+    assert.equal(lagBandStart(today, 3), '2026-07-22')
+  })
+  test('interior empty window advances to its end (gap-skipping unchanged)', () => {
+    assert.equal(syntheticAdvanceTarget('2025-01-01', '2025-03-02', today), '2025-03-02')
+    assert.equal(syntheticAdvanceTarget('2026-06-01', '2026-07-22', today), '2026-07-22') // ends exactly at the band start
+  })
+  test('a window straddling the band advances only to the band start', () => {
+    assert.equal(syntheticAdvanceTarget('2026-06-20', '2026-07-25', today), '2026-07-22')
+    assert.equal(syntheticAdvanceTarget('2026-07-21', '2026-07-23', today), '2026-07-22')
+  })
+  test('the usdy:arbitrum 07-24 case: a window wholly inside the band yields null (no synthetic cursor)', () => {
+    assert.equal(syntheticAdvanceTarget('2026-07-24', '2026-07-25', today), null)
+    assert.equal(syntheticAdvanceTarget('2026-07-22', '2026-07-25', today), null) // frontier at the band start
+  })
+  test('lagDays is a parameter', () => {
+    assert.equal(syntheticAdvanceTarget('2026-07-24', '2026-07-25', today, 0), '2026-07-25')
+    assert.equal(syntheticAdvanceTarget('2026-07-10', '2026-07-25', today, 14), '2026-07-11')
   })
 })
 

@@ -34,6 +34,17 @@ export const BACKFILL_INITIAL_SPAN_DAYS = 30
 /** Preflight count requests one window may spend before opening as-is. Each probe is
  *  a real rwa.xyz request (charged to the run pool by the caller). */
 export const BACKFILL_MAX_PREFLIGHT_PROBES = 4
+/**
+ * Trailing lag band, in days before today, inside which an EMPTY window is never
+ * trusted. rwa.xyz indexes with a lag (measured ≥ 8 h on usdy:arbitrum: a 450,000
+ * token-mint at 2026-07-24 21:43 UTC was absent from the feed at 05:50 next morning),
+ * so a window that ends at/near today can be empty because its records do not exist
+ * YET. Advancing a synthetic cursor past such a window skips those records forever —
+ * the nightly then fetches `gte cursor` and never sees them. This constant only has
+ * to cover the ordinary indexing delay; the completion check (Σ balances vs
+ * /v4/assets supply, in scripts/classify.ts) is what catches a longer lag.
+ */
+export const BACKFILL_TRAILING_LAG_DAYS = 3
 
 /** Clamp a span to [MIN, MAX] days. */
 export const clampSpan = (n: number): number =>
@@ -145,4 +156,29 @@ export async function sizeWindowByPreflight(input: PreflightInput): Promise<Pref
     }
     spanDays = shrunk
   }
+}
+
+/** First day of the trailing lag band: today − lagDays ('YYYY-MM-DD'). */
+export const lagBandStart = (todayDay: string, lagDays: number = BACKFILL_TRAILING_LAG_DAYS): string =>
+  addDaysStr(todayDay, -lagDays)
+
+/**
+ * Where an EMPTY window [frontierDay, windowEnd) may advance a synthetic cursor to:
+ *   • windowEnd, when the whole window is interior (ends at or before the lag band);
+ *   • the lag-band start, when the window straddles it (advance up to, never into it);
+ *   • null, when the window lies wholly inside the band — no synthetic cursor at all,
+ *     the caller leaves the cursor at the last real record and treats the network as
+ *     caught up to the feed's current edge (subject to the completion check).
+ * A null return is the only outcome that could have saved usdy:arbitrum's 07-24 mint.
+ */
+export function syntheticAdvanceTarget(
+  frontierDay: string,
+  windowEnd: string,
+  todayDay: string,
+  lagDays: number = BACKFILL_TRAILING_LAG_DAYS,
+): string | null {
+  const band = lagBandStart(todayDay, lagDays)
+  if (windowEnd <= band) return windowEnd
+  if (frontierDay < band) return band
+  return null
 }

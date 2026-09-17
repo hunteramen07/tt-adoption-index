@@ -106,6 +106,9 @@ import {
   nextSpanFromDensity,
   halveSpanOnFailure,
   sizeWindowByPreflight,
+  syntheticAdvanceTarget,
+  lagBandStart,
+  BACKFILL_TRAILING_LAG_DAYS,
 } from '@/src/lib/rwa/backfill-span'
 import { fetchAssetSupplyByToken, sumSupplyForNetwork } from '@/src/lib/rwa/assets'
 import { logRpcEndpointsInUse } from '@/src/lib/rwa/solana-rpc'
@@ -1139,6 +1142,63 @@ async function saveBackfillSpanDays(slug: string, network: string, spanDays: num
 }
 
 /**
+ * Completion check for a network whose windows have reached the trailing edge:
+ * Σ of ALL merged balances (negatives included) must equal rwa.xyz /v4/assets
+ * supply for the network, within 1e-6 relative (floor 1 token). This is an
+ * INTERNAL-CONSISTENCY check — our replay of their feed against their own ledger
+ * replay — not chain verification (that is the reconciliation tripwire). It is the
+ * identity that exposed usdy:arbitrum (Σ 2.73M vs 3.18M): a 450,000 token-mint the
+ * feed had not indexed when the backfill completed. A mismatch means the feed is
+ * still behind (or has holes we have not consumed): the network stays in_progress
+ * and re-checks next slot for the cost of one probe, one boundary-day page and one
+ * /v4/assets request. Only a verified match marks it complete.
+ *
+ * NOT used: /v4/assets `trailing_30_day_transfer_count`. Probed 2026-09-17, it is not
+ * the same quantity as a day-bounded feed record count (usdy:sei 18,927 vs 11,676;
+ * ustb:ethereum 2,041 vs 3,110; Solana's dual feed doubles the feed side), so a
+ * "feed ≥ assets" gate would block some networks forever and pass others trivially.
+ *
+ * A null/failed assets reference does NOT complete the network (the Aptos precedent:
+ * an empty or missing answer at an edge is never proof); it logs and retries next slot.
+ */
+async function verifyBackfillCaughtUp(
+  product: Product,
+  net: { networkSlug: string; addresses: string[]; decimals: number },
+  state: BalanceStateMap,
+  tag: string
+): Promise<boolean> {
+  let sumRaw = BigInt(0)
+  for (const h of state.values()) sumRaw += h.balance
+  const sumAll = toTokens(sumRaw, net.decimals)
+  let supply: number | null
+  try {
+    const byToken = await fetchAssetSupplyByToken(product.rwaAssetId!)
+    const r = sumSupplyForNetwork(byToken, net.addresses, net.decimals, tag)
+    supply = r.supplyTokens
+    if (r.missing.length > 0) supply = null
+  } catch (err) {
+    console.warn(`  ${tag}: caught up to the feed's edge but /v4/assets is unavailable (${(err as Error).message.slice(0, 100)}) — leaving in_progress, re-check next slot`)
+    return false
+  }
+  if (supply == null) {
+    console.warn(`  ${tag}: caught up to the feed's edge but /v4/assets has no supply for this network's token(s) — leaving in_progress, re-check next slot`)
+    return false
+  }
+  const tolerance = Math.max(1, 1e-6 * Math.abs(supply))
+  const delta = sumAll - supply
+  if (Math.abs(delta) <= tolerance) {
+    console.log(`  ${tag}: Σ balances ${sumAll.toLocaleString()} == /v4/assets ${supply.toLocaleString()} (|Δ| ${Math.abs(delta).toExponential(2)} ≤ ${tolerance.toExponential(2)}) — backfill COMPLETE`)
+    return true
+  }
+  console.warn(
+    `  ${tag}: caught up to the feed's edge but Σ balances ${sumAll.toLocaleString()} ≠ /v4/assets ${supply.toLocaleString()} ` +
+    `(Δ ${delta > 0 ? '+' : ''}${delta.toLocaleString()} tokens, ${((delta / supply) * 100).toFixed(4)}%) — the feed is behind or has ` +
+    `records we have not consumed; leaving in_progress, re-check next slot (last real cursor kept, no synthetic advance)`
+  )
+  return false
+}
+
+/**
  * Backfill one (fund, network) by chunked windows until the per-run page budget is
  * spent or the network catches up to the present. Resumable: all durable progress
  * is in holder_balance_state + fetch_cursor, so a new run just resumes from the
@@ -1239,8 +1299,9 @@ async function backfillRwaNetwork(
   // pool (not a per-network budget) is dry or it catches up to the present.
   while (budget.remaining > 0) {
     if (frontierDay >= todayDay) {
-      console.log(`  ${tag}: reached present (${frontierDay} ≥ ${todayDay}) — backfill COMPLETE`)
-      await markBackfillComplete(product.slug, net.networkSlug)
+      // Real data reached today. Still verify before completing (see verifyBackfillCaughtUp).
+      console.log(`  ${tag}: reached present (${frontierDay} ≥ ${todayDay}) — verifying Σ balances against /v4/assets`)
+      if (await verifyBackfillCaughtUp(product, net, state, tag)) await markBackfillComplete(product.slug, net.networkSlug)
       return
     }
 
@@ -1324,11 +1385,36 @@ async function backfillRwaNetwork(
     const newTransfers = dedupBoundary(transfers, cursor?.boundaryIds ?? null)
     state = mergeTransfers(state, newTransfers, net.caseSensitive).merged
 
-    const newCursor: FetchCursor = newTransfers.length > 0
-      ? computeNewCursor(newTransfers, cursor)! // non-null: newTransfers non-empty
-      // Empty window (gap) — advance the frontier past it so we don't re-scan the
-      // same empty range forever. Synthetic cursor at windowEnd, no boundary ids.
-      : { lastTxTimestamp: `${windowEnd}T00:00:00.000Z`, boundaryIds: [] }
+    let newCursor: FetchCursor
+    if (newTransfers.length > 0) {
+      newCursor = computeNewCursor(newTransfers, cursor)! // non-null: newTransfers non-empty
+    } else {
+      // Empty window. In the INTERIOR of history that is a genuine gap: advance a
+      // synthetic cursor (no boundary ids) past it so we don't re-scan the same empty
+      // range forever. Inside the trailing lag band (today − BACKFILL_TRAILING_LAG_DAYS
+      // … today) it proves nothing — rwa.xyz may simply not have indexed the records
+      // yet — so a synthetic cursor may reach the band's start but never enter it.
+      // A window wholly inside the band writes NO cursor: the last real record stays
+      // the resume point (with its boundary ids), and the network is treated as
+      // caught up to the feed's edge, completing only if Σ balances agrees with
+      // /v4/assets. This is what would have kept usdy:arbitrum's 07-24 mint.
+      const target = syntheticAdvanceTarget(frontierDay, windowEnd, todayDay)
+      if (target == null || target <= frontierDay) {
+        spanDays = nextSpanFromDensity(openSpan, pages)
+        await saveBackfillSpanDays(product.slug, net.networkSlug, spanDays)
+        console.log(
+          `  ${tag}: empty window [${frontierDay}, ${windowEnd}) lies inside the trailing lag band ` +
+          `(from ${lagBandStart(todayDay)}, ${BACKFILL_TRAILING_LAG_DAYS}d) — no synthetic cursor; cursor stays at ` +
+          `${cursor?.lastTxTimestamp ?? 'null'}`
+        )
+        if (await verifyBackfillCaughtUp(product, net, state, tag)) await markBackfillComplete(product.slug, net.networkSlug)
+        return
+      }
+      if (target < windowEnd) {
+        console.log(`  ${tag}: empty window [${frontierDay}, ${windowEnd}) straddles the trailing lag band — synthetic advance bounded to ${target}`)
+      }
+      newCursor = { lastTxTimestamp: `${target}T00:00:00.000Z`, boundaryIds: [] }
+    }
 
     // Persist balances + cursor ONLY (apply_incremental_merge). No classifications /
     // aggregate / behavior writes — partial-state guard (state still incomplete).
