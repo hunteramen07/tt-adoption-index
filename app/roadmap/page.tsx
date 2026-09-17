@@ -26,6 +26,20 @@ function P({ children }: { children: React.ReactNode }) {
   )
 }
 
+/** Status marker next to an item heading. Items without one are planned. */
+function Status({ kind }: { kind: 'shipped' | 'in-progress' }) {
+  const label = kind === 'shipped' ? 'Shipped' : 'In progress'
+  const cls =
+    kind === 'shipped'
+      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+      : 'bg-amber-50 text-amber-700 border-amber-200'
+  return (
+    <span className={`ml-2 align-middle inline-block text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded border ${cls}`}>
+      {label}
+    </span>
+  )
+}
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function RoadmapPage() {
@@ -41,42 +55,53 @@ export default function RoadmapPage() {
             RTA Index &mdash; Planned Work
           </p>
           <p className="mt-1 text-sm text-zinc-500">
-            Items are listed by theme, not timeline. No dates are committed.
+            Items are listed by theme, not timeline. No dates are committed. Items
+            without a status marker are planned.
           </p>
         </div>
 
         {/* Infrastructure */}
         <H2>Infrastructure</H2>
-        <H3>Automated daily classification (GitHub Actions)</H3>
+        <H3>
+          Automated daily classification (GitHub Actions)
+          <Status kind="shipped" />
+        </H3>
         <P>
-          Run the classify pipeline on a nightly cron, commit results to Supabase,
-          and update behavioral metrics automatically. Eliminates manual{' '}
+          Live since June 2026. Two GitHub Actions crons run every day: the classify
+          pipeline at 07:00 UTC writes holder classifications, behavioral metrics and the
+          behavior history to Supabase, and a 06:30 UTC job refreshes the AUM-over-time
+          data. /holders and the fund behavioral mixes stay current with no manual{' '}
           <code className="text-xs bg-zinc-100 px-1 py-0.5 rounded">npm run classify</code>{' '}
-          and ensures /holders and fund behavioral mixes stay current without developer
-          intervention.
+          in steady state.
         </P>
 
         {/* Coverage */}
         <H2>Coverage</H2>
-        <H3>Multi-chain support + BENJI (v2.0)</H3>
+        <H3>
+          Multi-chain support + BENJI (v2.0)
+          <Status kind="in-progress" />
+        </H3>
         <P>
-          Extend the index to Solana, Polygon, XRP Ledger, Stellar, and other chains
-          where covered funds operate. Add Franklin Templeton BENJI (currently inactive
-          due to its Stellar/Polygon-only deployment). Define a formal multi-chain
-          aggregation methodology &mdash; cross-chain holder deduplication is non-trivial.
+          Pipeline built, surfacing pending. The multi-chain data pipeline is running
+          across 22 fund-networks: BUIDL (8 chains), USTB (3) and USYC (3) are migrated,
+          updated nightly and reconciled against on-chain supply; USDY (8 chains) and
+          OUSG (4, including XRP Ledger) are still building state. Nothing multi-chain
+          is surfaced on the site yet and the published methodology remains v1.1
+          (Ethereum mainnet) &mdash; the aggregation rules are decided but ship together
+          with the v2.0 recalibration. Franklin Templeton BENJI stays inactive: it still
+          has no Ethereum deployment (Stellar/Polygon only).
         </P>
         <H3>Additional funds</H3>
         <P>
-          Add new tokenized Treasury and money-market products as they launch on
-          Ethereum mainnet. Candidates include emerging issuers and new BlackRock /
-          Ondo product lines.
+          Add new tokenized Treasury and money-market products as they launch.
+          Candidates include emerging issuers and new BlackRock / Ondo product lines.
         </P>
         <H3>Restricted share class policy (v2.0)</H3>
         <P>
           Formalize the coverage rule for products with multiple on-chain share classes.
           BUIDL-I is currently excluded because 6 holders measure desk allocation, not
-          adoption. v2.0 will define explicit thresholds (e.g., exclude classes with
-          fewer than N holders) and apply them consistently.
+          adoption. v2.0 will define explicit coverage rules for products with multiple
+          on-chain share classes and apply them consistently.
         </P>
 
         {/* Data quality */}
@@ -84,8 +109,10 @@ export default function RoadmapPage() {
         <H3>Live NAV prices</H3>
         <P>
           Replace the hardcoded <code className="text-xs bg-zinc-100 px-1 py-0.5 rounded">navUsd</code>{' '}
-          values (refreshed monthly) with a live price feed (Chainlink, CoinGecko, or
-          issuer oracle). Required for intra-month AUM accuracy.
+          values (refreshed monthly) with live per-fund price sources, now identified:
+          USTB via Chainlink NAVLink, USYC via the Hashnote issuer price API, and
+          OUSG/USDY via the Ondo oracle or CoinGecko (BUIDL holds a stable $1 NAV).
+          Required for intra-month AUM accuracy.
         </P>
         <H3>Wrapper-aware classification</H3>
         <P>
