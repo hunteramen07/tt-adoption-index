@@ -290,6 +290,12 @@ export function makeEscalationFetch(
     if (targets.length === 0) return []
     let pagesLeft = ESCALATION_MAX_PAGES
     const out: RwaTransfer[] = []
+    // Query 2 re-returns every record query 1 found (they share those hashes), so the
+    // output MUST be deduplicated by id. Until 2026-09-20 it was not: every dash record
+    // naming the escalated address arrived twice, every pairing group containing it
+    // failed the 1:1 rule, and rung 5 had never resolved a single address (13 runs
+    // stuck on the same window). The resolver dedups the union with the window too.
+    const seen = new Set<string>()
 
     const spend = async (filters: ReadonlyArray<Record<string, unknown>>, label: string) => {
       let page = 1
@@ -301,8 +307,14 @@ export function makeEscalationFetch(
         pageCount = data.pagination.pageCount
         pagesLeft--
         if (pageCounter) pageCounter.pages++
-        collectResults(data.results, allowed, decimals, networkId, out)
-        console.log(`[solana-resolve] escalation ${label} page ${page}/${pageCount} (${out.length} records)`)
+        const page_: RwaTransfer[] = []
+        collectResults(data.results, allowed, decimals, networkId, page_)
+        for (const t of page_) {
+          if (seen.has(t.id)) continue
+          seen.add(t.id)
+          out.push(t)
+        }
+        console.log(`[solana-resolve] escalation ${label} page ${page}/${pageCount} (${out.length} distinct records)`)
         page++
         if (page <= pageCount && pagesLeft > 0) await sleep(THROTTLE_MS)
       }
@@ -346,6 +358,9 @@ function defaultResolveOptions(
   return {
     store: makeSupabaseAtaOwnerStore(),
     escalate: makeEscalationFetch(assetId, networkId, decimals, tokenAddresses, apiKey, pageCounter),
+    // On Solana the configured token address IS the mint — what ATA derivation needs
+    // to prove a pairing (or a stored row) before it is keyed or persisted.
+    mints: tokenAddresses,
   }
 }
 

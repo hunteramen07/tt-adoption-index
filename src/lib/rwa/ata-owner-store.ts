@@ -34,6 +34,16 @@ const UPSERT_CHUNK = 500
 export interface AtaOwnerRow {
   ata: string
   owner: string
+  /**
+   * How the mapping was established (free text in the table):
+   *   'pairing'       — feed pairing, PROVEN by ATA derivation from the owner + mint
+   *   'trace'         — read from the account's own transaction on chain (auxiliary
+   *                     token accounts, delegate-operated accounts)
+   *   'hand-resolved' — inserted by hand from chain evidence
+   * Rows written before 2026-09-20 carry 'pairing' without the derivation proof; every
+   * one was re-verified that day (2,789 of 2,790 correct, the one exception corrected).
+   */
+  source?: string
 }
 
 /**
@@ -63,8 +73,9 @@ export function makeSupabaseAtaOwnerStore() {
       const supabase = getSupabase()
       // `source` records how the mapping was derived, for auditability; `learned_at`
       // defaults in the DB. Upsert on the `ata` primary key so a re-derivation of the
-      // same mapping is a no-op rather than a conflict.
-      const rows = entries.map((e) => ({ ata: e.ata, owner: e.owner, source: 'pairing' }))
+      // same mapping is a no-op rather than a conflict — and so a CORRECTION (the
+      // resolver re-validates stored rows and re-saves any it had to fix) overwrites.
+      const rows = entries.map((e) => ({ ata: e.ata, owner: e.owner, source: e.source ?? 'pairing' }))
       for (let i = 0; i < rows.length; i += UPSERT_CHUNK) {
         const { error } = await supabase
           .from('solana_ata_owner')

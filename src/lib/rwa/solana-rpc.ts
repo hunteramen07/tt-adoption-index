@@ -66,7 +66,7 @@ export function logRpcEndpointsInUse(): void {
 /** The subset of a jsonParsed account that resolution reads. */
 export interface ParsedAccount {
   owner: string
-  data?: { parsed?: { type?: string; info?: { owner?: string } } }
+  data?: { parsed?: { type?: string; info?: { owner?: string; mint?: string } } }
 }
 
 /** One getMultipleAccounts call (≤100 addresses) with endpoint fallback + retry.
@@ -79,6 +79,81 @@ export async function getMultipleAccounts(addresses: string[], endpoints: string
     pick: (r) => (r as { value?: (ParsedAccount | null)[] } | undefined)?.value || undefined,
     endpoints,
   })
+}
+
+/** The subset of a jsonParsed transaction that owner tracing reads. */
+export interface ParsedInstruction {
+  program?: string
+  parsed?: { type?: string; info?: Record<string, unknown> }
+}
+export interface ParsedTokenBalance {
+  accountIndex: number
+  mint: string
+  owner?: string
+}
+export interface ParsedTransaction {
+  transaction: { message: { accountKeys: { pubkey: string }[]; instructions: ParsedInstruction[] } }
+  meta: {
+    preTokenBalances?: ParsedTokenBalance[]
+    postTokenBalances?: ParsedTokenBalance[]
+    innerInstructions?: { instructions: ParsedInstruction[] }[]
+  } | null
+}
+
+/**
+ * One getTransaction call (jsonParsed, versioned transactions allowed). Resolves to
+ * null when the node has no record of the signature — that is an ANSWER (history
+ * pruned, or a bad hash), distinct from an RPC failure, which throws as usual.
+ */
+export async function getTransaction(signature: string, endpoints: string[] = rpcEndpoints()): Promise<ParsedTransaction | null> {
+  const r = await jsonRpc<{ tx: ParsedTransaction | null }>({
+    label: '[solana-resolve]',
+    method: 'getTransaction',
+    params: [signature, { encoding: 'jsonParsed', maxSupportedTransactionVersion: 0 }],
+    pick: (result) => {
+      if (result === null) return { tx: null }
+      const t = result as ParsedTransaction | undefined
+      return Array.isArray(t?.transaction?.message?.accountKeys) ? { tx: t! } : undefined
+    },
+    endpoints,
+  })
+  return r.tx
+}
+
+/**
+ * The owner of token account `address` AT THE TIME of transaction `tx`, read from the
+ * transaction itself — which is why it works for an account that has since been
+ * CLOSED (its history persists) and is immune to the account having been re-created
+ * or re-purposed later (the 2026-09-20 finding: an owner-feed wallet that had become
+ * a wrapped-SOL account by the time the resolver looked).
+ *
+ * Sources, in order: the post- then pre-transaction token balances (present for any
+ * account that existed on either side of the transaction, and carrying the owner
+ * field), then an initializeAccount* / ATA create instruction naming the account (an
+ * account created AND closed inside one transaction has no balance entry). Null when
+ * the transaction does not establish an owner for it. Pure; exported for the test.
+ */
+export function ownerOfAccountInTransaction(tx: ParsedTransaction, address: string): string | null {
+  const keys = tx.transaction.message.accountKeys
+  const idx = keys.findIndex((k) => k.pubkey === address)
+  if (idx >= 0) {
+    for (const list of [tx.meta?.postTokenBalances, tx.meta?.preTokenBalances]) {
+      const hit = list?.find((b) => b.accountIndex === idx && typeof b.owner === 'string' && b.owner)
+      if (hit) return hit.owner!
+    }
+  }
+  const all = [
+    ...tx.transaction.message.instructions,
+    ...(tx.meta?.innerInstructions ?? []).flatMap((i) => i.instructions),
+  ]
+  for (const ix of all) {
+    const info = ix.parsed?.info
+    if (!info || info.account !== address) continue
+    const type = ix.parsed?.type ?? ''
+    if (ix.program === 'spl-token' && type.startsWith('initializeAccount') && typeof info.owner === 'string') return info.owner
+    if (ix.program === 'spl-associated-token-account' && typeof info.wallet === 'string') return info.wallet
+  }
+  return null
 }
 
 /** Mint supply as the token program reports it: raw base units + the mint's decimals. */

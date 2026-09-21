@@ -21,23 +21,41 @@
  * which the merge layer never sees.
  *
  * ── Resolution ladder (first hit wins, per address) ──────────────────────────
- *   1. on-chain (getAccountInfo): token account → its owner; other account → itself
+ *   1. on-chain (getAccountInfo): token account of THIS fund's mint → its owner;
+ *      any other account (a wallet, or a token account of some other mint) → itself
  *   2. null account + underscore/owner scheme → itself (an unfunded owner wallet)
- *   3. null account + dash/ATA scheme (a CLOSED ATA) → FEED PAIRING: the twin
- *      record under the other scheme names the same participant as an owner wallet
- *   4. …then the persisted solana_ata_owner map (a pairing learned on an earlier run)
- *   5. …then ONE bounded cross-window escalation (2 rwa.xyz requests for the whole
- *      unresolved set), because a closed ATA can be unpairable within a single day
- *      window yet trivially pairable from its other transactions
- *   6. …else FAIL LOUD. Keying an unresolved address raw is precisely the original
+ *   3. null account + dash/ATA scheme (a CLOSED ATA) → a CANDIDATE from FEED PAIRING:
+ *      the twin record under the other scheme names the same participant
+ *   4. …or from the persisted solana_ata_owner map (learned on an earlier run)
+ *   5. …or from ONE bounded cross-window escalation (2 rwa.xyz requests for the
+ *      whole unresolved set), because a closed ATA can be unpairable within a single
+ *      day window yet trivially pairable from its other transactions
+ *   6. PROOF — a candidate is never keyed on the feed's word alone:
+ *      a. derivation: the ATA is re-derived from (candidate, mint); a match is proof
+ *         (an ATA address is a pure function of its owner — solana-ata.ts). Free.
+ *      b. otherwise TRACE: the owner is read from the account's own transaction on
+ *         chain (token-balance owner field at the time of the transfer), which works
+ *         for closed accounts and settles auxiliary (non-associated) accounts.
+ *         Addresses with NO candidate at all go straight here.
+ *   7. …else FAIL LOUD. Keying an unresolved address raw is precisely the original
  *      double-count bug, so we refuse rather than guess.
  *
  * Steps 3-5 exist because rung 1 is TIME-DEPENDENT in a way history is not: an ATA
  * that resolved last month can be closed today, which retroactively breaks a window
  * that used to resolve. Pairing reads the answer out of the data we already fetched,
- * so it works on accounts that no longer exist. Probe 2026-09-10: pairing agreed with
- * getAccountInfo on 170 address-checks with 0 disagreements, and resolved 75 of 75
- * sampled closed ATAs.
+ * so it works on accounts that no longer exist.
+ *
+ * Step 6 exists because pairing's premise — "the underscore record names the token
+ * account's OWNER" — is false for delegate-operated accounts (investigation
+ * 2026-09-20). A token account owned by a program PDA and moved by an approved
+ * delegate is reported under the transaction SIGNER, a fresh throwaway wallet each
+ * time: AXzpX8… paired to three different "owners" in one window, none of them the
+ * real one (3YcoFh…). Multiple twins at least surface as a conflict; a single twin
+ * would have been keyed and persisted wrong with nothing to flag it. Derivation
+ * rejects every such claim for free, and the trace supplies the truth. It also
+ * replaces the former "chase" step, which re-resolved a pairing twin through CURRENT
+ * chain state and produced the one wrong row in 2,790 persisted mappings (the twin
+ * wallet had since become a wrapped-SOL token account owned by someone else).
  *
  * ⚠ The header formerly claimed SCHEME → REPRESENTATION is "100%-clean" — that a dash
  * address is always an ATA, an underscore address always an owner, and no address ever
@@ -49,7 +67,8 @@
  */
 
 import type { RwaTransfer } from '@/src/lib/rwa/transfers'
-import { getMultipleAccounts, rpcEndpoints } from '@/src/lib/rwa/solana-rpc'
+import { getMultipleAccounts, getTransaction, ownerOfAccountInTransaction, rpcEndpoints } from '@/src/lib/rwa/solana-rpc'
+import { isAssociatedTokenAccountOf } from '@/src/lib/rwa/solana-ata'
 
 /** rwa.xyz network_id for Solana — the only dual-feed chain. */
 export const SOLANA_NETWORK_ID = 2
@@ -84,50 +103,103 @@ export type AccountOwnerLookup = (addresses: string[]) => Promise<Map<string, st
  * the close-and-reopen-under-a-new-owner hazard — an entry can only ever be consulted
  * while the account is absent from chain, where the historical owner IS the answer.
  *
+ * A stored row is a CANDIDATE like any other: it goes through step 6 on every use, and
+ * a row the proof overturns is re-saved corrected (upsert on the ata key).
+ *
  * Both sides must degrade gracefully (log, return empty / no-op) rather than throw:
- * the table may not exist yet, and escalation still resolves the address without it.
+ * the table may not exist yet, and the trace still resolves the address without it.
  */
 export interface AtaOwnerStore {
   load(atas: string[]): Promise<Map<string, string>>
-  save(entries: ReadonlyArray<{ ata: string; owner: string }>): Promise<void>
+  save(entries: ReadonlyArray<{ ata: string; owner: string; source?: string }>): Promise<void>
 }
 
 /**
  * Bounded cross-window escalation. Given the dash addresses still unresolved after
  * pairing over the fetched set, return additional rwa.xyz records that mention them —
  * enough to pair from elsewhere in history. Implemented in transfers.ts; costs a fixed
- * couple of requests for the WHOLE unresolved set, not per address.
+ * couple of requests for the WHOLE unresolved set, not per address. May overlap the
+ * window's own records; the resolver dedups the union by id.
  */
 export type EscalationFetch = (addresses: string[]) => Promise<RwaTransfer[]>
 
+/**
+ * Owner-at-transaction trace (step 6b). For each (address, hash) returns the owner of
+ * `address` as transaction `hash` records it, or null when that transaction does not
+ * establish one. Default: chain, via getTransaction + ownerOfAccountInTransaction.
+ * Injectable; pass null to run with no trace at all (offline tests).
+ */
+export type OwnerTrace = (
+  requests: ReadonlyArray<{ address: string; hash: string }>
+) => Promise<Map<string, string | null>>
+
 export interface ResolveOptions {
-  /** Override the on-chain lookup (default: getMultipleAccounts over rpcEndpoints()). */
+  /** Override the on-chain lookup (default: getMultipleAccounts over rpcEndpoints(),
+   *  scoped to `mints` when given). */
   lookup?: AccountOwnerLookup
   /** Persisted ATA→owner map. Omit to run without cross-run memory. */
   store?: AtaOwnerStore
-  /** Cross-window escalation. Omit to fail loud as soon as in-window pairing misses. */
+  /** Cross-window escalation. Omit to skip rung 5. */
   escalate?: EscalationFetch
+  /**
+   * This fund's mint(s) on Solana — what derivation proof (6a) needs. Production
+   * always passes it (transfers.ts: the configured token address IS the mint). Without
+   * it no candidate can be proven, and a candidate is then accepted on the feed's word
+   * with a warning — acceptable only for offline callers with synthetic addresses.
+   */
+  mints?: readonly string[]
+  /** Owner trace (6b). Default: chain. `null` disables it (offline tests). */
+  trace?: OwnerTrace | null
 }
 
-/** Default lookup: batched getMultipleAccounts, token account → owner, else self,
- *  missing account → null (disambiguated by scheme in resolveAndDedupSolana). */
-const defaultLookup: AccountOwnerLookup = async (addresses) => {
+/**
+ * Default lookup: batched getMultipleAccounts. A token account of one of `mints` →
+ * its owner; anything else → itself; missing account → null (disambiguated by scheme
+ * in resolveAndDedupSolana).
+ *
+ * The mint scope matters: an owner-feed WALLET can, by the time the resolver runs,
+ * have become a token account of some unrelated mint (9SJ6qjuG… is now a wrapped-SOL
+ * account — 2026-09-20). It held this fund's position as a wallet, so it must stay
+ * keyed as itself; only a token account of THIS mint is a position we need to lift to
+ * its owner. With no mints given, every token account is lifted (the pre-2026-09-20
+ * behaviour).
+ */
+function makeDefaultLookup(mints: readonly string[]): AccountOwnerLookup {
+  const mintSet = new Set(mints)
+  return async (addresses) => {
+    const out = new Map<string, string | null>()
+    if (addresses.length === 0) return out
+    const endpoints = rpcEndpoints()
+    for (let i = 0; i < addresses.length; i += 100) {
+      const batch = addresses.slice(i, i + 100)
+      const infos = await getMultipleAccounts(batch, endpoints)
+      batch.forEach((addr, j) => {
+        const v = infos[j]
+        const info = v?.data?.parsed?.info
+        if (!v) {
+          out.set(addr, null)
+        } else if (
+          TOKEN_PROGRAM_IDS.has(v.owner) && v.data?.parsed?.type === 'account' && info?.owner &&
+          (mintSet.size === 0 || (info.mint !== undefined && mintSet.has(info.mint)))
+        ) {
+          out.set(addr, info.owner) // this fund's token account → owner wallet
+        } else {
+          out.set(addr, addr) // wallet, program account, or another mint's account: already a key
+        }
+      })
+    }
+    return out
+  }
+}
+
+/** Default trace: one getTransaction per address, sequential (few per window). */
+const defaultTrace: OwnerTrace = async (requests) => {
   const out = new Map<string, string | null>()
-  if (addresses.length === 0) return out
+  if (requests.length === 0) return out
   const endpoints = rpcEndpoints()
-  for (let i = 0; i < addresses.length; i += 100) {
-    const batch = addresses.slice(i, i + 100)
-    const infos = await getMultipleAccounts(batch, endpoints)
-    batch.forEach((addr, j) => {
-      const v = infos[j]
-      if (!v) {
-        out.set(addr, null)
-      } else if (TOKEN_PROGRAM_IDS.has(v.owner) && v.data?.parsed?.type === 'account' && v.data.parsed.info?.owner) {
-        out.set(addr, v.data.parsed.info.owner) // ATA → owner wallet
-      } else {
-        out.set(addr, addr) // system/other account is already an owner wallet
-      }
-    })
+  for (const { address, hash } of requests) {
+    const tx = await getTransaction(hash, endpoints)
+    out.set(address, tx ? ownerOfAccountInTransaction(tx, address) : null)
   }
   return out
 }
@@ -158,12 +230,15 @@ export interface FeedPairing {
   map: Map<string, string>
   /** Dash addresses whose twins named more than one owner — deliberately NOT mapped. */
   conflicts: string[]
+  /** Every 1:1 twin pair found, [dash record, underscore record] — the dedup step's
+   *  twin repair reads these. */
+  pairs: Array<[RwaTransfer, RwaTransfer]>
 }
 
 /**
- * Derive ATA→owner from twin records: a dash record and an underscore record that
- * describe the same transfer leg name the same two participants under the two
- * representations, so their counterparties correspond POSITIONALLY (from↔from,
+ * Derive ATA→owner CANDIDATES from twin records: a dash record and an underscore
+ * record that describe the same transfer leg name the same two participants under the
+ * two representations, so their counterparties correspond POSITIONALLY (from↔from,
  * to↔to).
  *
  * Two join keys, applied in order and unioned:
@@ -180,10 +255,13 @@ export interface FeedPairing {
  * the addresses involved are learned from their other, unambiguous transactions
  * instead. Measured on the 2025-11-13 window: 1,558 of 1,564 dash records pair 1:1,
  * the 6 ambiguous ones are skipped, and all 66 dash addresses are still learned with
- * zero conflicts.
+ * zero conflicts. Feed the function DISTINCT records: a duplicated record turns every
+ * group it sits in into a 2:1 and silently suppresses that pairing.
  *
  * An address is mapped only when every twin agrees on one owner; disagreement is
- * reported, never averaged or majority-voted.
+ * reported, never averaged or majority-voted. The result is a CANDIDATE — the
+ * underscore feed names the transaction signer, not the owner, for delegate-operated
+ * accounts — and is proven or replaced in resolveAndDedupSolana step 6.
  */
 export function buildFeedPairingMap(transfers: readonly RwaTransfer[]): FeedPairing {
   const dashByKey = new Map<string, RwaTransfer[]>()
@@ -218,6 +296,8 @@ export function buildFeedPairingMap(transfers: readonly RwaTransfer[]): FeedPair
     else candidates.set(ata, new Set([owner]))
   }
 
+  const pairs: Array<[RwaTransfer, RwaTransfer]> = []
+  const paired = new Set<string>()
   for (const [dashGroups, undGroups] of [
     [dashByKey, undByKey],
     [dashByHash, undByHash],
@@ -227,6 +307,11 @@ export function buildFeedPairingMap(transfers: readonly RwaTransfer[]): FeedPair
       if (!us || ds.length !== 1 || us.length !== 1) continue
       note(ds[0].from, us[0].from)
       note(ds[0].to, us[0].to)
+      const pk = `${ds[0].id}|${us[0].id}`
+      if (!paired.has(pk)) {
+        paired.add(pk)
+        pairs.push([ds[0], us[0]])
+      }
     }
   }
 
@@ -236,10 +321,11 @@ export function buildFeedPairingMap(transfers: readonly RwaTransfer[]): FeedPair
     if (owners.size === 1) map.set(ata, [...owners][0])
     else conflicts.push(`${ata} → {${[...owners].join(', ')}}`)
   }
-  return { map, conflicts }
+  return { map, conflicts, pairs }
 }
 
-/** First transaction hash mentioning each address — for a diagnosable failure. */
+/** First transaction hash mentioning each address — the trace's input, and a
+ *  diagnosable failure's. */
 function sampleHashes(transfers: readonly RwaTransfer[], addresses: readonly string[]): Map<string, string> {
   const want = new Set(addresses)
   const out = new Map<string, string>()
@@ -262,7 +348,7 @@ async function safeStoreLoad(store: AtaOwnerStore, atas: string[]): Promise<Map<
   }
 }
 
-async function safeStoreSave(store: AtaOwnerStore, entries: ReadonlyArray<{ ata: string; owner: string }>): Promise<void> {
+async function safeStoreSave(store: AtaOwnerStore, entries: ReadonlyArray<{ ata: string; owner: string; source?: string }>): Promise<void> {
   if (entries.length === 0) return
   try {
     await store.save(entries)
@@ -287,7 +373,9 @@ export async function resolveAndDedupSolana(
   opts: ResolveOptions = {}
 ): Promise<RwaTransfer[]> {
   if (transfers.length === 0) return transfers
-  const lookup = opts.lookup ?? defaultLookup
+  const mints = opts.mints ?? []
+  const lookup = opts.lookup ?? makeDefaultLookup(mints)
+  const trace = opts.trace === undefined ? defaultTrace : opts.trace
 
   // 1. distinct real addresses, each tagged with its feed scheme. 'owner' wins if
   //    an address is ever seen under the underscore feed — no longer merely
@@ -307,10 +395,10 @@ export async function resolveAndDedupSolana(
   const pairing = buildFeedPairingMap(transfers)
   const resolved = await lookup([...addrs])
 
-  // 3. ladder rungs 1-3. `viaTwin` holds an owner-FEED address, which is not yet
-  //    guaranteed to be an owner WALLET — it is chased through the lookup in step 6.
+  // 3. ladder rungs 1-3. `candidate` holds a CLAIMED owner (an owner-feed address),
+  //    proven or replaced in step 6 before it is keyed.
   const ownerOf = new Map<string, string>()
-  const viaTwin = new Map<string, string>()
+  const candidate = new Map<string, string>()
   let pending: string[] = []
   for (const a of addrs) {
     const r = resolved.get(a)
@@ -319,19 +407,20 @@ export async function resolveAndDedupSolana(
     } else if (schemeOf.get(a) === 'owner') {
       ownerOf.set(a, a) // null owner-feed address = unfunded owner wallet — keep
     } else {
-      const twin = pairing.map.get(a) // closed ATA — recover the owner from its twin
-      if (twin) viaTwin.set(a, twin)
+      const twin = pairing.map.get(a) // closed ATA — a candidate from its twin
+      if (twin) candidate.set(a, twin)
       else pending.push(a)
     }
   }
 
-  // 4. rung 4 — a pairing learned on an earlier run.
-  const fromStore = new Set<string>()
+  // 4. rung 4 — a mapping learned on an earlier run. Remembered so a row the proof
+  //    overturns can be re-saved corrected, and an unchanged one not re-written.
+  const storedOwner = new Map<string, string>()
   if (pending.length > 0 && opts.store) {
     const stored = await safeStoreLoad(opts.store, pending)
     for (const [ata, owner] of stored) {
-      viaTwin.set(ata, owner)
-      fromStore.add(ata)
+      candidate.set(ata, owner)
+      storedOwner.set(ata, owner)
     }
     pending = pending.filter((a) => !stored.has(a))
   }
@@ -339,69 +428,149 @@ export async function resolveAndDedupSolana(
   // 5. rung 5 — ONE bounded escalation for the whole remaining set. A closed ATA can
   //    be unpairable inside a single day window yet pair trivially from its other
   //    transactions, so widen the pairing corpus rather than failing on a window
-  //    boundary artifact.
+  //    boundary artifact. The union is deduplicated by id: escalation re-returns the
+  //    window's own records for the shared hashes, and a duplicate turns every 1:1
+  //    pairing group it sits in into a 2:1 that buildFeedPairingMap must skip.
   if (pending.length > 0 && opts.escalate) {
     const extra = await opts.escalate(pending)
     if (extra.length > 0) {
-      const wider = buildFeedPairingMap([...transfers, ...extra])
+      const seen = new Set(transfers.map((t) => t.id))
+      const fresh = extra.filter((t) => {
+        if (seen.has(t.id)) return false
+        seen.add(t.id)
+        return true
+      })
+      const wider = buildFeedPairingMap([...transfers, ...fresh])
       pending = pending.filter((a) => {
         const twin = wider.map.get(a)
         if (!twin) return true
-        viaTwin.set(a, twin)
+        candidate.set(a, twin)
         return false
       })
     }
   }
 
-  // 6. rung 6 — fail loud, naming every address and a transaction to look at.
-  if (pending.length > 0) {
-    const samples = sampleHashes(transfers, pending)
-    const lines = pending.map((a) => `  ${a}  (sample tx ${samples.get(a) ?? 'unknown'})`).join('\n')
+  // 6. PROOF. Every candidate must derive as the ATA of its claimed owner for one of
+  //    this fund's mints (6a). One that does not — an auxiliary account, or a delegate-
+  //    operated one the feed reported under its signer — and every address with no
+  //    candidate at all, is settled from its own transaction on chain (6b).
+  const proven = new Map<string, { owner: string; source: 'pairing' | 'trace' }>()
+  const toTrace: string[] = [...pending]
+  const unprovable: string[] = []
+  for (const [ata, claimed] of candidate) {
+    if (mints.length > 0 && isAssociatedTokenAccountOf(ata, claimed, mints)) {
+      proven.set(ata, { owner: claimed, source: 'pairing' })
+    } else if (trace || mints.length > 0) {
+      toTrace.push(ata) // a mismatch with no trace fails loud below — never keyed on trust
+    } else {
+      proven.set(ata, { owner: claimed, source: 'pairing' })
+      unprovable.push(ata)
+    }
+  }
+  if (unprovable.length > 0) {
+    console.warn(`[solana-resolve] no mints configured — ${unprovable.length} pairing candidate(s) accepted WITHOUT derivation proof`)
+  }
+
+  const samples = sampleHashes(transfers, toTrace)
+  const failed: string[] = []
+  let overturned = 0
+  if (toTrace.length > 0) {
+    const traced = trace
+      ? await trace(toTrace.map((address) => ({ address, hash: samples.get(address) ?? '' })))
+      : new Map<string, string | null>()
+    for (const a of toTrace) {
+      const owner = traced.get(a)
+      if (!owner) {
+        failed.push(a)
+        continue
+      }
+      proven.set(a, { owner, source: 'trace' })
+      const claimed = candidate.get(a)
+      if (claimed && claimed !== owner) {
+        overturned++
+        console.warn(
+          `[solana-resolve] feed claimed ${a} → ${claimed} (${storedOwner.has(a) ? 'persisted row' : 'pairing'}); ` +
+          `chain says ${owner} (tx ${samples.get(a)}) — corrected`
+        )
+      }
+    }
+  }
+
+  // 7. fail loud, naming every address, a transaction to look at, and what was tried.
+  if (failed.length > 0) {
+    const lines = failed
+      .map((a) => `  ${a}  (sample tx ${samples.get(a) ?? 'unknown'}${candidate.has(a) ? `; feed claimed ${candidate.get(a)}, not proven` : '; no twin'})`)
+      .join('\n')
     const conflictNote =
       pairing.conflicts.length > 0
         ? `\nPairing found CONFLICTING owners for ${pairing.conflicts.length} other address(es):\n  ${pairing.conflicts.join('\n  ')}`
         : ''
+    const tried = [
+      'no on-chain account (closed ATA)',
+      'no proven underscore-feed twin in this window',
+      'no proven persisted mapping',
+      `cross-window escalation ${opts.escalate ? 'found none' : 'was not configured'}`,
+      trace ? 'and the sample transaction names no owner for it' : 'and no owner trace was configured',
+    ].join(', ')
     throw new Error(
-      `[solana-resolve] cannot resolve ${pending.length} dash/ATA address(es) — no on-chain ` +
-      `account (closed ATA), no underscore-feed twin in this window, no persisted mapping, and ` +
-      `cross-window escalation ${opts.escalate ? 'found none' : 'was not configured'}. Refusing to ` +
+      `[solana-resolve] cannot resolve ${failed.length} dash/ATA address(es) — ${tried}. Refusing to ` +
       `key them raw (that reintroduces the double-count bug):\n${lines}${conflictNote}`
     )
   }
 
-  // 7. chase every twin through the lookup: the owner-feed address may itself be a
-  //    live token account (1-2 per window — design doc §A2), and keying one would
-  //    leave an ATA in the balance state. A twin already looked up in step 2 reuses
-  //    that result; only twins outside the fetched set cost a second call.
-  const needChase = [...new Set(viaTwin.values())].filter((t) => !resolved.has(t))
-  const chased = needChase.length > 0 ? await lookup(needChase) : new Map<string, string | null>()
-  for (const [ata, twin] of viaTwin) {
-    const r = resolved.has(twin) ? resolved.get(twin)! : (chased.get(twin) ?? null)
-    ownerOf.set(ata, r ?? twin) // a null twin is an unfunded/closed owner wallet — keep it
-  }
+  for (const [ata, { owner }] of proven) ownerOf.set(ata, owner)
 
-  if (viaTwin.size > 0) {
+  if (proven.size > 0) {
+    let byPairing = 0
+    let byTrace = 0
+    let fromStore = 0
+    for (const [ata, { source }] of proven) {
+      if (source === 'pairing') byPairing++
+      else byTrace++
+      if (storedOwner.has(ata)) fromStore++
+    }
     console.log(
-      `[solana-resolve] recovered ${viaTwin.size} closed ATA(s) by feed pairing` +
-      (fromStore.size > 0 ? ` (${fromStore.size} from the persisted map)` : '')
+      `[solana-resolve] recovered ${proven.size} closed ATA(s): ${byPairing} proven by derivation` +
+      (fromStore > 0 ? ` (${fromStore} via the persisted map)` : '') +
+      (byTrace > 0 ? `, ${byTrace} traced on chain` : '') +
+      (overturned > 0 ? ` — ${overturned} feed claim(s) overturned` : '')
     )
-    // Persist only what pairing had to derive — a live ATA is re-read from chain
-    // every run, so only the unreadable (closed) ones are worth remembering.
+    // Persist what this run established: new mappings, and stored rows the proof
+    // corrected. A stored row that held up is not re-written.
     if (opts.store) {
-      const fresh = [...viaTwin.keys()]
-        .filter((ata) => !fromStore.has(ata))
-        .map((ata) => ({ ata, owner: ownerOf.get(ata)! }))
-      await safeStoreSave(opts.store, fresh)
+      const entries = [...proven]
+        .filter(([ata, { owner }]) => storedOwner.get(ata) !== owner)
+        .map(([ata, { owner, source }]) => ({ ata, owner, source }))
+      await safeStoreSave(opts.store, entries)
     }
   }
 
   const res = (a: string) => (!a || a === ZERO_ADDRESS ? a : (ownerOf.get(a) ?? a))
 
-  // 8. rewrite counterparties + dedup by resolved key, keep min-id (deterministic).
+  // 8a. twin repair. Within a 1:1 twin pair the two feeds describe ONE transfer leg,
+  //     and the dash record's participants are now chain-resolved (or proven). Where
+  //     the underscore twin names someone else it is the feed's mislabel — a delegate-
+  //     operated transfer reported under its SIGNER — and left alone it would survive
+  //     the dedup as a second record keyed to a wallet that never held the position.
+  //     Rewrite that side of the twin to the dash record's resolution so the pair
+  //     collapses. This fires ONLY where the feeds disagree after resolution, which on
+  //     the validated windows (170 address-checks, 0 disagreements) is never.
+  const twinRepair = new Map<string, { from: string; to: string }>()
+  for (const [d, u] of pairing.pairs) {
+    const from = res(d.from)
+    const to = res(d.to)
+    if (from !== res(u.from) || to !== res(u.to)) twinRepair.set(u.id, { from, to })
+  }
+  if (twinRepair.size > 0) {
+    console.log(`[solana-resolve] repaired ${twinRepair.size} underscore twin(s) that named a participant the ATA feed's chain resolution contradicts (delegate-signed transfers)`)
+  }
+
+  // 8b. rewrite counterparties + dedup by resolved key, keep min-id (deterministic).
   const kept = new Map<string, RwaTransfer>()
   for (const t of transfers) {
-    const from = res(t.from)
-    const to = res(t.to)
+    const repair = twinRepair.get(t.id)
+    const from = repair ? repair.from : res(t.from)
+    const to = repair ? repair.to : res(t.to)
     const key = `${t.hash} ${from} ${to} ${t.value}`
     const rewritten: RwaTransfer = { ...t, from, to }
     const cur = kept.get(key)
