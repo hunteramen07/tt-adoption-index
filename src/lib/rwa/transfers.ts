@@ -547,6 +547,38 @@ export async function countTransfersWindowPagesRWA(
 }
 
 /**
+ * The latest `n` RAW records for an (asset, network), newest first — the chain-
+ * coverage probe's input for tabulating a new network's mint/burn convention BEFORE
+ * it is configured. Deliberately NOT normalized: normalizeTransaction throws on a
+ * convention it does not know, and an unknown convention is precisely what this
+ * probe exists to surface. Same single-page date-sort as fetchEarliestTxDate (no
+ * deep pagination, so none of the timeout problem). No token post-filter.
+ */
+export async function fetchLatestTransactionsRWA(
+  assetId: number,
+  networkId: number,
+  n: number
+): Promise<RwaTransaction[]> {
+  const apiKey = process.env.RWA_API_KEY
+  if (!apiKey) throw new Error('RWA_API_KEY environment variable is not set')
+
+  const query = {
+    filter: {
+      operator: 'and',
+      filters: [
+        { operator: 'equals', field: 'asset_id', value: assetId },
+        { operator: 'equals', field: 'network_id', value: networkId },
+      ],
+    },
+    sort: { field: 'date', direction: 'desc' },
+    pagination: { page: 1, perPage: n },
+  }
+  const url = `${TRANSACTIONS_URL}?query=${encodeURIComponent(JSON.stringify(query))}`
+  const data = await fetchRwaJson<RwaTransactionsResponse>(url, '/v4/transactions', 1, apiKey)
+  return data.results
+}
+
+/**
  * Earliest transaction DATE (YYYY-MM-DD, UTC) for an (asset, network), or null if
  * the network has no transactions. Used to seed a fresh chunked backfill's first
  * window instead of scanning from a hardcoded epoch.

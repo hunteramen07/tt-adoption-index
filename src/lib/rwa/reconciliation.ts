@@ -142,6 +142,15 @@ export function decideBackfillCompletion(r: ReconcileResult): { complete: boolea
 /** True when RECONCILE_STRICT=1: a `warn` outcome throws instead of just logging. */
 export const isReconcileStrict = (): boolean => process.env.RECONCILE_STRICT?.trim() === '1'
 
+/**
+ * Every outcome the table records. Besides the supply tripwire's own, the cursor-age
+ * tripwire (cursor-age.ts) files `cursor_stale` rows here — same table, same
+ * append-only posture — with two columns overloaded and documented there:
+ * deviation_pct = cursor age in DAYS, threshold_pct = the age threshold in DAYS.
+ * The column is free text by design, so a new outcome needs no migration.
+ */
+export type HistoryOutcome = ReconcileOutcome | 'cursor_stale'
+
 /** One append-only observation. Column names match the migration exactly. */
 export interface ReconciliationHistoryRow {
   product_slug: string
@@ -150,7 +159,7 @@ export interface ReconciliationHistoryRow {
    *  (chunked-backfill completion check when Σ balances ≠ /v4/assets — see
    *  decideBackfillCompletion). */
   context: 'classify' | 'reanchor' | 'backfill'
-  outcome: ReconcileOutcome
+  outcome: HistoryOutcome
   reference: ChainSupply['reference'] | null
   state_tokens: number
   holder_count: number

@@ -23,6 +23,8 @@
     "test:json-rpc": "tsx --tsconfig tsconfig.json --test src/lib/rwa/json-rpc.test.ts",
     "test:solana-ata": "tsx --tsconfig tsconfig.json --test src/lib/rwa/solana-ata.test.ts",
     "test:xrpl-rpc": "tsx --tsconfig tsconfig.json --test src/lib/rwa/xrpl-rpc.test.ts",
+    "test:cursor-age": "tsx --tsconfig tsconfig.json --test src/lib/rwa/cursor-age.test.ts",
+    "test:chain-coverage": "tsx --tsconfig tsconfig.json --test src/lib/rwa/chain-coverage.test.ts",
     "test:xrpl-normalize": "tsx --tsconfig tsconfig.json scripts/xrpl-normalize-parity.ts",
     "test:stellar-normalize": "tsx --tsconfig tsconfig.json scripts/stellar-normalize-parity.ts"
   },

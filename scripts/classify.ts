@@ -110,10 +110,13 @@ import {
   lagBandStart,
   BACKFILL_TRAILING_LAG_DAYS,
 } from '@/src/lib/rwa/backfill-span'
-import { fetchAssetSupplyByToken, sumSupplyForNetwork } from '@/src/lib/rwa/assets'
+import { fetchAssetTokens, fetchAssetSupplyByToken, supplyByTokenFrom, sumSupplyForNetwork, networkActivity7d } from '@/src/lib/rwa/assets'
 import { logRpcEndpointsInUse } from '@/src/lib/rwa/solana-rpc'
-import type { TokenSupply } from '@/src/lib/rwa/assets'
-import { fetchTransfersWindowRWA, fetchEarliestTxDate, countTransfersWindowPagesRWA } from '@/src/lib/rwa/transfers'
+import type { TokenSupply, RwaAssetToken } from '@/src/lib/rwa/assets'
+import { fetchTransfersWindowRWA, fetchEarliestTxDate, countTransfersWindowPagesRWA, fetchLatestTransactionsRWA } from '@/src/lib/rwa/transfers'
+import { evaluateCursorAge, findOrphanedCursors } from '@/src/lib/rwa/cursor-age'
+import type { FetchCursorRow } from '@/src/lib/rwa/cursor-age'
+import { evaluateCoverage, probeNetwork, renderProposal, describeFinding, emitGitHubWarning } from '@/src/lib/rwa/chain-coverage'
 import { fetchChainSupply, toTokens } from '@/src/lib/rwa/chain-supply'
 import type { ChainSupply } from '@/src/lib/rwa/chain-supply'
 import {
@@ -639,12 +642,34 @@ async function computeMarketValueAndReconcile(
  * @param supplyByToken per-fund /v4/assets supply map (see classifyRwaMultiChain);
  *                      null when that fetch failed, which omits the market value.
  */
+/** What the cursor-age tripwire needs from a network's run, for its persisted row. */
+interface NetworkRunSummary {
+  holderCount: number
+  stateTokens: number
+  negativeCount: number
+  /** The cursor after this run when it advanced; null when it did not. */
+  cursorTimestamp: string | null
+}
+
+function summarizeRun(res: IncrementalResult, decimals: number): NetworkRunSummary {
+  let positiveRaw = BigInt(0)
+  for (const st of res.positive.values()) positiveRaw += st.balance
+  let negativeCount = 0
+  for (const st of res.merged.values()) if (st.balance < BigInt(0)) negativeCount++
+  return {
+    holderCount: res.positive.size,
+    stateTokens: toTokens(positiveRaw, decimals),
+    negativeCount,
+    cursorTimestamp: res.newCursor?.lastTxTimestamp ?? null,
+  }
+}
+
 async function classifyRwaNetworkIncremental(
   product: Product,
   net: { networkId: number; networkSlug: string; addresses: string[]; caseSensitive: boolean; decimals: number },
   nowTs: number,
   supplyByToken: Map<string, TokenSupply> | null
-): Promise<void> {
+): Promise<NetworkRunSummary> {
   const deps = await makeSupabaseDeps({
     assetId: product.rwaAssetId!,
     networkId: net.networkId,
@@ -671,6 +696,7 @@ async function classifyRwaNetworkIncremental(
   const classifications = res.classifications!
   const aggStats = computeAggregateStatsFromState(res.positive, res.windowTransfers, nowTs, net.caseSensitive)
   await writePerWalletResult(realWriters, product, classifications, aggStats, net.networkSlug, 0, marketValueUsd)
+  return summarizeRun(res, net.decimals)
 }
 
 /**
@@ -693,7 +719,7 @@ async function classifyRwaNetworkAggregate(
   net: { networkId: number; networkSlug: string; addresses: string[]; caseSensitive: boolean; decimals: number },
   nowTs: number,
   supplyByToken: Map<string, TokenSupply> | null
-): Promise<void> {
+): Promise<NetworkRunSummary> {
   const deps = await makeSupabaseDeps({
     assetId: product.rwaAssetId!,
     networkId: net.networkId,
@@ -719,6 +745,59 @@ async function classifyRwaNetworkAggregate(
   // undefined here by design. writeAggregateResult does the two writes only — no
   // per-wallet rows, no name tags — see src/lib/rwa/multichain-write.ts.
   await writeAggregateResult(realWriters, product, res.aggregateStats!, net.networkSlug, marketValueUsd)
+  return summarizeRun(res, net.decimals)
+}
+
+/**
+ * Cursor-age tripwire, check 2 (src/lib/rwa/cursor-age.ts): after a network's run,
+ * is its cursor older than the threshold while rwa.xyz's own aggregates for it moved
+ * in the last 7 days? Logged every time; persisted (outcome 'cursor_stale',
+ * deviation_pct = age in days, threshold_pct = threshold in days) only when stale.
+ * Never throws — a failure here is a warning, the network's metrics are already
+ * written.
+ */
+async function checkCursorAge(
+  product: Product,
+  net: { networkSlug: string; addresses: string[] },
+  summary: NetworkRunSummary,
+  supplyByToken: Map<string, TokenSupply> | null
+): Promise<void> {
+  const tag = `${product.slug}:${net.networkSlug}`
+  try {
+    const cursorTs = summary.cursorTimestamp ?? (await loadCursorTimestamp(product.slug, net.networkSlug))
+    const activity = supplyByToken ? networkActivity7d(supplyByToken, net.addresses) : null
+    const r = evaluateCursorAge({ lastTxTimestamp: cursorTs, nowMs: Date.now(), activity })
+    if (!r.stale) {
+      console.log(`  cursor-age ${tag}: ${r.reason} ✓`)
+      return
+    }
+    console.warn(`  ⚠️  TRIPWIRE ${tag}: CURSOR STALE — ${r.reason} (last_tx_timestamp ${cursorTs})`)
+    emitGitHubWarning(`cursor stale: ${tag}`, r.reason)
+    const row: ReconciliationHistoryRow = {
+      product_slug: product.slug,
+      network: net.networkSlug,
+      context: 'classify',
+      outcome: 'cursor_stale',
+      reference: null,
+      state_tokens: summary.stateTokens,
+      holder_count: summary.holderCount,
+      negative_count: summary.negativeCount,
+      chain_supply_tokens: null,
+      assets_supply_tokens: null,
+      deviation_pct: r.ageDays,
+      assets_delta_pct: null,
+      notional_usd: null,
+      threshold_pct: r.thresholdDays,
+      strict: false,
+    }
+    try {
+      await insertReconciliationHistory(row)
+    } catch (err) {
+      console.warn(`  reconciliation_history write failed (${(err as Error).message}) — cursor_stale row not persisted`)
+    }
+  } catch (err) {
+    console.warn(`  cursor-age ${tag}: check failed (${(err as Error).message}) — skipped`)
+  }
 }
 
 /**
@@ -730,7 +809,8 @@ async function classifyRwaNetworkAggregate(
 async function classifyRwaMultiChain(
   product: Product,
   progress: Progress,
-  nowTs: number
+  nowTs: number,
+  prefetchedTokens: RwaAssetToken[] | null = null
 ): Promise<void> {
   if (product.rwaAssetId == null) {
     throw new Error(`[${product.slug}] missing rwaAssetId — required for the rwa.xyz multi-chain path`)
@@ -746,8 +826,10 @@ async function classifyRwaMultiChain(
   // than losing the whole fund's classification over a weight lookup.
   let supplyByToken: Map<string, TokenSupply> | null = null
   try {
-    supplyByToken = await fetchAssetSupplyByToken(product.rwaAssetId)
-    console.log(`  /v4/assets: supply for ${supplyByToken.size} token(s)`)
+    // The nightly preflight (chain-coverage check) already read this fund's token
+    // list; reuse it so the fund costs ONE /v4/assets request per run, not two.
+    supplyByToken = supplyByTokenFrom(prefetchedTokens ?? (await fetchAssetTokens(product.rwaAssetId)))
+    console.log(`  /v4/assets: supply for ${supplyByToken.size} token(s)${prefetchedTokens ? ' (from preflight)' : ''}`)
   } catch (err) {
     console.error(
       `  ERROR: /v4/assets fetch failed for ${product.slug} — market values omitted this run: ` +
@@ -776,11 +858,10 @@ async function classifyRwaMultiChain(
     // (selectWriteMode). aggregateFlowsOnly (USDY) → aggregate stats + behavior
     // only, no per-wallet rows. The backfill-in-progress guard above sits upstream
     // of BOTH forks, so a network with incomplete state is skipped identically.
-    if (selectWriteMode(product) === 'aggregate') {
-      await classifyRwaNetworkAggregate(product, net, nowTs, supplyByToken)
-    } else {
-      await classifyRwaNetworkIncremental(product, net, nowTs, supplyByToken)
-    }
+    const summary = selectWriteMode(product) === 'aggregate'
+      ? await classifyRwaNetworkAggregate(product, net, nowTs, supplyByToken)
+      : await classifyRwaNetworkIncremental(product, net, nowTs, supplyByToken)
+    await checkCursorAge(product, net, summary, supplyByToken)
 
     progress.completedProducts.push(key)
     saveProgress(progress)
@@ -1077,6 +1158,27 @@ async function backfillStatus(slug: string, network: string): Promise<'fresh' | 
   }
   if (!data) return 'fresh'
   return data.backfill_complete === false ? 'in_progress' : 'complete'
+}
+
+/** fetch_cursor.last_tx_timestamp for one network, or null (no row / no cursor). */
+async function loadCursorTimestamp(slug: string, network: string): Promise<string | null> {
+  const { data, error } = await getSupabase()
+    .from('fetch_cursor')
+    .select('last_tx_timestamp')
+    .eq('product_slug', slug)
+    .eq('network', network)
+    .maybeSingle()
+  if (error) throw new Error(`fetch_cursor read failed (${slug}/${network}): ${error.message}`)
+  return (data as { last_tx_timestamp?: string | null } | null)?.last_tx_timestamp ?? null
+}
+
+/** Every fetch_cursor row — the orphaned-cursor check's input (a few dozen rows). */
+async function loadFetchCursors(): Promise<FetchCursorRow[]> {
+  const { data, error } = await getSupabase()
+    .from('fetch_cursor')
+    .select('product_slug, network, backfill_complete, last_tx_timestamp')
+  if (error) throw new Error(`fetch_cursor read failed: ${error.message}`)
+  return (data ?? []) as FetchCursorRow[]
 }
 
 /** True only when a chunked backfill is actively mid-flight for this network. Used
@@ -1552,6 +1654,118 @@ async function backfillRwaFund(product: Product, nowTs: number, budget: RunBudge
   console.log(`[${product.slug}] backfill pass complete`)
 }
 
+// ── Nightly preflight: chain coverage + orphaned cursors ────────────────────
+// Runs once per nightly, before any fund. Read-only against rwa.xyz (one /v4/assets
+// request per fund, reused by classifyRwaMultiChain) plus a bounded probe of any
+// MATERIAL unconfigured network (three requests, only when one appears). Never
+// throws — every failure is a warning; the nightly's job is the classification.
+
+/** Coverage: log every non-covered token, annotate + probe + propose the material ones. */
+async function runCoverageCheck(nowTs: number): Promise<Map<string, RwaAssetToken[]>> {
+  const tokensBySlug = new Map<string, RwaAssetToken[]>()
+  const todayDay = toDayStr(nowTs)
+  console.log('\n=== preflight: chain coverage (rwa.xyz /v4/assets vs products.ts) ===')
+  for (const product of ACTIVE_PRODUCTS) {
+    if (product.rwaAssetId == null) {
+      console.log(`  ${product.slug}: no rwaAssetId — coverage not checkable`)
+      continue
+    }
+    let tokens: RwaAssetToken[]
+    try {
+      tokens = await fetchAssetTokens(product.rwaAssetId)
+    } catch (err) {
+      console.warn(`  ${product.slug}: /v4/assets read failed (${(err as Error).message}) — coverage not checked this run`)
+      continue
+    }
+    tokensBySlug.set(product.slug, tokens)
+    const findings = evaluateCoverage(product, tokens, {
+      multichainSlugs: RWA_MULTICHAIN_SLUGS,
+      backfillAllowed: BACKFILL_ALLOWED,
+      navUsd: product.navUsd ?? null,
+    })
+    const covered = findings.filter((f) => f.state === 'covered').length
+    console.log(`  ${product.slug}: ${tokens.length} rwa.xyz token(s), ${covered} covered`)
+    for (const f of findings) {
+      if (f.state === 'covered') continue
+      const line = describeFinding(f)
+      if (f.state === 'unconfigured_network' || f.state === 'unconfigured_address') {
+        console.warn(`  ⚠️  COVERAGE ${line}`)
+        if (f.material) emitGitHubWarning(`untracked ${f.state === 'unconfigured_network' ? 'network' : 'token'}: ${product.slug}:${f.networkSlug}`, line)
+      } else {
+        console.log(`  coverage ${line}`)
+      }
+      if (f.state === 'unconfigured_network' && f.material) {
+        try {
+          const probe = await probeNetwork(product.rwaAssetId, f.networkId, {
+            earliestTxDate: fetchEarliestTxDate,
+            countWindow: countTransfersWindowPagesRWA,
+            latestTransactions: fetchLatestTransactionsRWA,
+          }, todayDay)
+          console.log(renderProposal(f, probe).split('\n').map((l) => `  ${l}`).join('\n'))
+        } catch (err) {
+          console.warn(`  probe of ${product.slug}:${f.networkSlug} failed (${(err as Error).message}) — proposal without history:`)
+          console.log(renderProposal(f, null).split('\n').map((l) => `  ${l}`).join('\n'))
+        }
+      }
+    }
+  }
+  return tokensBySlug
+}
+
+/**
+ * Cursor-age tripwire, check 1 (src/lib/rwa/cursor-age.ts): completed cursors that
+ * no code path will ever advance — a fund outside RWA_MULTICHAIN_SLUGS, or a network
+ * no longer configured. Fires every night until cutover; that is the point. Each is
+ * persisted as a 'cursor_stale' row (state columns 0 = not measured here).
+ */
+async function runOrphanedCursorCheck(nowTs: number): Promise<void> {
+  console.log('\n=== preflight: orphaned cursors ===')
+  let rows: FetchCursorRow[]
+  try {
+    rows = await loadFetchCursors()
+  } catch (err) {
+    console.warn(`  fetch_cursor read failed (${(err as Error).message}) — orphan check skipped`)
+    return
+  }
+  const configuredNetworks = new Map<string, Set<string>>()
+  for (const product of ACTIVE_PRODUCTS) {
+    configuredNetworks.set(product.slug, new Set(observableNetworks(product).map((n) => n.networkSlug)))
+  }
+  const orphans = findOrphanedCursors(rows, { nowMs: nowTs * 1000, multichainSlugs: RWA_MULTICHAIN_SLUGS, configuredNetworks })
+  if (orphans.length === 0) {
+    console.log(`  ${rows.length} cursor row(s), none orphaned ✓`)
+    return
+  }
+  for (const o of orphans) {
+    const tag = `${o.productSlug}:${o.network}`
+    const age = o.ageDays == null ? 'no cursor' : `${o.ageDays.toFixed(1)} days old`
+    console.warn(`  ⚠️  TRIPWIRE ${tag}: ORPHANED CURSOR (${age}) — ${o.reason}`)
+    emitGitHubWarning(`orphaned cursor: ${tag}`, `${age} — ${o.reason}`)
+    const row: ReconciliationHistoryRow = {
+      product_slug: o.productSlug,
+      network: o.network,
+      context: 'classify',
+      outcome: 'cursor_stale',
+      reference: null,
+      state_tokens: 0,
+      holder_count: 0,
+      negative_count: 0,
+      chain_supply_tokens: null,
+      assets_supply_tokens: null,
+      deviation_pct: o.ageDays,
+      assets_delta_pct: null,
+      notional_usd: null,
+      threshold_pct: 0,
+      strict: false,
+    }
+    try {
+      await insertReconciliationHistory(row)
+    } catch (err) {
+      console.warn(`  reconciliation_history write failed (${(err as Error).message}) — cursor_stale row not persisted`)
+    }
+  }
+}
+
 // ── Main ───────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -1632,6 +1846,14 @@ async function main() {
     console.log(`scope: CLASSIFY_ONLY=${onlySlugs.join(',')}`)
   }
 
+  // Nightly-only preflight (backfill / re-anchor returned above): coverage + orphans.
+  // Skipped under CLASSIFY_ONLY so a scoped validation run stays scoped.
+  let tokensBySlug = new Map<string, RwaAssetToken[]>()
+  if (!onlySlugs || onlySlugs.length === 0) {
+    tokensBySlug = await runCoverageCheck(nowTs)
+    await runOrphanedCursorCheck(nowTs)
+  }
+
   for (const product of ACTIVE_PRODUCTS) {
     if (onlySlugs && onlySlugs.length > 0 && !onlySlugs.includes(product.slug)) continue
 
@@ -1639,7 +1861,7 @@ async function main() {
     // manages its own per-network progress keys and writes, so handle and move on.
     // Funds not in the set stay on the existing Etherscan single-chain path below.
     if (RWA_MULTICHAIN_SLUGS.has(product.slug)) {
-      await classifyRwaMultiChain(product, progress, nowTs)
+      await classifyRwaMultiChain(product, progress, nowTs, tokensBySlug.get(product.slug) ?? null)
       continue
     }
 
