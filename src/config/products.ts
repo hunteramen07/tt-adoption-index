@@ -1,3 +1,5 @@
+import { evaluateNavStaleness } from '@/src/lib/rwa/nav-check'
+
 export type ProductSlug = 'buidl' | 'ousg' | 'usdy' | 'benji' | 'ustb' | 'usyc'
 
 /**
@@ -37,7 +39,7 @@ export interface ProductToken {
   decimals?: number
 }
 
-export interface Product {
+interface ProductBase {
   slug: ProductSlug
   name: string
   symbol: string
@@ -60,35 +62,27 @@ export interface Product {
    *   USDY  — yield note, started at $1, price accrues
    *   USTB  — short-duration fund, started at $1, price accrues
    *   USYC  — yield coin, started at $1, price accrues
-   * A missing navUsd on an active fund throws at import time (see getNavUsd and
-   * the validation pass at the bottom of this file) — read via getNavUsd(product),
-   * never `product.navUsd ?? 1`, so a missing NAV fails loudly instead of
-   * silently defaulting to $1.
+   * REQUIRED on the type for every active fund (ActiveProduct) since 2026-09-21 —
+   * a placeholder flipped to active: true fails at TYPECHECK, not at the next build.
+   * The import-time pass at the bottom of this file remains as the runtime guard.
+   * Read via getNavUsd(product), never `product.navUsd ?? 1`, so a missing NAV
+   * fails loudly instead of silently defaulting to $1.
    *
-   * Optional only on the type so inactive placeholders (e.g. BENJI) can omit it.
+   * ⚠ HARDCODED — sourced from the issuer / rwa.xyz on the date recorded in navAsOf.
+   * Update navUsd and navAsOf together when refreshing. Until a live price source
+   * is wired (v1.1), refresh monthly: the nightly warns past 45 days (nav_stale) and
+   * when rwa.xyz's implied price drifts more than 2% from this figure (nav_drift) —
+   * see src/lib/rwa/nav-check.ts.
    *
-   * ⚠ HARDCODED — sourced from Etherscan on the date recorded in navAsOf.
-   * Update navUsd and navAsOf together when refreshing. Until a live price
-   * source is wired (v1.1), refresh monthly.
+   * `navAsOf`: ISO date (YYYY-MM-DD) when navUsd was last verified. Required on
+   * active funds too, INCLUDING stable-$1 ones — "stable" is a claim that also
+   * needs a verification date.
    */
-  navUsd?: number
-  /**
-   * ISO date (YYYY-MM-DD) when navUsd was last verified.
-   * Displayed in debug output and later the UI so staleness is visible.
-   * Omit for stable-$1 products whose navUsd does not drift.
-   */
-  navAsOf?: string
   /**
    * When true, use aggregate transfer flow stats only instead of
    * per-wallet behavioral classification (see METHODOLOGY.md).
    */
   aggregateFlowsOnly?: boolean
-  /**
-   * When false, this product is excluded from all data fetches.
-   * Use ACTIVE_PRODUCTS (instead of PRODUCTS) to iterate only enabled ones.
-   * Defaults to true when omitted.
-   */
-  active?: boolean
   /**
    * rwa.xyz asset_id for this fund. Reference data for the multi-chain rewrite
    * (Stage 1+); not used by the current pipeline.
@@ -108,6 +102,29 @@ export interface Product {
    */
   tokenizationPlatform?: string
 }
+
+/**
+ * A fund the pipeline runs. NAV and its verification date are REQUIRED here, so the
+ * type itself refuses an active fund without them.
+ */
+export interface ActiveProduct extends ProductBase {
+  /** Defaults to true when omitted. Use ACTIVE_PRODUCTS to iterate enabled funds. */
+  active?: true
+  navUsd: number
+  navAsOf: string
+}
+
+/**
+ * A placeholder excluded from every data fetch (e.g. BENJI until its contract is
+ * verified). May carry a NAV for reference but is never read for one.
+ */
+export interface InactiveProduct extends ProductBase {
+  active: false
+  navUsd?: number
+  navAsOf?: string
+}
+
+export type Product = ActiveProduct | InactiveProduct
 
 // IMPORTANT: All contract addresses are sourced from training data and MUST
 // be manually verified before production use. Check each address at the
@@ -134,6 +151,7 @@ export const PRODUCTS: Product[] = [
     contractAddress: '0x7712c34205737192402172409a8F7ccef8aA2AEC',
     decimals: 6,
     navUsd: 1.00, // stable $1, re-verified 2026-07-22
+    navAsOf: '2026-07-22', // the date the staleness tripwire ages — "stable" needs re-verifying too
     rwaAssetId: 2331,
     // Distributed class only. BUIDL-I (0x6a9da2...c89041, ~6 holders) is the
     // excluded restricted institutional class — deliberately NOT listed here.
@@ -289,7 +307,7 @@ export const PRODUCTS_BY_SLUG = Object.fromEntries(
 ) as Record<ProductSlug, Product>
 
 /** Products available for data fetching — excludes entries with active: false. */
-export const ACTIVE_PRODUCTS = PRODUCTS.filter((p) => p.active !== false)
+export const ACTIVE_PRODUCTS: ActiveProduct[] = PRODUCTS.filter((p): p is ActiveProduct => p.active !== false)
 
 /**
  * Returns a product's NAV per token in USD. THROWS if navUsd is missing — every
@@ -312,4 +330,15 @@ export function getNavUsd(product: Product): number {
 // of 500-ing a live page at request time. Inactive placeholders are exempt.
 for (const product of ACTIVE_PRODUCTS) {
   getNavUsd(product)
+}
+
+// Import-time staleness warning (never a throw — a stale NAV is a data-quality
+// signal, not a broken build). The nightly persists the same finding as a
+// reconciliation_history row (outcome 'nav_stale'); see src/lib/rwa/nav-check.ts.
+{
+  const now = Date.now()
+  for (const product of ACTIVE_PRODUCTS) {
+    const r = evaluateNavStaleness(product, now)
+    if (r.stale) console.warn(`[products] ${product.slug}: NAV STALE — ${r.reason}; refresh navUsd + navAsOf`)
+  }
 }

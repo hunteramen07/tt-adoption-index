@@ -78,7 +78,7 @@ config({ path: '.env.local' })
 import fs from 'fs'
 import path from 'path'
 import { ACTIVE_PRODUCTS, getNavUsd } from '@/src/config/products'
-import type { Product } from '@/src/config/products'
+import type { Product, ActiveProduct } from '@/src/config/products'
 import { isCaseSensitive } from '@/src/config/networks'
 import { fetchTransferHistory, ETHERSCAN_MAX_PAGE_SIZE } from '@/src/lib/etherscan/transfers'
 import { etherscanGet } from '@/src/lib/etherscan/client'
@@ -117,6 +117,7 @@ import { fetchTransfersWindowRWA, fetchEarliestTxDate, countTransfersWindowPages
 import { evaluateCursorAge, findOrphanedCursors } from '@/src/lib/rwa/cursor-age'
 import type { FetchCursorRow } from '@/src/lib/rwa/cursor-age'
 import { evaluateCoverage, probeNetwork, renderProposal, describeFinding, emitGitHubWarning } from '@/src/lib/rwa/chain-coverage'
+import { evaluateNavStaleness, evaluateNavDrift, NAV_STALE_DAYS, NAV_DRIFT_PCT } from '@/src/lib/rwa/nav-check'
 import { fetchChainSupply, toTokens } from '@/src/lib/rwa/chain-supply'
 import type { ChainSupply } from '@/src/lib/rwa/chain-supply'
 import {
@@ -277,6 +278,32 @@ async function upsertAggregateStats(stats: ReturnType<typeof computeAggregateSta
   asOfBlock: number
 }, network: string, marketValueUsd: number | null = null): Promise<void> {
   const supabase = getSupabase()
+  if (marketValueUsd == null) {
+    // Omit-on-null keeps the previous market_value_usd, which is right for a transient
+    // fetch failure but invisible when it repeats. Say what is being carried and how
+    // old the row it came from is. (There is no per-column timestamp: classified_at is
+    // the row's last write, so after REPEATED omissions the value is older than shown.)
+    try {
+      const { data } = await supabase
+        .from('holder_aggregate_stats')
+        .select('market_value_usd, classified_at')
+        .eq('product_slug', stats.productSlug)
+        .eq('network', network)
+        .maybeSingle()
+      const prev = data as { market_value_usd?: number | null; classified_at?: string } | null
+      if (prev?.market_value_usd != null && prev.classified_at) {
+        const ageDays = (Date.now() - Date.parse(prev.classified_at)) / 86_400_000
+        console.warn(
+          `  ⚠️  ${stats.productSlug}:${network}: market_value_usd NOT refreshed — carrying $${Math.round(prev.market_value_usd).toLocaleString()} ` +
+          `from the row written ${prev.classified_at} (${ageDays.toFixed(1)} days ago, or older if this has repeated)`
+        )
+      } else {
+        console.warn(`  ⚠️  ${stats.productSlug}:${network}: market_value_usd NOT refreshed and no previous value exists — fund dormancy will be null`)
+      }
+    } catch (err) {
+      console.warn(`  ${stats.productSlug}:${network}: could not read the previous market_value_usd (${(err as Error).message})`)
+    }
+  }
   const { error } = await supabase.from('holder_aggregate_stats').upsert({
     product_slug: stats.productSlug,
     network,
@@ -1678,6 +1705,63 @@ async function backfillRwaFund(product: Product, nowTs: number, budget: RunBudge
 // MATERIAL unconfigured network (three requests, only when one appears). Never
 // throws — every failure is a warning; the nightly's job is the classification.
 
+/**
+ * NAV tripwires (src/lib/rwa/nav-check.ts): staleness (navAsOf older than
+ * NAV_STALE_DAYS) and drift (rwa.xyz-implied price vs the hardcoded NAV beyond
+ * NAV_DRIFT_PCT; skipped where rwa.xyz reports no dollar value — BUIDL, USTB). Logged
+ * always; persisted (network 'all') only when tripped. Never throws.
+ */
+async function runNavChecks(product: ActiveProduct, tokens: RwaAssetToken[] | null, nowTs: number): Promise<void> {
+  const persist = async (outcome: 'nav_stale' | 'nav_drift', deviation: number | null, threshold: number, supplyTokens: number | null) => {
+    const row: ReconciliationHistoryRow = {
+      product_slug: product.slug,
+      network: 'all',
+      context: 'classify',
+      outcome,
+      reference: null,
+      state_tokens: 0,
+      holder_count: 0,
+      negative_count: 0,
+      chain_supply_tokens: null,
+      assets_supply_tokens: supplyTokens,
+      deviation_pct: deviation,
+      assets_delta_pct: null,
+      notional_usd: null,
+      threshold_pct: threshold,
+      strict: false,
+    }
+    try {
+      await insertReconciliationHistory(row)
+    } catch (err) {
+      console.warn(`  reconciliation_history write failed (${(err as Error).message}) — ${outcome} row not persisted`)
+    }
+  }
+  try {
+    const st = evaluateNavStaleness(product, nowTs * 1000)
+    if (st.stale) {
+      console.warn(`  ⚠️  TRIPWIRE ${product.slug}: NAV STALE — ${st.reason}`)
+      emitGitHubWarning(`NAV stale: ${product.slug}`, st.reason)
+      await persist('nav_stale', st.ageDays, NAV_STALE_DAYS, null)
+    } else {
+      console.log(`  nav ${product.slug}: ${st.reason} ✓`)
+    }
+    if (tokens) {
+      const dr = evaluateNavDrift(product, tokens)
+      if (dr.outcome === 'drift') {
+        console.warn(`  ⚠️  TRIPWIRE ${product.slug}: NAV DRIFT — ${dr.reason}`)
+        emitGitHubWarning(`NAV drift: ${product.slug}`, dr.reason)
+        await persist('nav_drift', dr.driftPct, NAV_DRIFT_PCT, dr.supplyTokens)
+      } else if (dr.outcome === 'ok') {
+        console.log(`  nav ${product.slug}: ${dr.reason} ✓`)
+      } else {
+        console.log(`  nav ${product.slug}: drift check skipped — ${dr.reason}`)
+      }
+    }
+  } catch (err) {
+    console.warn(`  nav ${product.slug}: check failed (${(err as Error).message}) — skipped`)
+  }
+}
+
 /** Coverage: log every non-covered token, annotate + probe + propose the material ones. */
 async function runCoverageCheck(nowTs: number): Promise<Map<string, RwaAssetToken[]>> {
   const tokensBySlug = new Map<string, RwaAssetToken[]>()
@@ -1693,9 +1777,11 @@ async function runCoverageCheck(nowTs: number): Promise<Map<string, RwaAssetToke
       tokens = await fetchAssetTokens(product.rwaAssetId)
     } catch (err) {
       console.warn(`  ${product.slug}: /v4/assets read failed (${(err as Error).message}) — coverage not checked this run`)
+      await runNavChecks(product, null, nowTs)
       continue
     }
     tokensBySlug.set(product.slug, tokens)
+    await runNavChecks(product, tokens, nowTs)
     const findings = evaluateCoverage(product, tokens, {
       multichainSlugs: RWA_MULTICHAIN_SLUGS,
       backfillAllowed: BACKFILL_ALLOWED,
@@ -1850,7 +1936,7 @@ async function main() {
         if (!product) console.error(`[${slug}] not found in ACTIVE_PRODUCTS. Skipping.`)
         return product
       })
-      .filter((p): p is Product => p != null)
+      .filter((p): p is ActiveProduct => p != null)
     await runSequentialUntilBudget(products, budget, (product) => backfillRwaFund(product, nowTs, budget))
     console.log(`\n=== backfill done (${BACKFILL_PER_RUN_PAGES - budget.remaining}/${BACKFILL_PER_RUN_PAGES} pool pages spent) ===`)
     return

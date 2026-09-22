@@ -143,13 +143,16 @@ export function decideBackfillCompletion(r: ReconcileResult): { complete: boolea
 export const isReconcileStrict = (): boolean => process.env.RECONCILE_STRICT?.trim() === '1'
 
 /**
- * Every outcome the table records. Besides the supply tripwire's own, the cursor-age
- * tripwire (cursor-age.ts) files `cursor_stale` rows here — same table, same
- * append-only posture — with two columns overloaded and documented there:
- * deviation_pct = cursor age in DAYS, threshold_pct = the age threshold in DAYS.
+ * Every outcome the table records. Besides the supply tripwire's own, two sibling
+ * tripwires file rows here — same table, same append-only posture — with the
+ * deviation/threshold columns overloaded and documented at the source:
+ *   cursor-age.ts  'cursor_stale'  deviation_pct = cursor age in DAYS, threshold in DAYS
+ *   nav-check.ts   'nav_stale'     deviation_pct = NAV age in DAYS, threshold in DAYS;
+ *                  'nav_drift'     deviation_pct = implied-vs-config drift in %,
+ *                                  threshold in %; both with network 'all' (fund-level)
  * The column is free text by design, so a new outcome needs no migration.
  */
-export type HistoryOutcome = ReconcileOutcome | 'cursor_stale'
+export type HistoryOutcome = ReconcileOutcome | 'cursor_stale' | 'nav_stale' | 'nav_drift'
 
 /** One append-only observation. Column names match the migration exactly. */
 export interface ReconciliationHistoryRow {
