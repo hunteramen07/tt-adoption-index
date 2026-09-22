@@ -19,7 +19,7 @@
  *
  * CREATE TABLE holder_classifications (
  *   product_slug       text NOT NULL,
- *   network            text NOT NULL DEFAULT 'ethereum',
+ *   network            text NOT NULL,   -- no DEFAULT: every writer names its network (dropped 2026-09-21)
  *   address            text NOT NULL,
  *   behavior           text NOT NULL,   -- Accumulating | Distributing | Dormant | Active
  *   balance_raw        text NOT NULL,
@@ -34,7 +34,7 @@
  *
  * CREATE TABLE holder_aggregate_stats (
  *   product_slug             text NOT NULL,
- *   network                  text NOT NULL DEFAULT 'ethereum',
+ *   network                  text NOT NULL,   -- no DEFAULT (dropped 2026-09-21)
  *   holder_count             integer NOT NULL,
  *   behavior_accumulating    integer NOT NULL,
  *   behavior_distributing    integer NOT NULL,
@@ -51,7 +51,7 @@
  *
  * CREATE TABLE behavior_history (         -- append-only behavior log over time
  *   product_slug          text        NOT NULL,
- *   network               text        NOT NULL DEFAULT 'ethereum',
+ *   network               text        NOT NULL,   -- no DEFAULT (dropped 2026-09-21)
  *   dormancy_share_pct    numeric     NOT NULL,
  *   holder_count          integer     NOT NULL,
  *   behavior_accumulating integer     NOT NULL,

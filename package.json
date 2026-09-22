@@ -8,7 +8,6 @@
     "start": "next start",
     "lint": "eslint",
     "classify": "tsx --tsconfig tsconfig.json scripts/classify.ts",
-    "seed-aggregate-stats": "tsx --tsconfig tsconfig.json scripts/seed-aggregate-stats.ts",
     "backfill": "tsx --tsconfig tsconfig.json scripts/backfill.ts",
     "test:index": "tsx --tsconfig tsconfig.json --test src/lib/index/compute.test.ts",
     "test:backfill-budget": "tsx --tsconfig tsconfig.json --test src/lib/rwa/backfill-budget.test.ts",
