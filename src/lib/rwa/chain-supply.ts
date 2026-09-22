@@ -15,19 +15,25 @@
  *   • Solana  — getTokenSupply on the mint (solana-rpc.ts)
  *   • EVM     — totalSupply() via eth_call (evm-rpc.ts), summed over the network's
  *               configured contracts (USDY has two on Ethereum)
- *   • anything else — NO reference: returns null. The caller SKIPS the tripwire for
- *               that network (logged + persisted as skipped) rather than falling back
- *               to /v4/assets. A skip is honest; a fallback would silently reinstate
+ *   • XRPL    — the issuer's obligation in the product's symbol via gateway_balances
+ *               (xrpl-rpc.ts); the configured token address IS the issuer. Added
+ *               2026-09-21 so the tripwire is no longer blind on OUSG's largest chain.
+ *   • anything else (Stellar, Aptos, Noble, Sui, Mantra) — NO reference: returns
+ *               null. The caller SKIPS the tripwire for that network (logged +
+ *               persisted as skipped) rather than falling back to /v4/assets. A skip is honest; a fallback would silently reinstate
  *               the tautology on exactly the networks we cannot check.
  *
  * Decimals are asserted against config on every read, mirroring the guards in
  * fetchTransfersRWA and sumSupplyForNetwork: a wrong config value would mis-scale
- * the deviation by a power of ten, so it fails loudly instead.
+ * the deviation by a power of ten, so it fails loudly instead. XRPL is the exception:
+ * its amounts are decimal strings with no on-chain decimals field, so the configured
+ * value is applied by exact string arithmetic (see xrpl-rpc.ts).
  */
 
 import { SOLANA_NETWORK_ID } from '@/src/lib/rwa/solana-resolve'
 import { getTokenSupply } from '@/src/lib/rwa/solana-rpc'
 import { evmEndpoints, erc20TotalSupply, erc20Decimals } from '@/src/lib/rwa/evm-rpc'
+import { XRPL_NETWORK_ID, xrplIssuedSupply } from '@/src/lib/rwa/xrpl-rpc'
 
 export interface ChainSupply {
   /** Decimal-adjusted token count, summed over the network's configured contracts. */
@@ -35,7 +41,7 @@ export interface ChainSupply {
   /** Raw base units, exact. */
   supplyRaw: bigint
   /** Which read produced it — recorded with every persisted tripwire row. */
-  reference: 'solana:getTokenSupply' | 'evm:totalSupply'
+  reference: 'solana:getTokenSupply' | 'evm:totalSupply' | 'xrpl:gateway_balances'
 }
 
 /** Exact bigint→token conversion; Number(raw) alone loses precision past 2^53. */
@@ -48,12 +54,17 @@ export function toTokens(raw: bigint, decimals: number): number {
  * Read a network's on-chain supply, or null when the network has no reference
  * (see header). Throws on RPC failure or a decimals mismatch — the caller treats a
  * throw as "reference unavailable this run" and skips, it never substitutes.
+ *
+ * `symbol` is the product's ticker; only XRPL reads it (it selects the issuer's
+ * obligation). An XRPL network without it returns null rather than guessing which
+ * of the issuer's currencies is the fund.
  */
 export async function fetchChainSupply(
   networkId: number,
   addresses: string[],
   decimals: number,
-  context: string
+  context: string,
+  symbol?: string
 ): Promise<ChainSupply | null> {
   const assertDecimals = (address: string, onChain: number) => {
     if (onChain !== decimals) {
@@ -71,6 +82,14 @@ export async function fetchChainSupply(
       raw += BigInt(s.amount)
     }
     return { supplyTokens: toTokens(raw, decimals), supplyRaw: raw, reference: 'solana:getTokenSupply' }
+  }
+
+  if (networkId === XRPL_NETWORK_ID) {
+    if (!symbol) return null
+    // rwa.xyz's XRPL token address is the issuer account; a fund has one per network.
+    let raw = BigInt(0)
+    for (const issuer of addresses) raw += (await xrplIssuedSupply(issuer, symbol, decimals)).supplyRaw
+    return { supplyTokens: toTokens(raw, decimals), supplyRaw: raw, reference: 'xrpl:gateway_balances' }
   }
 
   const endpoints = evmEndpoints(networkId)

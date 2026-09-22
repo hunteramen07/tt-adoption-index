@@ -82,3 +82,4 @@ jobs:
           # resolver's 100-address getMultipleAccounts (publicnode 403s above ~10
           # addresses, drpc is paywalled). The run logs which list is in use at startup.
           SOLANA_RPC_URLS: ${{ secrets.SOLANA_RPC_URLS }}
+          XRPL_RPC_URLS: ${{ secrets.XRPL_RPC_URLS }}

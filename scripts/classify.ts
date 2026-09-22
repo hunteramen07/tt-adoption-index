@@ -550,7 +550,7 @@ async function readChainReference(
   net: { networkId: number; addresses: string[]; decimals: number; networkSlug: string }
 ): Promise<{ chain: ChainSupply | null; chainError: string | null }> {
   try {
-    const chain = await fetchChainSupply(net.networkId, net.addresses, net.decimals, `${product.slug}:${net.networkSlug}`)
+    const chain = await fetchChainSupply(net.networkId, net.addresses, net.decimals, `${product.slug}:${net.networkSlug}`, product.symbol)
     return { chain, chainError: null }
   } catch (err) {
     return { chain: null, chainError: (err as Error).message }
@@ -1212,7 +1212,7 @@ async function verifyBackfillCaughtUp(
   let chain: ChainSupply | null = null
   let chainError: string | null = null
   try {
-    chain = await fetchChainSupply(net.networkId, net.addresses, net.decimals, tag)
+    chain = await fetchChainSupply(net.networkId, net.addresses, net.decimals, tag, product.symbol)
   } catch (err) {
     chainError = (err as Error).message
   }
