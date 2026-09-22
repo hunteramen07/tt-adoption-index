@@ -87,6 +87,30 @@ describe('fitSpanToPages — proportional shrink to an exact count', () => {
   })
 })
 
+describe('sizeWindowByPreflight — exact record count threading', () => {
+  test('a countPages that reports records passes the OPENED window\'s count through', async () => {
+    const seenWindows: string[] = []
+    const r = await sizeWindowByPreflight({
+      frontierDay: '2025-01-01', todayDay: '2026-09-21', candidateSpanDays: 4, pageCap: 40,
+      countPages: async (gte, lt) => { seenWindows.push(`${gte}..${lt}`); return { records: 3676, pages: 4 } },
+    })
+    assert.equal(r.records, 3676)
+    assert.equal(r.pages, 4)
+    assert.deepEqual(seenWindows, ['2025-01-01..2025-01-05'])
+  })
+  test('a countPages that reports only pages leaves records null', async () => {
+    const r = await sizeWindowByPreflight({ frontierDay: '2025-01-01', todayDay: '2026-09-21', candidateSpanDays: 4, pageCap: 40, countPages: async () => 2 })
+    assert.equal(r.records, null)
+  })
+  test('after a shrink, records is the LAST probe\'s count — the window actually opened', async () => {
+    const counts = [{ records: 80_000, pages: 80 }, { records: 20_000, pages: 20 }]
+    const r = await sizeWindowByPreflight({ frontierDay: '2025-01-01', todayDay: '2026-09-21', candidateSpanDays: 8, pageCap: 40, countPages: async () => counts.shift()! })
+    assert.equal(r.records, 20_000)
+    assert.equal(r.pages, 20)
+    assert.equal(r.probes, 2)
+  })
+})
+
 describe('sizeWindowByPreflight — exact-count window sizing', () => {
   /** Fake count over a piecewise-constant pages/day history (the usdy:solana boundary:
    *  ~0.2 pg/day before 2024-09-25, ~1.6 pg/day after). */

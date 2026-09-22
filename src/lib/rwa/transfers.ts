@@ -22,6 +22,7 @@ import type { ERC20Transfer } from '@/src/lib/etherscan/types'
 import { fetchRwaJson } from '@/src/lib/rwa/http'
 import { resolveAndDedupSolana, SOLANA_NETWORK_ID } from '@/src/lib/rwa/solana-resolve'
 import type { EscalationFetch, ResolveOptions } from '@/src/lib/rwa/solana-resolve'
+import { appendDistinct } from '@/src/lib/rwa/record-key'
 import { makeSupabaseAtaOwnerStore } from '@/src/lib/rwa/ata-owner-store'
 import { issuerOf } from '@/src/config/networks'
 
@@ -295,6 +296,8 @@ export function makeEscalationFetch(
     // naming the escalated address arrived twice, every pairing group containing it
     // failed the 1:1 rule, and rung 5 had never resolved a single address (13 runs
     // stuck on the same window). The resolver dedups the union with the window too.
+    // Keyed on the full record identity, not the id: two distinct Solana records can
+    // share a dash id (design doc §A6) and both must survive for pairing.
     const seen = new Set<string>()
 
     const spend = async (filters: ReadonlyArray<Record<string, unknown>>, label: string) => {
@@ -309,11 +312,7 @@ export function makeEscalationFetch(
         if (pageCounter) pageCounter.pages++
         const page_: RwaTransfer[] = []
         collectResults(data.results, allowed, decimals, networkId, page_)
-        for (const t of page_) {
-          if (seen.has(t.id)) continue
-          seen.add(t.id)
-          out.push(t)
-        }
+        appendDistinct(out, page_, seen)
         console.log(`[solana-resolve] escalation ${label} page ${page}/${pageCount} (${out.length} distinct records)`)
         page++
         if (page <= pageCount && pagesLeft > 0) await sleep(THROTTLE_MS)
@@ -411,6 +410,11 @@ export async function fetchTransfersRWA(
 
   let page = 1
   let pageCount = 1 // updated from the first response
+  // Page-boundary dedup on the full record identity (record-key.ts): the id sort key
+  // is not unique on Solana, so a boundary reorder can repeat a row. A repeat is
+  // dropped AND reported — it is evidence, not noise.
+  const seen = new Set<string>()
+  let duplicatesDropped = 0
 
   while (page <= pageCount && page <= maxPages) {
     // Per-request timeout + transient-failure retry (shared helper).
@@ -419,12 +423,17 @@ export async function fetchTransfersRWA(
     )
     pageCount = data.pagination.pageCount
 
-    collectResults(data.results, allowed, decimals, networkId, out)
+    const pageOut: RwaTransfer[] = []
+    collectResults(data.results, allowed, decimals, networkId, pageOut)
+    duplicatesDropped += appendDistinct(out, pageOut, seen)
 
     console.log(`[rwa] fetched page ${page}/${pageCount} (${out.length} transfers so far)`)
 
     page++
     if (page <= pageCount && page <= maxPages) await sleep(THROTTLE_MS)
+  }
+  if (duplicatesDropped > 0) {
+    console.warn(`[rwa] ${duplicatesDropped} duplicate record(s) dropped across page boundaries (asset ${assetId}, network ${networkId}) — a reorder on the non-unique id sort; the skipped twin, if any, is NOT recoverable here`)
   }
 
   // Solana-only: resolve ATA→owner and dedup the dual-feed twins so everything
@@ -459,7 +468,7 @@ export async function fetchTransfersWindowRWA(
   gteDate: string,
   ltDate: string,
   options: { resolve?: ResolveOptions } = {}
-): Promise<{ transfers: RwaTransfer[]; pages: number }> {
+): Promise<{ transfers: RwaTransfer[]; pages: number; rawRecords: number; duplicatesDropped: number }> {
   const apiKey = process.env.RWA_API_KEY
   if (!apiKey) throw new Error('RWA_API_KEY environment variable is not set')
 
@@ -477,6 +486,13 @@ export async function fetchTransfersWindowRWA(
   let pageCount = 1
   let pagesFetched = 0
 
+  // rawRecords counts every row the pages returned BEFORE the token post-filter and
+  // before dedup — the figure the caller compares against the pre-flight's exact
+  // count (same filters, same sort) to detect a page-boundary skip.
+  let rawRecords = 0
+  const seen = new Set<string>()
+  let duplicatesDropped = 0
+
   while (page <= pageCount) {
     // id-sort, same as the unbounded pull: deterministic, non-overlapping
     // pagination. The date bounds narrow the set; order within is irrelevant
@@ -486,12 +502,18 @@ export async function fetchTransfersWindowRWA(
     )
     pageCount = data.pagination.pageCount
     pagesFetched++
+    rawRecords += data.results.length
 
-    collectResults(data.results, allowed, decimals, networkId, out)
+    const pageOut: RwaTransfer[] = []
+    collectResults(data.results, allowed, decimals, networkId, pageOut)
+    duplicatesDropped += appendDistinct(out, pageOut, seen)
 
     console.log(`[rwa] window [${gteDate},${ltDate}) page ${page}/${pageCount} (${out.length} transfers)`)
     page++
     if (page <= pageCount) await sleep(THROTTLE_MS)
+  }
+  if (duplicatesDropped > 0) {
+    console.warn(`[rwa] window [${gteDate},${ltDate}): ${duplicatesDropped} duplicate record(s) dropped across page boundaries — a reorder on the non-unique id sort`)
   }
 
   // Solana-only: resolve ATA→owner + dedup twins (see fetchTransfersRWA). Pages spent
@@ -501,7 +523,7 @@ export async function fetchTransfersWindowRWA(
   // ≤4 escalation pages go unbilled: the caller discards the window and this network's
   // run ends, so the pool only under-counts by that bounded amount for the run's other
   // networks. Accepted rather than restructured — see design doc §A4.)
-  if (networkId !== SOLANA_NETWORK_ID) return { transfers: out, pages: pagesFetched }
+  if (networkId !== SOLANA_NETWORK_ID) return { transfers: out, pages: pagesFetched, rawRecords, duplicatesDropped }
 
   const escalationPages = { pages: 0 }
   const transfers = await resolveAndDedupSolana(
@@ -509,7 +531,7 @@ export async function fetchTransfersWindowRWA(
     options.resolve ??
       defaultResolveOptions(assetId, networkId, decimals, tokenAddresses, apiKey, escalationPages)
   )
-  return { transfers, pages: pagesFetched + escalationPages.pages }
+  return { transfers, pages: pagesFetched + escalationPages.pages, rawRecords, duplicatesDropped }
 }
 
 /**

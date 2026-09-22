@@ -69,6 +69,7 @@
 import type { RwaTransfer } from '@/src/lib/rwa/transfers'
 import { getMultipleAccounts, getTransaction, ownerOfAccountInTransaction, rpcEndpoints } from '@/src/lib/rwa/solana-rpc'
 import { isAssociatedTokenAccountOf } from '@/src/lib/rwa/solana-ata'
+import { transferRecordKey } from '@/src/lib/rwa/record-key'
 
 /** rwa.xyz network_id for Solana — the only dual-feed chain. */
 export const SOLANA_NETWORK_ID = 2
@@ -434,10 +435,13 @@ export async function resolveAndDedupSolana(
   if (pending.length > 0 && opts.escalate) {
     const extra = await opts.escalate(pending)
     if (extra.length > 0) {
-      const seen = new Set(transfers.map((t) => t.id))
+      // Full record identity, not the id: a dash id can be shared by two distinct
+      // records (design doc §A6), and both are needed for pairing.
+      const seen = new Set(transfers.map(transferRecordKey))
       const fresh = extra.filter((t) => {
-        if (seen.has(t.id)) return false
-        seen.add(t.id)
+        const k = transferRecordKey(t)
+        if (seen.has(k)) return false
+        seen.add(k)
         return true
       })
       const wider = buildFeedPairingMap([...transfers, ...fresh])

@@ -25,6 +25,7 @@
     "test:xrpl-rpc": "tsx --tsconfig tsconfig.json --test src/lib/rwa/xrpl-rpc.test.ts",
     "test:cursor-age": "tsx --tsconfig tsconfig.json --test src/lib/rwa/cursor-age.test.ts",
     "test:chain-coverage": "tsx --tsconfig tsconfig.json --test src/lib/rwa/chain-coverage.test.ts",
+    "test:record-key": "tsx --tsconfig tsconfig.json --test src/lib/rwa/record-key.test.ts",
     "test:xrpl-normalize": "tsx --tsconfig tsconfig.json scripts/xrpl-normalize-parity.ts",
     "test:stellar-normalize": "tsx --tsconfig tsconfig.json scripts/stellar-normalize-parity.ts"
   },

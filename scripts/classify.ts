@@ -1477,8 +1477,7 @@ async function backfillRwaNetwork(
       todayDay,
       candidateSpanDays: spanDays,
       pageCap,
-      countPages: async (gte, lt) =>
-        (await countTransfersWindowPagesRWA(product.rwaAssetId!, net.networkId, gte, lt)).pages,
+      countPages: (gte, lt) => countTransfersWindowPagesRWA(product.rwaAssetId!, net.networkId, gte, lt),
     })
     pagesThisNetwork += preflight.probes
     budget.remaining -= preflight.probes
@@ -1535,9 +1534,28 @@ async function backfillRwaNetwork(
       }
       throw err // preserve 429-drains-pool / graceful-end semantics
     }
-    const { transfers, pages } = windowResult
+    const { transfers, pages, rawRecords, duplicatesDropped } = windowResult
     pagesThisNetwork += pages
     budget.remaining -= pages
+
+    // Page-boundary skip detection. The pre-flight counted this exact window (same
+    // filters, same sort) moments ago; the pages must return that many raw rows. A
+    // window that ends today is still growing, so only a CLOSED window is asserted.
+    // Duplicates are already removed by the fetch, so a reorder that repeated one row
+    // and skipped another shows up here as a shortfall. Treated as deterministic (the
+    // span is left alone and the window is retried next slot); if it persists, rwa.xyz's
+    // count and pages disagree with each other and the window needs a look, not a retry.
+    if (preflight.records != null && windowEnd < todayDay && rawRecords !== preflight.records) {
+      await saveBackfillSpanDays(product.slug, net.networkSlug, spanDays)
+      throw new Error(
+        `[rwa] window [${frontierDay}, ${windowEnd}) record-count mismatch: pre-flight counted ${preflight.records}, ` +
+        `pages returned ${rawRecords} (${duplicatesDropped} duplicate(s) dropped) — possible page-boundary skip on the ` +
+        `non-unique id sort; window discarded, cursor unmoved`
+      )
+    }
+    if (duplicatesDropped > 0) {
+      console.warn(`  ${tag}: ${duplicatesDropped} duplicate(s) dropped at page boundaries but the count matches — no skip`)
+    }
 
     // Dedup the inclusive-gte boundary day already processed last window, merge,
     // and checkpoint. Windows are disjoint [start,end), so this only ever removes

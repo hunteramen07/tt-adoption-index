@@ -112,8 +112,9 @@ export interface PreflightInput {
   candidateSpanDays: number
   /** Maximum pages the window may cost: min(TARGET, pool remaining). */
   pageCap: number
-  /** Exact page count of [gteDay, ltDay) — one perPage=1 request. */
-  countPages: (gteDay: string, ltDay: string) => Promise<number>
+  /** Exact page count of [gteDay, ltDay) — one perPage=1 request. May also return the
+   *  exact record count, which the caller asserts against what the fetch returns. */
+  countPages: (gteDay: string, ltDay: string) => Promise<number | { records: number; pages: number }>
   maxProbes?: number
 }
 
@@ -122,6 +123,8 @@ export interface PreflightResult {
   windowEnd: string
   /** Counted pages of the window that will be opened. */
   pages: number
+  /** Exact record count of that window when countPages reported one, else null. */
+  records: number | null
   /** Count requests spent — the caller charges these to the run pool. */
   probes: number
   /** True when the window is opened over the cap: MIN span or probes exhausted. */
@@ -147,12 +150,14 @@ export async function sizeWindowByPreflight(input: PreflightInput): Promise<Pref
     // Scale from the days the window actually covers (it may be truncated at today),
     // so the proportional shrink measures the density that was counted.
     const effectiveDays = Math.max(BACKFILL_MIN_SPAN_DAYS, daysBetween(input.frontierDay, windowEnd))
-    const pages = await input.countPages(input.frontierDay, windowEnd)
+    const counted = await input.countPages(input.frontierDay, windowEnd)
+    const pages = typeof counted === 'number' ? counted : counted.pages
+    const records = typeof counted === 'number' ? null : counted.records
     probes++
-    if (pages <= input.pageCap) return { spanDays: effectiveDays, windowEnd, pages, probes, overCap: false }
+    if (pages <= input.pageCap) return { spanDays: effectiveDays, windowEnd, pages, records, probes, overCap: false }
     const shrunk = fitSpanToPages(effectiveDays, pages, input.pageCap)
     if (shrunk === effectiveDays || effectiveDays <= BACKFILL_MIN_SPAN_DAYS || probes >= maxProbes) {
-      return { spanDays: effectiveDays, windowEnd, pages, probes, overCap: true }
+      return { spanDays: effectiveDays, windowEnd, pages, records, probes, overCap: true }
     }
     spanDays = shrunk
   }
