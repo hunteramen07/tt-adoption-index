@@ -1110,7 +1110,7 @@ const BACKFILL_ALLOWED: Record<string, readonly string[]> = {
   // RWA_MULTICHAIN_SLUGS). XRPL mints/burns carry the issuer address as counterparty —
   // handled by normalizeTransaction's slug-guarded coercion (transfers.ts).
   ousg: ['xrp-ledger', 'solana', 'polygon', 'ethereum'],
-  usdy: ['ethereum', 'arbitrum', 'mantle', 'plume', 'aptos', 'sei', 'stellar', 'solana'],
+  usdy: ['ethereum', 'arbitrum', 'mantle', 'plume', 'aptos', 'sei', 'stellar', 'solana', 'bnb-chain'],
 }
 
 /** Per-run request budget (pages) — a SINGLE shared pool drawn down across every

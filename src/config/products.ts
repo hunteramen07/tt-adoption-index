@@ -220,6 +220,13 @@ export const PRODUCTS: Product[] = [
       { networkId: 1, networkSlug: 'ethereum', address: '0x96f6ef951840721adbf46ac996b59e0235cb985c', behaviorallyObservable: true, decimals: 18 },
       { networkId: 1, networkSlug: 'ethereum', address: '0xe86845788d6e3e5c2393ade1a051ae617d974c09', behaviorallyObservable: true, decimals: 18 },
       { networkId: 2, networkSlug: 'solana', address: 'A1KLoBrKBde8Ty9qtNQUtq3C2ortoC3u7twggz7sEto6', behaviorallyObservable: true, decimals: 6 },
+      // BNB Chain — found by the chain-coverage check 2026-09-21 (~$52M, 109 holders,
+      // 1,943 records since 2026-07-01). Pre-enable check 2026-09-22: decimals() = 18
+      // on chain and on the feed; standard EVM zero-address mint/burn convention (91
+      // mints, 77 burns in the latest 400); evm:totalSupply reference exists (network
+      // 8 in evm-rpc.ts). Chain totalSupply 57.43M vs rwa.xyz 46.02M at enablement —
+      // the tripwire will report that gap.
+      { networkId: 8, networkSlug: 'bnb-chain', address: '0x608593d17a2decbbc4399e4185be4922f97ed32e', behaviorallyObservable: true, decimals: 18 },
       { networkId: 9, networkSlug: 'stellar', address: 'USDY-GAJMPX5NBOG6TQFPQGRABJEEB2YE7RFRLUKJDZAZGAD5GFX4J7TADAZ6-1', behaviorallyObservable: true, decimals: 7 },
       { networkId: 11, networkSlug: 'arbitrum', address: '0x35e050d3c0ec2d29d269a8ecea763a183bdf9a9d', behaviorallyObservable: true, decimals: 18 },
       // Noble — EXCLUDED: rwa.xyz returns zero data; zero-reporting would falsely
