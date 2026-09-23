@@ -93,7 +93,7 @@ import {
 import type { HolderClassification } from '@/src/lib/classify/types'
 import { getSupabase } from '@/src/lib/supabase/client'
 import { makeSupabaseDeps, runIncrementalFetchMerge } from '@/src/lib/rwa/incremental'
-import { mergeTransfers, computeNewCursor, dedupBoundary } from '@/src/lib/rwa/incremental'
+import { mergeTransfers, changedSubset, computeNewCursor, dedupBoundary } from '@/src/lib/rwa/incremental'
 import type { BalanceStateMap, IncrementalDeps, FetchCursor, IncrementalResult } from '@/src/lib/rwa/incremental'
 import type { MultiChainWriters } from '@/src/lib/rwa/multichain-write'
 import { selectWriteMode, writePerWalletResult, writeAggregateResult } from '@/src/lib/rwa/multichain-write'
@@ -711,7 +711,7 @@ async function classifyRwaNetworkIncremental(
   )
   console.log(
     `  fetched ${res.fetchedCount} (dedup-dropped ${res.dedupedBoundaryCount} boundary, ${res.newCount} new), ` +
-    `persisted ${res.merged.size} balance rows, cursor → ${res.newCursor?.lastTxTimestamp ?? '(unchanged)'}` +
+    `wrote ${res.changed.size} touched of ${res.merged.size} balance rows, cursor → ${res.newCursor?.lastTxTimestamp ?? '(unchanged)'}` +
     ` (+${res.newCursor?.boundaryIds.length ?? 0} boundary id(s))`
   )
 
@@ -761,7 +761,7 @@ async function classifyRwaNetworkAggregate(
   )
   console.log(
     `  fetched ${res.fetchedCount} (dedup-dropped ${res.dedupedBoundaryCount} boundary, ${res.newCount} new), ` +
-    `persisted ${res.merged.size} balance rows, cursor → ${res.newCursor?.lastTxTimestamp ?? '(unchanged)'}` +
+    `wrote ${res.changed.size} touched of ${res.merged.size} balance rows, cursor → ${res.newCursor?.lastTxTimestamp ?? '(unchanged)'}` +
     ` (+${res.newCursor?.boundaryIds.length ?? 0} boundary id(s))`
   )
 
@@ -1007,6 +1007,7 @@ async function reanchorRwaNetwork(
     productSlug: product.slug,
     network: net.networkSlug,
     merged: res.merged,
+    changed: res.changed, // ignored by the swap (REPLACE semantics); required by the payload type
     newCursor: res.newCursor,
   })
   console.log(
@@ -1588,7 +1589,8 @@ async function backfillRwaNetwork(
     // and checkpoint. Windows are disjoint [start,end), so this only ever removes
     // the cursor-day overlap on a resume.
     const newTransfers = dedupBoundary(transfers, cursor?.boundaryIds ?? null)
-    state = mergeTransfers(state, newTransfers, net.caseSensitive).merged
+    const merge = mergeTransfers(state, newTransfers, net.caseSensitive)
+    state = merge.merged
 
     let newCursor: FetchCursor
     if (newTransfers.length > 0) {
@@ -1621,9 +1623,13 @@ async function backfillRwaNetwork(
       newCursor = { lastTxTimestamp: `${target}T00:00:00.000Z`, boundaryIds: [] }
     }
 
-    // Persist balances + cursor ONLY (apply_incremental_merge). No classifications /
-    // aggregate / behavior writes — partial-state guard (state still incomplete).
-    await deps.writeBack({ productSlug: product.slug, network: net.networkSlug, merged: state, newCursor })
+    // Persist the rows this window touched + cursor ONLY (apply_incremental_merge,
+    // delta write — incremental.ts flag D; an empty window sends no rows and just
+    // moves the cursor). No classifications / aggregate / behavior writes —
+    // partial-state guard (state still incomplete).
+    const changed = changedSubset(state, merge.touched)
+    await deps.writeBack({ productSlug: product.slug, network: net.networkSlug, merged: state, changed, newCursor })
+    console.log(`  ${tag}: wrote ${changed.size} touched row(s) of ${state.size} in state`)
 
     cursor = newCursor
     frontierDay = cursor.lastTxTimestamp.slice(0, 10)

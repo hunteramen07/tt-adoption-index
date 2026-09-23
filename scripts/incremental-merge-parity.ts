@@ -119,13 +119,36 @@ function makeFakeDeps(visibleStream: RwaTransfer[], store: FakeStore): Increment
     },
     fetchAllTimeSince: async (sinceDate) => since(sinceDate),
     fetchWindow: async (sinceDate) => since(sinceDate),
-    // Simulates cursor-last persistence: merged map (already minus exited rows)
-    // becomes the new state; cursor advances only when newCursor is set.
+    // Simulates the DELTA write (incremental.ts flag D): only the touched subset is
+    // applied over the persisted state, exactly as the RPC's upsert would — and the
+    // result must equal the full merged map on every write. This is the parity
+    // assertion behind sending fewer rows: touched ⊕ untouched-persisted ≡ merged.
     writeBack: async (p) => {
-      store.state = p.merged
+      const next: BalanceStateMap = new Map()
+      for (const [a, s] of store.state) next.set(a, { balance: s.balance, firstReceipt: s.firstReceipt })
+      for (const [a, s] of p.changed) {
+        const prev = next.get(a)
+        // Mirror apply_incremental_merge: balance replaced, first_receipt = COALESCE(existing, incoming).
+        next.set(a, { balance: s.balance, firstReceipt: prev?.firstReceipt ?? s.firstReceipt })
+      }
+      deltaWrites.push({ ok: mapsIdentical(next, p.merged), sent: p.changed.size, full: p.merged.size })
+      store.state = next
       if (p.newCursor) store.cursor = p.newCursor
     },
   }
+}
+
+/** Every fake write-back: did delta-over-persisted reproduce the full merged map? */
+const deltaWrites: Array<{ ok: boolean; sent: number; full: number }> = []
+
+/** Full-map identity: same keys, same balance, same firstReceipt (zero rows included). */
+function mapsIdentical(a: BalanceStateMap, b: BalanceStateMap): boolean {
+  if (a.size !== b.size) return false
+  for (const [addr, s] of a) {
+    const t = b.get(addr)
+    if (!t || t.balance !== s.balance || t.firstReceipt !== s.firstReceipt) return false
+  }
+  return true
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -455,6 +478,16 @@ async function main() {
   await testReentrantExact()
   testCaseSensitiveAddresses()
   testDecimalsConversion()
+
+  // (8) delta-write parity — every fake write above applied only the touched subset
+  //     over the persisted state; each must have reproduced the full merged map.
+  console.log('\n[8] delta write: touched-subset ⊕ untouched-persisted ≡ full merged map')
+  expect('at least one delta write was exercised', deltaWrites.length > 0)
+  expect(`every delta write reproduced the full map (${deltaWrites.length} writes)`, deltaWrites.every((w) => w.ok),
+    deltaWrites.map((w, i) => `#${i} ok=${w.ok} sent=${w.sent}/${w.full}`).join(', '))
+  expect('at least one delta write sent FEWER rows than the full map (the point of the change)',
+    deltaWrites.some((w) => w.sent < w.full), deltaWrites.map((w) => `${w.sent}/${w.full}`).join(', '))
+  expect('a write that reaches balance 0 keeps the row in the delta (retained zero)', deltaWrites.every((w) => w.ok))
 
   console.log('\n=== result ===')
   if (failures > 0) {

@@ -15,7 +15,8 @@
  *   5. merges new transactions into the balance map (exits retained as 0 rows)
  *   6. pulls the bounded trailing-90d window (independent of the cursor)
  *   7. classifies via the proven FromState cores (positive balances only)
- *   8. writes back balances + cursor ATOMICALLY (apply_incremental_merge RPC)
+ *   8. writes back the rows this run TOUCHED + cursor ATOMICALLY
+ *      (apply_incremental_merge RPC) — a delta write, see (D)
  *
  * (A) numeric↔bigint storage-boundary conversion is lossless — see
  *     parseNumericToBigInt / serializeBalance.
@@ -24,6 +25,18 @@
  * (C) the former firstReceipt re-entrant divergence is RESOLVED: exited holders
  *     are retained as balance-0 rows with firstReceipt preserved, so netNew stays
  *     byte-identical to a full replay — see mergeTransfers.
+ * (D) the write-back sends ONLY the addresses this run's transfers touched. Until
+ *     2026-09-22 it sent the full merged map: every persisted row was rewritten
+ *     (new updated_at ⇒ a non-HOT update + index maintenance) on every window, so
+ *     the write cost scaled with STATE size, not activity — usdy:solana's 34,184
+ *     rows took ~2.8s against the anon role's 3s statement_timeout and began
+ *     rolling back. Safe because the merge is additive and this run is the only
+ *     writer: an untouched address's merged entry is a byte-identical copy of the
+ *     loaded row (same balance, same firstReceipt), so upserting it again changes
+ *     nothing; a touched address — including one that reaches 0 this run — is in
+ *     the delta with its merged balance and its min-so-far firstReceipt. Hence
+ *     touched-subset ⊕ untouched-persisted ≡ full merged map, which the parity
+ *     gate asserts on every fake write (scripts/incremental-merge-parity.ts).
  */
 
 import type { RwaTransfer } from './transfers'
@@ -168,10 +181,14 @@ export function mergeTransfers(
   state: BalanceStateMap,
   transfers: RwaTransfer[],
   caseSensitive = false
-): { merged: BalanceStateMap } {
+): { merged: BalanceStateMap; touched: Set<string> } {
   // Clone so the input map is not mutated (callers may reuse the loaded state).
   const merged: BalanceStateMap = new Map()
   for (const [addr, s] of state) merged.set(addr, { balance: s.balance, firstReceipt: s.firstReceipt })
+
+  // Every non-sentinel address a transfer names — the rows whose merged entry can
+  // differ from the loaded state, and therefore the only rows worth writing (D).
+  const touched = new Set<string>()
 
   for (const t of transfers) {
     const from = normalizeAddress(t.from, caseSensitive)
@@ -184,17 +201,29 @@ export function mergeTransfers(
       s.balance += value
       s.firstReceipt = s.firstReceipt === null ? ts : Math.min(s.firstReceipt, ts)
       merged.set(to, s)
+      touched.add(to)
     }
     if (from !== ZERO_ADDRESS) {
       const s = merged.get(from) ?? { balance: BigInt(0), firstReceipt: null }
       s.balance -= value
       merged.set(from, s)
+      touched.add(from)
     }
   }
 
   // Rows are retained at their true net balance (0 on a full exit). No deletion:
   // the zero row carries firstReceipt forward for any future re-entry.
-  return { merged }
+  return { merged, touched }
+}
+
+/** The merged entries of the touched addresses — what the write-back sends (D). */
+export function changedSubset(merged: BalanceStateMap, touched: ReadonlySet<string>): BalanceStateMap {
+  const changed: BalanceStateMap = new Map()
+  for (const addr of touched) {
+    const s = merged.get(addr)
+    if (s) changed.set(addr, s)
+  }
+  return changed
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -264,7 +293,12 @@ export function computeNewCursor(
 export interface WriteBackPayload {
   productSlug: string
   network: string
+  /** The full merged map — what the re-anchor swap REPLACES the stored rows with,
+   *  and what the parity gate checks the delta against. */
   merged: BalanceStateMap
+  /** The touched-address subset of `merged` — what writeBack upserts (D). The
+   *  re-anchor swap ignores it. */
+  changed: BalanceStateMap
   newCursor: FetchCursor | null
   classifications?: Map<string, HolderClassification>
   aggregateStats?: ReturnType<typeof computeAggregateStatsFromState>
@@ -311,6 +345,8 @@ export interface IncrementalResult {
   newCount: number
   dedupedBoundaryCount: number
   merged: BalanceStateMap
+  /** Touched-address subset of `merged` — the rows the write-back sent (D). */
+  changed: BalanceStateMap
   /** Positive-balance subset of `merged` — the exact holder set classified. */
   positive: BalanceStateMap
   /** The bounded trailing-window transfers fed to the engine cores. */
@@ -343,7 +379,9 @@ export async function runIncrementalFetchMerge(
   const newCursor = computeNewCursor(newTransfers, cursor)
 
   // 5. Merge into the balance map. Exited holders are retained as balance-0 rows.
-  const { merged } = mergeTransfers(state, newTransfers, caseSensitive)
+  //    `changed` is the touched-address subset — the delta the write-back sends (D).
+  const { merged, touched } = mergeTransfers(state, newTransfers, caseSensitive)
+  const changed = changedSubset(merged, touched)
 
   // Classification consumes only the positive-balance subset (matches
   // computeBalances, which drops ≤ 0); the zero rows exist solely to preserve
@@ -368,8 +406,9 @@ export async function runIncrementalFetchMerge(
     aggregateStats = computeAggregateStatsFromState(positive, windowTransfers, nowTs, caseSensitive)
   }
 
-  // 8b. Persist balances + cursor atomically (see WriteBackPayload). The full
-  // merged map (incl. retained zero rows) is written so firstReceipt is durable.
+  // 8b. Persist the touched rows + cursor atomically (see WriteBackPayload). A
+  // touched row that reached 0 is in the delta, so retained zeros stay durable and
+  // firstReceipt travels with every row written.
   // Skipped for re-anchor: the candidate is returned unpersisted, and the caller
   // swaps it in via the gated apply_reanchor_swap only if it passes the gate.
   if (!params.skipWriteBack) {
@@ -377,6 +416,7 @@ export async function runIncrementalFetchMerge(
       productSlug,
       network,
       merged,
+      changed,
       newCursor,
       classifications,
       aggregateStats,
@@ -390,6 +430,7 @@ export async function runIncrementalFetchMerge(
     newCount: newTransfers.length,
     dedupedBoundaryCount: fetched.length - newTransfers.length,
     merged,
+    changed,
     positive,
     windowTransfers,
     newCursor,
@@ -492,14 +533,15 @@ export async function makeSupabaseDeps(
 
     async writeBack(payload) {
       const supabase = getSupabase()
-      const { productSlug, network, merged, newCursor } = payload
+      const { productSlug, network, changed, newCursor } = payload
 
       // Single atomic RPC: balances + cursor commit or roll back together
       // (apply_incremental_merge, one PL/pgSQL transaction). Balances serialized
       // as strings (flag A, write side); exited holders are retained as balance-0
       // rows by the upsert, never deleted. Sent as one call — batching across
-      // multiple calls would break the all-or-nothing guarantee.
-      const balances = Array.from(merged.entries()).map(([address, s]) => ({
+      // multiple calls would break the all-or-nothing guarantee. ONLY the touched
+      // rows are sent (D): the RPC's upsert is unchanged, it simply sees fewer rows.
+      const balances = Array.from(changed.entries()).map(([address, s]) => ({
         address,
         balance: serializeBalance(s.balance),
         first_receipt: s.firstReceipt === null ? null : unixToIso(s.firstReceipt),
