@@ -56,7 +56,7 @@ export interface ProductSnapshot {
   snapshotDate: string       // YYYY-MM-DD
   product: string            // product slug
   aum: number                // USD (supply × current hardcoded NAV)
-  holderCount: number        // distinct addresses with positive balance
+  holderCount: number        // distinct addresses above the residue floor (networks.ts)
   top5Share: number          // fraction 0–1 (top-5 holder supply / total supply)
   dormancyShare: number      // fraction 0–1 (supply with no outbound in trailing 90d)
   transferVolume30d: number  // USD, non-mint/burn transfers in trailing 30d

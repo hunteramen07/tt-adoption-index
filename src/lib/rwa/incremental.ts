@@ -47,6 +47,7 @@ import {
   normalizeAddress,
   WINDOW_SECONDS,
 } from '@/src/lib/classify/engine'
+import { ZERO_FLOOR } from '@/src/lib/classify/residue'
 import type { HolderClassification } from '@/src/lib/classify/types'
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
@@ -330,6 +331,12 @@ export interface IncrementalParams {
    *  Stellar). When false (default, EVM/hex), holder addresses are lowercased to
    *  unify mixed-case. Must match the casing loadState/writeBack persist with. */
   caseSensitive?: boolean
+  /** The network's residue floor in raw units (residueFloorRaw in networks.ts). A
+   *  balance at or below it is not a holder: it gets no classification row and is
+   *  excluded from every count the engine cores produce. Balance state, `merged`,
+   *  `changed` and `positive` are unaffected. Defaults to ZERO_FLOOR (holder iff
+   *  balance > 0). */
+  floorRaw?: bigint
   /** When true, compute the candidate state but do NOT call deps.writeBack. Used
    *  by the re-anchor path, which persists via a separate gated atomic swap
    *  (apply_reanchor_swap) only after a supply-reconciliation check. Everything
@@ -364,6 +371,7 @@ export async function runIncrementalFetchMerge(
   const nowTs = params.nowTs ?? Math.floor(Date.now() / 1000)
   const windowSeconds = params.windowSeconds ?? WINDOW_SECONDS
   const caseSensitive = params.caseSensitive ?? false
+  const floorRaw = params.floorRaw ?? ZERO_FLOOR
 
   // 1–2. Cursor + persisted state.
   const cursor = await deps.loadCursor(productSlug, network)
@@ -395,15 +403,16 @@ export async function runIncrementalFetchMerge(
   const windowStartIso = unixToIso(nowTs - windowSeconds)
   const windowTransfers = await deps.fetchWindow(windowStartIso)
 
-  // 7. Classify via the proven FromState cores (positive-balance holders only).
+  // 7. Classify via the proven FromState cores (positive-balance holders only; the
+  //    cores drop residue at or below floorRaw from rows and counts).
   let classifications: Map<string, HolderClassification> | undefined
   let aggregateStats: ReturnType<typeof computeAggregateStatsFromState> | undefined
   if (mode === 'per-wallet') {
     const balanceMap = new Map<string, bigint>()
     for (const [addr, s] of positive) balanceMap.set(addr, s.balance)
-    classifications = classifyHoldersFromState(balanceMap, windowTransfers, nowTs, caseSensitive)
+    classifications = classifyHoldersFromState(balanceMap, windowTransfers, nowTs, caseSensitive, floorRaw)
   } else {
-    aggregateStats = computeAggregateStatsFromState(positive, windowTransfers, nowTs, caseSensitive)
+    aggregateStats = computeAggregateStatsFromState(positive, windowTransfers, nowTs, caseSensitive, floorRaw)
   }
 
   // 8b. Persist the touched rows + cursor atomically (see WriteBackPayload). A

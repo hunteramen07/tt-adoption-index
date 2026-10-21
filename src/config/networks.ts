@@ -60,3 +60,51 @@ export const issuerOf = (networkId: number, tokenAddress: string): string | null
 
 /** True for networks with issuer semantics (see ISSUER_OF_TOKEN_ADDRESS). */
 export const isIssuerLedger = (networkId: number): boolean => networkId in ISSUER_OF_TOKEN_ADDRESS
+
+/**
+ * Residue floor — the balance at or below which a wallet is NOT counted as a holder.
+ *
+ * rwa.xyz serves amounts as decimal floats, so replaying them into raw units strands
+ * phantom positions: float64 reconstruction on 18-decimal tokens leaves sub-1e-12
+ * token balances in wallets that fully redeemed, and XRPL (and Stellar) amounts are
+ * float32-rounded, which leaves one redeemed OUSG wallet on XRPL holding < 0.02
+ * tokens (scripts/xrpl-normalize-parity.ts pins it). None of these are holders, and
+ * counting them inflates holder_count (usdy-aggregate-multichain-design.md §4).
+ *
+ * The floor is a power of ten in WHOLE TOKENS so one rule applies across chains
+ * regardless of decimals: a wallet is a holder iff balance > 10^exponent tokens.
+ *   • default −9 — 1e-9 tokens. Below one raw unit on every ≤ 8-decimal token (so
+ *     the count there is exactly the positive-balance count, as before) and three
+ *     orders of magnitude above the float64 residue on 18-decimal tokens.
+ *   • XRPL (46) −1 — 0.1 tokens, above the float32 residue. OUSG is ~$116/token,
+ *     so 0.1 tokens is ~$12: still far below any real position.
+ *
+ * It is a COUNTING rule only. Balance state, Σ-balance supply sums and the
+ * reconciliation tripwire are untouched: residue nets to ~0 and the Σ identity must
+ * include it. Keyed by rwa.xyz network_id; absent ⇒ the default.
+ */
+export const DEFAULT_RESIDUE_EXPONENT = -9
+const RESIDUE_EXPONENT_BY_NETWORK: Record<number, number> = {
+  46: -1, // xrp-ledger — float32-rounded amounts
+}
+
+/** The residue exponent for a network: holder iff balance > 10^exponent tokens. */
+export const residueExponent = (networkId: number): number =>
+  RESIDUE_EXPONENT_BY_NETWORK[networkId] ?? DEFAULT_RESIDUE_EXPONENT
+
+/** Ethereum's rwa.xyz network_id — the Etherscan-fed paths are Ethereum-only. */
+export const ETHEREUM_NETWORK_ID = 1
+
+/**
+ * The residue floor in RAW units for a token with `decimals` on `networkId`:
+ * 10^(decimals + exponent), or 0 when that is below one raw unit (holder iff
+ * balance > 0 — the historical rule). A holder's raw balance is strictly ABOVE this
+ * value; countHolders (src/lib/classify/residue.ts) applies it.
+ */
+export const residueFloorRaw = (networkId: number, decimals: number): bigint => {
+  if (!Number.isInteger(decimals) || decimals < 0) {
+    throw new Error(`residueFloorRaw: invalid decimals ${decimals} for network ${networkId}`)
+  }
+  const e = decimals + residueExponent(networkId)
+  return e < 0 ? BigInt(0) : BigInt(10) ** BigInt(e)
+}

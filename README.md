@@ -32,7 +32,7 @@ Beyond the index, the dashboard classifies every holder wallet over a trailing 9
 ## Architecture
 
 ```
-Etherscan + Dune (query 7696914)
+Etherscan + Dune (query 7696914, persisted nightly to Supabase `aum_history`)
         │
         ▼
 classify pipeline (local, npm run classify)

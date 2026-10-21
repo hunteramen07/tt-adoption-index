@@ -3,7 +3,8 @@
  *
  * For each calendar month-end from the earliest available on-chain data
  * through last month, computes:
- *   - Per-product snapshots (from cached transfer histories + Dune AUM series)
+ *   - Per-product snapshots (from cached transfer histories + the PERSISTED Dune
+ *     AUM series in Supabase aum_history — never live Dune; see aumStore.ts)
  *   - Factor inputs (from cross-product aggregates and 3-month deltas)
  *   - Index readings (composite + per-factor sub-scores)
  *
@@ -19,8 +20,12 @@
  */
 
 import { ACTIVE_PRODUCTS, getNavUsd } from '@/src/config/products'
+import { residueFloorRaw, ETHEREUM_NETWORK_ID } from '@/src/config/networks'
+import { countHolders } from '@/src/lib/classify/residue'
 import { diskCacheReadStale } from '@/src/lib/cache/disk'
-import { duneGetLatestResults } from '@/src/lib/dune/client'
+import { loadAumHistory } from '@/src/lib/dune/aumStore'
+import { coverageThroughFromExecution, forwardFill, groupRowsByProduct, lookupAum } from '@/src/lib/dune/aumSeries'
+import type { SupplyPoint } from '@/src/lib/dune/aumSeries'
 import { computeBalances } from '@/src/lib/etherscan/balances'
 import type { ERC20Transfer } from '@/src/lib/etherscan/types'
 import { computeIndexReading } from './compute'
@@ -29,89 +34,45 @@ import { writeIndexReading } from './reading'
 import type { FactorInputs, ProductSnapshot } from './types'
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
-const DUNE_SUPPLY_QUERY_ID = 7696914
 const DAYS_90 = 90 * 24 * 3600
 const DAYS_30 = 30 * 24 * 3600
 
-// ── AUM history from Dune ─────────────────────────────────────────────────
-
-interface DailySupplyPoint {
-  day: string // YYYY-MM-DD
-  aum: number // USD
-}
+// ── AUM history (persisted Dune series) ──────────────────────────────────
 
 interface ProductAumSeries {
   slug: string
-  series: DailySupplyPoint[] // sorted ascending by day
+  series: SupplyPoint[] // forward-filled daily, sorted ascending
 }
 
-async function loadAumSeries(): Promise<Map<string, ProductAumSeries>> {
-  const data = await duneGetLatestResults(DUNE_SUPPLY_QUERY_ID)
-  if (!data?.result) throw new Error('Dune query returned no results')
+interface AumSeriesSet {
+  bySlug: Map<string, ProductAumSeries>
+  /** Last complete UTC day the persisted execution covers; lookupAum throws past it. */
+  coverageThrough: string
+  executionId: string
+  executedAt: string
+}
 
-  const addrToProduct = new Map(
-    ACTIVE_PRODUCTS.map((p) => [p.contractAddress.toLowerCase(), p])
-  )
-
-  const grouped = new Map<string, Array<{ day: string; supplyRaw: string }>>()
-  for (const row of data.result.rows) {
-    const product = addrToProduct.get(row.contract_address.toLowerCase())
-    if (!product) continue
-    const slug = product.slug
-    if (!grouped.has(slug)) grouped.set(slug, [])
-    grouped.get(slug)!.push({
-      day: row.day.slice(0, 10),
-      supplyRaw: String(row.supply_raw),
-    })
+/**
+ * Read the persisted series from Supabase aum_history. Throws when the table is
+ * empty — the fix is `npm run refresh-dune -- --full`, not a live Dune read.
+ */
+async function loadAumSeries(): Promise<AumSeriesSet> {
+  const persisted = await loadAumHistory()
+  if (persisted.rows.length === 0 || !persisted.executedAt || !persisted.executionId) {
+    throw new Error('aum_history is empty — run `npm run refresh-dune -- --full` once (the backfill never reads Dune live)')
   }
-
-  const result = new Map<string, ProductAumSeries>()
+  const grouped = groupRowsByProduct(persisted.rows, ACTIVE_PRODUCTS)
+  const bySlug = new Map<string, ProductAumSeries>()
   for (const [slug, points] of grouped) {
     const product = ACTIVE_PRODUCTS.find((p) => p.slug === slug)!
-    const navUsd = getNavUsd(product)
-    points.sort((a, b) => a.day.localeCompare(b.day))
-    const series = forwardFill(points, product.decimals, navUsd)
-    result.set(slug, { slug, series })
+    bySlug.set(slug, { slug, series: forwardFill(points, product.decimals, getNavUsd(product)) })
   }
-  return result
-}
-
-function forwardFill(
-  sorted: Array<{ day: string; supplyRaw: string }>,
-  decimals: number,
-  navUsd: number
-): DailySupplyPoint[] {
-  if (sorted.length === 0) return []
-
-  const byDay = new Map(sorted.map((p) => [p.day, p.supplyRaw]))
-  const result: DailySupplyPoint[] = []
-
-  let cur = new Date(sorted[0].day + 'T00:00:00Z')
-  const end = new Date(sorted.at(-1)!.day + 'T00:00:00Z')
-  let lastRaw = sorted[0].supplyRaw
-
-  while (cur <= end) {
-    const day = cur.toISOString().slice(0, 10)
-    const raw = byDay.get(day)
-    if (raw !== undefined) lastRaw = raw
-    result.push({ day, aum: rawToAum(lastRaw, decimals, navUsd) })
-    cur = new Date(cur.getTime() + 86_400_000)
+  return {
+    bySlug,
+    coverageThrough: coverageThroughFromExecution(persisted.executedAt),
+    executionId: persisted.executionId,
+    executedAt: persisted.executedAt,
   }
-  return result
-}
-
-function rawToAum(supplyRaw: string, decimals: number, navUsd: number): number {
-  return (parseFloat(supplyRaw) / 10 ** decimals) * navUsd
-}
-
-/** Find the AUM at or before a given YYYY-MM-DD date (binary search). */
-function lookupAum(series: DailySupplyPoint[], date: string): number | null {
-  let result: number | null = null
-  for (const point of series) {
-    if (point.day <= date) result = point.aum
-    else break
-  }
-  return result
 }
 
 // ── Transfer history from disk cache ─────────────────────────────────────
@@ -145,7 +106,9 @@ function computeProductMetrics(
   const upTo = transfers.filter((t) => parseInt(t.timeStamp) <= monthEndTs)
 
   const balances = computeBalances(upTo)
-  const holderCount = balances.size
+  // Holder count applies the Ethereum residue floor (networks.ts); concentration and
+  // dormancy below stay supply-weighted over the full positive set.
+  const holderCount = countHolders(balances.values(), residueFloorRaw(ETHEREUM_NETWORK_ID, decimals))
 
   // Top-5 concentration
   const sorted = [...balances.entries()].sort((a, b) => (b[1] > a[1] ? 1 : b[1] < a[1] ? -1 : 0))
@@ -232,10 +195,12 @@ export async function runBackfill(options: BackfillOptions = {}): Promise<void> 
   console.log(`NAV caveat: using hardcoded current NAVs for all historical months.`)
   console.log(`OUSG accrued from ~$100→$115 since Jan 2023; early AUM ~15% overstated.\n`)
 
-  // 1. Load AUM series from Dune
-  console.log('Loading Dune AUM history…')
-  const aumSeries = await loadAumSeries()
+  // 1. Load the persisted AUM series (Supabase aum_history; never live Dune)
+  console.log('Loading persisted Dune AUM history (aum_history)…')
+  const aum_ = await loadAumSeries()
+  const aumSeries = aum_.bySlug
   console.log(`  got series for: ${[...aumSeries.keys()].join(', ')}`)
+  console.log(`  execution ${aum_.executionId} ended ${aum_.executedAt} → covers through ${aum_.coverageThrough}`)
 
   // 2. Load transfer histories from disk cache
   console.log('Loading transfer histories from disk cache…')
@@ -294,7 +259,7 @@ export async function runBackfill(options: BackfillOptions = {}): Promise<void> 
     const snapshots: ProductSnapshot[] = []
     let totalAum = 0
     let totalHolders = 0
-    let top5Shares: number[] = []
+    const top5Shares: number[] = []
     let dormancyWeightedSum = 0
     let dormancyAumTotal = 0
     let totalVolume30d = 0
@@ -305,8 +270,10 @@ export async function runBackfill(options: BackfillOptions = {}): Promise<void> 
       const transfers = transfersBySlug.get(product.slug) ?? []
       const navUsd = getNavUsd(product)
 
-      // AUM from Dune (may be null for very early dates before product launched)
-      const aum = series ? (lookupAum(series.series, date) ?? 0) : 0
+      // AUM from the persisted series: null before the product launched (→ 0);
+      // THROWS if the month-end lies past the execution's coverage — no silent
+      // forward-fill from a stale execution (src/lib/dune/aumSeries.ts).
+      const aum = series ? (lookupAum(series.series, date, aum_.coverageThrough, product.slug) ?? 0) : 0
 
       const metrics = computeProductMetrics(
         product.slug, transfers, ts, aum, navUsd, product.decimals

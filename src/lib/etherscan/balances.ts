@@ -1,4 +1,6 @@
 import type { ERC20Transfer, EnrichedHolder } from './types'
+import { residueFloorRaw, ETHEREUM_NETWORK_ID } from '@/src/config/networks'
+import { countHolders } from '@/src/lib/classify/residue'
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
@@ -43,7 +45,8 @@ export interface DerivedHolderStats {
  * tokenholdercount / tokenholderlist endpoints.
  *
  * Accuracy note: matches Etherscan's holder list for fully on-chain products.
- * Products that use off-chain bookkeeping may differ.
+ * Products that use off-chain bookkeeping may differ. holderCount applies the
+ * Ethereum residue floor (networks.ts); topHolders is the raw positive set.
  */
 export function deriveHolderStats(
   transfers: ERC20Transfer[],
@@ -53,9 +56,9 @@ export function deriveHolderStats(
   topN = 10
 ): DerivedHolderStats {
   const balances = computeBalances(transfers)
-  const holderCount = balances.size
+  const holderCount = countHolders(balances.values(), residueFloorRaw(ETHEREUM_NETWORK_ID, decimals))
 
-  if (holderCount === 0) return { holderCount: 0, topHolders: [] }
+  if (balances.size === 0) return { holderCount: 0, topHolders: [] }
 
   const sorted = Array.from(balances.entries()).sort((a, b) =>
     a[1] < b[1] ? 1 : a[1] > b[1] ? -1 : 0

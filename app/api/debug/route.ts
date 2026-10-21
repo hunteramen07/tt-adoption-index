@@ -7,6 +7,7 @@ import { fetchTransferHistory } from '@/src/lib/etherscan/transfers'
 import { fetchNameTags } from '@/src/lib/etherscan/nameTags'
 import { diskCacheClearAll } from '@/src/lib/cache/disk'
 import { fetchAumHistory } from '@/src/lib/dune/supplyHistory'
+import { residueFloorRaw, ETHEREUM_NETWORK_ID } from '@/src/config/networks'
 import {
   classifyHolders,
   computeBehavioralMix,
@@ -145,8 +146,9 @@ export async function GET(request: Request) {
     try {
       const td = await fetchTransferHistory(p, { maxPages: 3 })
       const nowTs = Math.floor(Date.now() / 1000)
+      const floorRaw = residueFloorRaw(ETHEREUM_NETWORK_ID, p.decimals)
       if (p.aggregateFlowsOnly) {
-        const agg = computeAggregateStats(td.transfers, nowTs)
+        const agg = computeAggregateStats(td.transfers, nowTs, floorRaw)
         behavioralMix[p.slug] = {
           holderCount: agg.holderCount,
           mix: agg.mix,
@@ -154,7 +156,7 @@ export async function GET(request: Request) {
           fromCache: td.fromCache,
         }
       } else {
-        const classifications = classifyHolders(td.transfers, nowTs)
+        const classifications = classifyHolders(td.transfers, nowTs, floorRaw)
         behavioralMix[p.slug] = {
           holderCount: classifications.size,
           mix: computeBehavioralMix(classifications),
@@ -192,7 +194,7 @@ export async function GET(request: Request) {
         }
       : null,
     nameTags,
-    // Per-product AUM history from Dune query 7696914
+    // Per-product AUM history from Dune query 7696914, read from Supabase aum_history
     // latest: most recent supply → AUM conversion
     // recentSeries: last 14 days (forward-filled, no gaps)
     aumHistory: aumHistory

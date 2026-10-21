@@ -18,7 +18,9 @@
  *     cache at all — so pass --refresh to pull every active fund's history through
  *     fetchTransferHistory first (incremental from the cached lastBlock; a full pull
  *     on a cold cache). Without it, a stale cache silently truncates recent months.
- *   • The Dune supply/AUM series (DUNE_API_KEY; refreshed nightly by refresh-dune.yml).
+ *   • The PERSISTED Dune supply/AUM series in Supabase aum_history (written nightly
+ *     by refresh-dune.yml / scripts/refresh-dune.ts). Never read from Dune live. A
+ *     month-end past the persisted execution's coverage THROWS (no forward-fill).
  *   • ETHERSCAN_API_KEY (with --refresh), NEXT_PUBLIC_SUPABASE_URL and a key.
  *
  * After the backfill a table of raw factor values is printed to stdout.

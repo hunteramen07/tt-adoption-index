@@ -79,7 +79,7 @@ import fs from 'fs'
 import path from 'path'
 import { ACTIVE_PRODUCTS, getNavUsd } from '@/src/config/products'
 import type { Product, ActiveProduct } from '@/src/config/products'
-import { isCaseSensitive } from '@/src/config/networks'
+import { isCaseSensitive, residueFloorRaw, ETHEREUM_NETWORK_ID } from '@/src/config/networks'
 import { fetchTransferHistory, ETHERSCAN_MAX_PAGE_SIZE } from '@/src/lib/etherscan/transfers'
 import { etherscanGet } from '@/src/lib/etherscan/client'
 import { diskCacheRead, diskCacheWrite } from '@/src/lib/cache/disk'
@@ -91,6 +91,7 @@ import {
   computeAggregateStatsFromState,
 } from '@/src/lib/classify/engine'
 import type { HolderClassification } from '@/src/lib/classify/types'
+import { countHolders } from '@/src/lib/classify/residue'
 import { getSupabase } from '@/src/lib/supabase/client'
 import { makeSupabaseDeps, runIncrementalFetchMerge } from '@/src/lib/rwa/incremental'
 import { mergeTransfers, changedSubset, computeNewCursor, dedupBoundary } from '@/src/lib/rwa/incremental'
@@ -375,8 +376,9 @@ async function classifyAndWritePerWallet(
   nowTs: number
 ): Promise<void> {
   console.log(`  classifying holders…`)
-  const classifications = classifyHolders(transfers, nowTs)
-  const aggStats = computeAggregateStats(transfers, nowTs)
+  const floorRaw = residueFloorRaw(ETHEREUM_NETWORK_ID, product.decimals)
+  const classifications = classifyHolders(transfers, nowTs, floorRaw)
+  const aggStats = computeAggregateStats(transfers, nowTs, floorRaw)
   await writePerWalletResult(realWriters, product, classifications, aggStats, network, asOfBlock)
 }
 
@@ -448,6 +450,7 @@ async function reconcileState(
   productSlug: string,
   networkSlug: string,
   decimals: number,
+  floorRaw: bigint,
   positive: BalanceStateMap,
   merged: BalanceStateMap,
   chain: ChainSupply | null,
@@ -465,7 +468,7 @@ async function reconcileState(
 
   const r = evaluateReconciliation({
     stateTokens: positiveTokens,
-    holderCount: positive.size,
+    holderCount: countHolders(positive.values(), floorRaw),
     negativeCount: negatives.length,
     chain,
     chainError,
@@ -545,7 +548,7 @@ async function reconcileState(
     outcome: r.outcome,
     reference: chain?.reference ?? null,
     state_tokens: positiveTokens,
-    holder_count: positive.size,
+    holder_count: countHolders(positive.values(), floorRaw),
     negative_count: negatives.length,
     chain_supply_tokens: chain?.supplyTokens ?? null,
     assets_supply_tokens: assetsSupplyTokens,
@@ -646,7 +649,7 @@ async function computeMarketValueAndReconcile(
   // (RECONCILE_STRICT=1 opts into fail-fast for this network — see reconcileState).
   const { chain, chainError } = await readChainReference(product, net)
   await reconcileState(
-    product.slug, net.networkSlug, net.decimals, res.positive, res.merged,
+    product.slug, net.networkSlug, net.decimals, residueFloorRaw(net.networkId, net.decimals), res.positive, res.merged,
     chain, chainError, supplyTokens, nav, 'classify'
   )
 
@@ -678,13 +681,13 @@ interface NetworkRunSummary {
   cursorTimestamp: string | null
 }
 
-function summarizeRun(res: IncrementalResult, decimals: number): NetworkRunSummary {
+function summarizeRun(res: IncrementalResult, decimals: number, floorRaw: bigint): NetworkRunSummary {
   let positiveRaw = BigInt(0)
   for (const st of res.positive.values()) positiveRaw += st.balance
   let negativeCount = 0
   for (const st of res.merged.values()) if (st.balance < BigInt(0)) negativeCount++
   return {
-    holderCount: res.positive.size,
+    holderCount: countHolders(res.positive.values(), floorRaw),
     stateTokens: toTokens(positiveRaw, decimals),
     negativeCount,
     cursorTimestamp: res.newCursor?.lastTxTimestamp ?? null,
@@ -706,7 +709,7 @@ async function classifyRwaNetworkIncremental(
   })
 
   const res = await runIncrementalFetchMerge(
-    { productSlug: product.slug, network: net.networkSlug, mode: 'per-wallet', nowTs, caseSensitive: net.caseSensitive },
+    { productSlug: product.slug, network: net.networkSlug, mode: 'per-wallet', nowTs, caseSensitive: net.caseSensitive, floorRaw: residueFloorRaw(net.networkId, net.decimals) },
     deps
   )
   console.log(
@@ -721,9 +724,9 @@ async function classifyRwaNetworkIncremental(
 
   // Both outputs derive from the same merged state + window the orchestrator used.
   const classifications = res.classifications!
-  const aggStats = computeAggregateStatsFromState(res.positive, res.windowTransfers, nowTs, net.caseSensitive)
+  const aggStats = computeAggregateStatsFromState(res.positive, res.windowTransfers, nowTs, net.caseSensitive, residueFloorRaw(net.networkId, net.decimals))
   await writePerWalletResult(realWriters, product, classifications, aggStats, net.networkSlug, 0, marketValueUsd)
-  return summarizeRun(res, net.decimals)
+  return summarizeRun(res, net.decimals, residueFloorRaw(net.networkId, net.decimals))
 }
 
 /**
@@ -756,7 +759,7 @@ async function classifyRwaNetworkAggregate(
   })
 
   const res = await runIncrementalFetchMerge(
-    { productSlug: product.slug, network: net.networkSlug, mode: 'aggregate', nowTs, caseSensitive: net.caseSensitive },
+    { productSlug: product.slug, network: net.networkSlug, mode: 'aggregate', nowTs, caseSensitive: net.caseSensitive, floorRaw: residueFloorRaw(net.networkId, net.decimals) },
     deps
   )
   console.log(
@@ -772,7 +775,7 @@ async function classifyRwaNetworkAggregate(
   // undefined here by design. writeAggregateResult does the two writes only — no
   // per-wallet rows, no name tags — see src/lib/rwa/multichain-write.ts.
   await writeAggregateResult(realWriters, product, res.aggregateStats!, net.networkSlug, marketValueUsd)
-  return summarizeRun(res, net.decimals)
+  return summarizeRun(res, net.decimals, residueFloorRaw(net.networkId, net.decimals))
 }
 
 /**
@@ -978,6 +981,7 @@ async function reanchorRwaNetwork(
       mode: 'per-wallet',
       nowTs,
       caseSensitive: net.caseSensitive,
+      floorRaw: residueFloorRaw(net.networkId, net.decimals),
       skipWriteBack: true,
     },
     reanchorDeps
@@ -1019,7 +1023,7 @@ async function reanchorRwaNetwork(
   // same /v4/assets supply used to gate.
   const marketValueUsd = aggSupply * nav
   const classifications = res.classifications!
-  const aggStats = computeAggregateStatsFromState(res.positive, res.windowTransfers, nowTs, net.caseSensitive)
+  const aggStats = computeAggregateStatsFromState(res.positive, res.windowTransfers, nowTs, net.caseSensitive, residueFloorRaw(net.networkId, net.decimals))
   await writePerWalletResult(realWriters, product, classifications, aggStats, net.networkSlug, 0, marketValueUsd, false)
 
   // Tripwire on the freshly-swapped state, against ON-CHAIN supply (the gate above
@@ -1029,7 +1033,7 @@ async function reanchorRwaNetwork(
   // not a swap failure. Persisted with context 'reanchor'.
   const { chain, chainError } = await readChainReference(product, net)
   await reconcileState(
-    product.slug, net.networkSlug, net.decimals, res.positive, res.merged,
+    product.slug, net.networkSlug, net.decimals, residueFloorRaw(net.networkId, net.decimals), res.positive, res.merged,
     chain, chainError, aggSupply, nav, 'reanchor'
   )
 }
@@ -1298,13 +1302,14 @@ async function verifyBackfillCaughtUp(
   state: BalanceStateMap,
   tag: string
 ): Promise<boolean> {
+  const floorRaw = residueFloorRaw(net.networkId, net.decimals)
   let sumRaw = BigInt(0)
   let positiveRaw = BigInt(0)
-  let holderCount = 0
+  let holderCount = 0 // above the residue floor; positiveRaw still sums every positive balance
   let negativeCount = 0
   for (const h of state.values()) {
     sumRaw += h.balance
-    if (h.balance > BigInt(0)) { positiveRaw += h.balance; holderCount++ }
+    if (h.balance > BigInt(0)) { positiveRaw += h.balance; if (h.balance > floorRaw) holderCount++ }
     else if (h.balance < BigInt(0)) negativeCount++
   }
   const sumAll = toTokens(sumRaw, net.decimals)
@@ -1990,7 +1995,7 @@ async function main() {
     if (product.aggregateFlowsOnly) {
       // USDY — aggregate stats only
       console.log(`  computing aggregate stats…`)
-      const stats = computeAggregateStats(transfers, nowTs)
+      const stats = computeAggregateStats(transfers, nowTs, residueFloorRaw(ETHEREUM_NETWORK_ID, product.decimals))
       console.log(
         `  holders=${stats.holderCount}  dormancyShare=${stats.dormancySharePct.toFixed(1)}%  ` +
         `netNew=${stats.netNewWallets90d}  exited=${stats.exitedWallets90d}  ` +

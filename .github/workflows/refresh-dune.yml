@@ -1,17 +1,30 @@
 name: Nightly Dune Refresh
 
-# Triggers a fresh execution of the supply/AUM Dune query (7696914) so the
-# homepage "total AUM over time" chart stays current. The site fetches Dune
-# results live (1h cache), but the underlying query only recomputes when
-# executed — and the free tier has no auto-refresh, so we trigger it here.
+# Executes the supply/AUM Dune query (7696914) and persists only the RECENT rows
+# (latest persisted day − 7, re-read for late corrections) into Supabase
+# `aum_history` via scripts/refresh-dune.ts. The homepage and the monthly index
+# reading read aum_history ONLY — never live Dune — so Dune's per-cycle datapoint
+# quota is spent once a night on ~120 datapoints instead of on every page view.
+# (The live reads exhausted the quota on 2026-09-24: 26 straight failures here,
+# the AUM chart dark, and the 2026-10-01 monthly reading never written.)
+#
+# First run after the table is created needs `full: true` (one-time load of the
+# whole result set, ~12,200 datapoints). The script refuses an incremental run
+# against an empty table, and stops on any Dune error without writing.
 #
 # Independent of the classify pipeline (market data vs. behavioral data).
-# Isolated so a Dune API hiccup doesn't look like a classify failure.
+# Runs at 06:30 UTC, an hour before the 07:30 monthly reading on the 1st, so the
+# month-end's execution is persisted before the backfill reads it.
 
 on:
   schedule:
     - cron: '30 6 * * *'
   workflow_dispatch:
+    inputs:
+      full:
+        description: 'One-time FULL load of the whole result set (~12,200 datapoints)'
+        type: boolean
+        default: false
 
 concurrency:
   group: refresh-dune
@@ -20,23 +33,24 @@ concurrency:
 jobs:
   refresh-dune:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 30
 
     steps:
-      - name: Trigger Dune query execution
-        run: |
-          echo "Triggering execution of Dune query 7696914..."
-          RESPONSE=$(curl -s -X POST \
-            "https://api.dune.com/api/v1/query/7696914/execute" \
-            -H "X-Dune-API-Key: ${{ secrets.DUNE_API_KEY }}" \
-            -H "Content-Type: application/json" \
-            -d '{}')
-          echo "Response: $RESPONSE"
+      - name: Check out repository
+        uses: actions/checkout@v6
 
-          EXECUTION_ID=$(echo "$RESPONSE" | grep -o '"execution_id":"[^"]*"' | cut -d'"' -f4)
-          if [ -z "$EXECUTION_ID" ]; then
-            echo "ERROR: No execution_id returned. Dune API call failed."
-            echo "Check DUNE_API_KEY and plan permissions."
-            exit 1
-          fi
-          echo "Execution triggered: $EXECUTION_ID"
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Execute the Dune query and persist recent rows into aum_history
+        run: npm run refresh-dune -- ${{ inputs.full == true && '--full' || '' }}
+        env:
+          DUNE_API_KEY: ${{ secrets.DUNE_API_KEY }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}

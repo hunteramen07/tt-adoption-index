@@ -10,6 +10,12 @@ name: Monthly Index Reading
 # complete month-end and upserts it — the readings are idempotent, and re-running
 # under the current NAVs is by design (see src/lib/index/backfill.ts).
 #
+# AUM comes from the PERSISTED Dune series in Supabase aum_history (written by the
+# 06:30 refresh-dune run) — this job never reads Dune live and needs no DUNE_API_KEY.
+# If the persisted execution does not cover the month-end (refresh-dune failed, as it
+# did every night from 2026-09-24 on Dune's datapoint quota), the backfill THROWS
+# instead of forward-filling a stale value into the reading.
+#
 # Runs on the 1st at 07:30 UTC, after the 07:00 nightly, in the SAME concurrency
 # group so it never overlaps a classify/backfill/re-anchor run.
 
@@ -46,4 +52,3 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
-          DUNE_API_KEY: ${{ secrets.DUNE_API_KEY }}

@@ -535,7 +535,7 @@ export default async function Home() {
           )}
 
           <SourceLine
-            source="Dune Analytics (query 7696914)"
+            source="Dune Analytics (query 7696914) via Supabase aum_history"
             fetchedAt={aumResult?.fetchedAt ?? null}
           />
         </section>

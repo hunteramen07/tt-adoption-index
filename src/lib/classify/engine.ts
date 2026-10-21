@@ -1,5 +1,6 @@
 import type { ERC20Transfer } from '@/src/lib/etherscan/types'
 import { computeBalances } from '@/src/lib/etherscan/balances'
+import { ZERO_FLOOR, isHolderBalance, countHolders } from './residue'
 import type {
   BehaviorLabel,
   BehavioralMix,
@@ -40,12 +41,17 @@ export const normalizeAddress = (addr: string, caseSensitive = false): string =>
  *
  * nameTag and isLabeledCustodian are left as defaults; the caller is
  * responsible for enriching them via name tag resolution.
+ *
+ * `floorRaw` is the network's residue floor (residueFloorRaw in networks.ts): a
+ * balance at or below it is residue, not a holder, and gets no classification.
+ * Defaults to ZERO_FLOOR — the historical "every positive balance" rule.
  */
 export function classifyHoldersFromState(
   balances: Map<string, bigint>,
   windowTransfers: ERC20Transfer[],
   nowTs: number = Math.floor(Date.now() / 1000),
-  caseSensitive = false
+  caseSensitive = false,
+  floorRaw: bigint = ZERO_FLOOR
 ): Map<string, HolderClassification> {
   const windowStart = nowTs - WINDOW_SECONDS
   type Flows = { inflow: bigint; outflow: bigint }
@@ -71,6 +77,7 @@ export function classifyHoldersFromState(
 
   const result = new Map<string, HolderClassification>()
   for (const [address, balanceRaw] of balances) {
+    if (!isHolderBalance(balanceRaw, floorRaw)) continue // residue, not a holder
     const f = flows.get(address)
     let behavior: BehaviorLabel
     if (!f || (f.inflow === ZERO && f.outflow === ZERO)) behavior = 'Dormant'
@@ -97,9 +104,10 @@ export function classifyHoldersFromState(
  */
 export function classifyHolders(
   transfers: ERC20Transfer[],
-  nowTs: number = Math.floor(Date.now() / 1000)
+  nowTs: number = Math.floor(Date.now() / 1000),
+  floorRaw: bigint = ZERO_FLOOR
 ): Map<string, HolderClassification> {
-  return classifyHoldersFromState(computeBalances(transfers), transfers, nowTs)
+  return classifyHoldersFromState(computeBalances(transfers), transfers, nowTs, false, floorRaw)
 }
 
 /**
@@ -147,12 +155,18 @@ export function computeBehavioralMix(
  * Compute aggregate behavioral stats from precomputed holder state. Balances
  * carry {balance, firstReceipt}; window flows come from windowTransfers. Core
  * used by both the full-history wrapper and the incremental fetch path.
+ *
+ * `floorRaw` (residue floor, see classifyHoldersFromState) governs every COUNT:
+ * holderCount, the behavior mix, netNewWallets90d and exitedWallets90d all treat a
+ * balance at or below the floor as "holds nothing". Supply-weighted dormancy is
+ * computed over the same holder set; residue carries ~no weight either way.
  */
 export function computeAggregateStatsFromState(
   balances: Map<string, { balance: bigint; firstReceipt: number | null }>,
   windowTransfers: ERC20Transfer[],
   nowTs: number = Math.floor(Date.now() / 1000),
-  caseSensitive = false
+  caseSensitive = false,
+  floorRaw: bigint = ZERO_FLOOR
 ): {
   holderCount: number
   mix: BehavioralMix
@@ -167,7 +181,7 @@ export function computeAggregateStatsFromState(
   // Classify from the balance map (drop first_receipt for the classify call).
   const balanceMap = new Map<string, bigint>()
   for (const [addr, s] of balances) balanceMap.set(addr, s.balance)
-  const classifications = classifyHoldersFromState(balanceMap, windowTransfers, nowTs, caseSensitive)
+  const classifications = classifyHoldersFromState(balanceMap, windowTransfers, nowTs, caseSensitive, floorRaw)
   const mix = computeBehavioralMix(classifications)
   const dormancySharePct = computeDormancySharePct(classifications)
   const netAccumulationRatio =
@@ -175,9 +189,11 @@ export function computeAggregateStatsFromState(
       ? mix.accumulating / (mix.accumulating + mix.distributing)
       : null
 
-  // Net new: current holders whose first-ever receipt is inside the window.
+  // Net new: current holders (above the floor) whose first-ever receipt is inside
+  // the window.
   let netNewWallets90d = 0
   for (const s of balances.values()) {
+    if (!isHolderBalance(s.balance, floorRaw)) continue
     if (s.firstReceipt !== null && s.firstReceipt >= windowStart) netNewWallets90d++
   }
 
@@ -198,6 +214,10 @@ export function computeAggregateStatsFromState(
   //      strict `< windowStart` split used everywhere keeps the edge transfer
   //      INSIDE the window, matching the original historical filter
   //      (computeBalances(transfers.filter(ts < windowStart))) exactly.
+  //  • residue floor: "holds nothing now" means balanceNow ≤ floor (a wallet
+  //      that redeemed down to float residue has exited), and "held > 0 at
+  //      start" means balanceAtStart > floor. At ZERO_FLOOR, with the
+  //      positive-only maps every caller passes, this is exactly the rule above.
   type Flow = { inflow: bigint; outflow: bigint }
   const windowFlow = new Map<string, Flow>()
   for (const t of windowTransfers) {
@@ -219,13 +239,14 @@ export function computeAggregateStatsFromState(
 
   let exitedWallets90d = 0
   for (const [addr, f] of windowFlow) {
-    if (balances.has(addr)) continue // still a current holder ⇒ not exited
-    const balanceAtStart = f.outflow - f.inflow // = 0 - netFlow, since balanceNow = 0
-    if (balanceAtStart > ZERO) exitedWallets90d++
+    const balanceNow = balances.get(addr)?.balance ?? ZERO
+    if (isHolderBalance(balanceNow, floorRaw)) continue // still a current holder ⇒ not exited
+    const balanceAtStart = balanceNow - (f.inflow - f.outflow) // = balanceNow - netFlow
+    if (isHolderBalance(balanceAtStart, floorRaw)) exitedWallets90d++
   }
 
   return {
-    holderCount: balances.size,
+    holderCount: countHolders(balances.values(), floorRaw),
     mix,
     dormancySharePct,
     netNewWallets90d,
@@ -242,7 +263,8 @@ export function computeAggregateStatsFromState(
  */
 export function computeAggregateStats(
   transfers: ERC20Transfer[],
-  nowTs: number = Math.floor(Date.now() / 1000)
+  nowTs: number = Math.floor(Date.now() / 1000),
+  floorRaw: bigint = ZERO_FLOOR
 ) {
   const balances = computeBalances(transfers)
   const firstReceipt = new Map<string, number>()
@@ -257,5 +279,5 @@ export function computeAggregateStats(
   for (const [addr, bal] of balances) {
     state.set(addr, { balance: bal, firstReceipt: firstReceipt.get(addr) ?? null })
   }
-  return computeAggregateStatsFromState(state, transfers, nowTs)
+  return computeAggregateStatsFromState(state, transfers, nowTs, false, floorRaw)
 }
